@@ -18,7 +18,7 @@ import axios from "axios";
 import CryptoJS, { enc } from "crypto-js";
 import forge from "node-forge";
 import DocumentsList from "../components/DocumentsList";
-import { IoMdRefresh } from "react-icons/io";
+import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import Loader from "react-loaders";
 import "loaders.css/loaders.min.css";
 import { FaPlus } from "react-icons/fa";
@@ -64,7 +64,9 @@ const AssistantDashboard = () => {
       setIsLoading(true);
       setError(null);
       setDocuments([]);
-      const apiUrl = `${import.meta.env.VITE_API_URL}/file/get-documents?status=${selectedTab.toLowerCase()}`;
+      const apiUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/get-documents?status=${selectedTab.toLowerCase()}`;
       console.log("apiUrl", apiUrl);
 
       const response = await axios.get(apiUrl, {
@@ -295,25 +297,63 @@ const AssistantDashboard = () => {
           </div>
 
           <div className="flex-grow">
-            <label className="block text-sm font-medium text-gray-700">
-              Date Range
-            </label>
+            <label className="block text-sm font-medium  ">Date Range</label>
             <div className="flex flex-col md:flex-row gap-4">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="p-2 border bg-white border-gray-300 rounded-md"
-                disabled={loading}
-              />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="p-2 border bg-white border-gray-300 rounded-md"
-                min={startDate}
-                disabled={loading}
-              />
+              {/* Start Date Picker */}
+              <div className="relative">
+                <input
+                  ref={(input) => (window.startDateInput = input)}
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  disabled={loading}
+                />
+                <svg
+                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  onClick={() => window.startDateInput?.showPicker()} // Opens Date Picker on SVG Click
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
+                  />
+                </svg>
+              </div>
+
+              {/* End Date Picker */}
+              <div className="relative">
+                <input
+                  ref={(input) => (window.endDateInput = input)}
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  min={startDate}
+                  disabled={loading}
+                />
+                <svg
+                  className="absolute right-3 top-3 w-5 h-5 text-black  cursor-pointer"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  onClick={() => window.endDateInput?.showPicker()} // Opens Date Picker on SVG Click
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
+                  />
+                </svg>
+              </div>
+
               <button
                 onClick={handleRefresh}
                 className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
@@ -407,8 +447,8 @@ const AssistantDashboard = () => {
 
       {/* Add Document Button */}
       <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
-        <HiDocumentPlus
-          className="text-5xl "
+        <IoIosAdd
+          className="text-4xl "
           onClick={() => setNewDocDialogOpen(true)}
           disabled={loading}
         />
@@ -438,7 +478,10 @@ const AssistantDashboard = () => {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setViewPdfDialogOpen(false)} disabled={loading}>
+          <Button
+            onClick={() => setViewPdfDialogOpen(false)}
+            disabled={loading}
+          >
             Close
           </Button>
         </DialogActions>

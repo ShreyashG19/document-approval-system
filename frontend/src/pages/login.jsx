@@ -26,7 +26,9 @@ const Login = () => {
       } catch (error) {
         console.error("Error fetching FCM Token:", error);
         setTokenError(true);
-        toast.error("Error getting notification token. Please try again later.");
+        toast.error(
+          "Error getting notification token. Please try again later."
+        );
       } finally {
         setTokenLoading(false);
       }
@@ -110,7 +112,9 @@ const Login = () => {
       {!tokenLoading && (
         <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome Back!
+            </h1>
             <p className="text-gray-600">Sign in to your account</p>
           </div>
 
@@ -156,9 +160,12 @@ const Login = () => {
               className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
             >
               {loading ? (
-                <span className="loading loading-spinner"></span>
+                <>
+                  <span className="loading loading-spinner"></span>
+                  <span className="ml-2">Logging in...</span>
+                </>
               ) : (
-                `Login as ${selectedToggle}`
+                `Login  `
               )}
             </button>
           </form>
