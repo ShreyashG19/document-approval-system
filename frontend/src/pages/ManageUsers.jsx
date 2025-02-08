@@ -14,7 +14,7 @@ const ManageUsers = () => {
   const { loggedInUser } = useContext(AuthContext);
   const [showAddUser, setShowAddUser] = useState(false);
   const [loading, setLoading] = useState(false); // Add a loading state
-
+  
   useEffect(() => {
     if (!loggedInUser) {
       navigate("/");
@@ -41,6 +41,14 @@ const ManageUsers = () => {
     }
   };
 
+  const handleOpenAddUser = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setShowAddUser(true);
+    }, 1000); // Simulate loading delay before showing modal
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-white to-blue-100">
       <Toaster />
@@ -49,11 +57,10 @@ const ManageUsers = () => {
         <div className="w-full max-w-3xl bg-white shadow-lg border border-gray-200 rounded-lg p-8">
           <div className="flex gap-4 mb-6 justify-end">
             <button
-              onClick={() => setShowAddUser(true)}
+              onClick={handleOpenAddUser}
               className="text-white bg-blue-600 hover:bg-blue-700 p-2 rounded-lg flex items-center gap-2"
             >
-              <FaUserPlus />
-              Add New
+              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Add New</>}
             </button>
           </div>
 
@@ -131,6 +138,7 @@ const ManageUsers = () => {
       {/* Loader */}
       {loading && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+          <span className="loading loading-lg"></span>
           <div className="text-white text-xl">Loading...</div>
         </div>
       )}
