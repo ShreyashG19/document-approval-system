@@ -65,7 +65,7 @@ const SentBackTabContent = ({
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams}`,
+        `${import.meta.env.VITE_API_URL}/file/get-documents?status=correction`,
         { withCredentials: true }
       );
 
