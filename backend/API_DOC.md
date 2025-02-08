@@ -2,7 +2,6 @@
 
 ## Table of Contents
 
--   [Authentication](#authentication)
 -   [User Management](#user-management)
 -   [File Operations](#file-operations)
 -   [Department Management](#department-management)
