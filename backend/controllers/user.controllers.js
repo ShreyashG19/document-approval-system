@@ -23,11 +23,11 @@ const signIn = asyncHandler(async (req, res, next) => {
     username = username.trim().toLowerCase();
     password = password.trim();
     deviceToken = deviceToken.trim();
-
-    // Detect device type from request
-    const deviceType = req.headers["user-agent"].includes("Mobile")
-        ? "mobile"
-        : "desktop";
+    if (!deviceToken) {
+        const error = new Error("Device token is required");
+        error.statusCode = 400;
+        return next(error);
+    }
 
     const user = await User.findOne({ username });
 
@@ -57,14 +57,14 @@ const signIn = asyncHandler(async (req, res, next) => {
         return next(error);
     }
 
-    // Manage device tokens
-    const deviceIndex = deviceType === "desktop" ? 0 : 1;
-
-    // Update token for specific device type
-    if (user.deviceTokens[deviceIndex] != deviceToken) {
-        user.deviceTokens[deviceIndex] = deviceToken;
-        await user.save();
+    if (user.deviceTokens.includes(deviceToken)) {
+        const error = new Error("User already logged in");
+        error.statusCode = 400;
+        return next(error);
     }
+
+    user.deviceTokens.push(deviceToken);
+    await user.save();
 
     const jti = uuidv4();
     const token = jwt.sign(
@@ -173,6 +173,29 @@ const signOut = asyncHandler(async (req, res, next) => {
     }
     console.log("cookie removed");
     return res.status(200).json({ message: "Logged out successfully" });
+});
+
+const signOutAll = asyncHandler(async (req, res, next) => {
+    const token = req.cookies.token;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.clearCookie("token");
+    if (!decoded) {
+        return res.status(200).json({ message: "Logged out successfully" });
+    }
+
+    await User.updateOne(
+        { _id: req.user._id },
+        {
+            $set: {
+                validJtis: [],
+                deviceTokens: [],
+            },
+        }
+    );
+    console.log("cookie removed");
+    return res
+        .status(200)
+        .json({ message: "Logged out from all devicess successfully" });
 });
 
 const checkAuthStatus = asyncHandler(async (req, res, next) => {
@@ -479,4 +502,5 @@ module.exports = {
     updateProfile,
     changeUserStatus,
     getAssistants,
+    signOutAll,
 };
