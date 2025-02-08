@@ -274,9 +274,6 @@ const NewCm = ({
                     >
                       {item.title}
                     </h3>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-center text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {item.description}
-                    </div>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:space-x-4">
                     <span className="text-[13px] font-light text-gray-800">

@@ -97,78 +97,54 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-white to-blue-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
       <Toaster />
 
-
       {tokenLoading && (
-        <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
           <span className="loading loading-bars loading-lg"></span>
-          <p className="ml-4">System Loading. Please wait...</p>
+          <p className="ml-4 text-gray-700">System Loading. Please wait...</p>
         </div>
       )}
-         <div>{fcmToken}</div>
 
       {!tokenLoading && (
-        <div className="w-96 bg-white shadow-lg border border-gray-200 rounded-lg p-8">
-          <div className="flex justify-center gap-4 mb-6">
-            <button
-              className={`px-4 py-2 text-sm font-medium rounded-md ${
-                selectedToggle === "Approver"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-              onClick={() => setSelectedToggle("Approver")}
-            >
-              Approver
-            </button>
-            <button
-              className={`px-4 py-2 text-sm font-medium rounded-md ${
-                selectedToggle === "Assistant"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-              onClick={() => setSelectedToggle("Assistant")}
-            >
-              Assistant
-            </button>
+        <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h1>
+            <p className="text-gray-600">Sign in to your account</p>
           </div>
 
-          <h2 className="text-center text-xl font-semibold text-gray-800 mb-6">
-            Welcome Back!
-          </h2>
-
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Username
               </label>
               <input
                 type="text"
                 placeholder="Enter your username"
-                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition duration-200"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
 
-            <div className="mb-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
               <input
                 type="password"
                 placeholder="Enter your password"
-                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition duration-200"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
-            <div className="flex justify-end items-end mb-4">
+            <div className="flex justify-end">
               <RouterLink
                 to="/forgot-password"
-                className="text-sm text-blue-500 hover:underline"
+                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
               >
                 Forgot Password?
               </RouterLink>
@@ -176,9 +152,14 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition duration-200"
+              disabled={loading}
+              className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
             >
-              Login as {selectedToggle}
+              {loading ? (
+                <span className="loading loading-spinner"></span>
+              ) : (
+                `Login as ${selectedToggle}`
+              )}
             </button>
           </form>
 
@@ -189,9 +170,9 @@ const Login = () => {
               </span>
               <RouterLink
                 to="/register"
-                className="text-sm text-blue-500 hover:underline"
+                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
               >
-                Register
+                Register As <span className="font-semibold">Assistant</span>
               </RouterLink>
             </div>
           )}
