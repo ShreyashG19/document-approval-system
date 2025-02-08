@@ -195,7 +195,7 @@ const ApproverDashboard = () => {
       <div className="flex items-center min-h-screen mt-3 h-auto justify-center flex-grow">
         <div className="w-[90%] max-w-[80vh] bg-white h-full flex flex-col flex-grow-1 shadow-lg border border-gray-200 rounded-lg">
           {/* Tabs */}
-          <div className="tabs flex justify-around items-center text-sm text-gray-700 mt-1 border-b border-gray-200 h-11 ">
+          <div className="tabs flex justify-around items-center text-sm text-gray-700 mt-2 border-b border-gray-200">
             <button
               onClick={() => setSelectedTab("NEW")}
               className={`px-4 py-2 font-medium rounded-md ${
