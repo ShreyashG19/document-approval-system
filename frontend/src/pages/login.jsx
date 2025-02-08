@@ -11,6 +11,7 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [tokenLoading, setTokenLoading] = useState(true);
   const [tokenError, setTokenError] = useState(false);
   const { loggedInUser, setLoggedInUser } = useContext(AuthContext);
@@ -98,6 +99,14 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setTimeout(() => {
+      navigate("/forgot-password");
+    }, 1000);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
       <Toaster />
@@ -146,12 +155,17 @@ const Login = () => {
             </div>
 
             <div className="flex justify-end">
-              <RouterLink
-                to="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+              <button
+                onClick={handleForgotPassword}
+                className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex items-center"
+                disabled={forgotLoading}
               >
-                Forgot Password?
-              </RouterLink>
+                {forgotLoading ? (
+                  <span className="loading loading-spinner"></span>
+                ) : (
+                  "Forgot Password?"
+                )}
+              </button>
             </div>
 
             <button
@@ -169,20 +183,6 @@ const Login = () => {
               )}
             </button>
           </form>
-
-          {selectedToggle === "Assistant" && (
-            <div className="text-center mt-6">
-              <span className="text-sm text-gray-600">
-                Don't have an account?{" "}
-              </span>
-              <RouterLink
-                to="/register"
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-              >
-                Register As <span className="font-semibold">Assistant</span>
-              </RouterLink>
-            </div>
-          )}
         </div>
       )}
     </div>
