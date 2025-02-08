@@ -4,29 +4,28 @@ import { toast } from "react-hot-toast";
 import { FaDownload } from "react-icons/fa";
 import CryptoJS from "crypto-js";
 
-const DocumentsList = ({ status, department, handleTitleClick, encKey }) => {
+const DocumentsList = ({ status, department, startDate, endDate, searchQuery, handleTitleClick }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filteredData, setFilteredData] = useState([]);
-  const [currentPdfUrl, setCurrentPdfUrl] = useState("");
-  // TODO: Replace with secure key management
-  const encryptionKey = "your-hardcoded-encryption-key";
+  const [documents, setDocuments] = useState([]);
+
+  // Fetch Documents from API
   const fetchDocuments = async () => {
     try {
       setIsLoading(true);
       setError(null);
-  
+
       const queryParams = new URLSearchParams();
-      const validStatus = status && status !== "all" ? status : "pending";
-      queryParams.append("status", validStatus);
-  
+      if (status && status !== "all") queryParams.append("status", status);
+      if (department) queryParams.append("department", department);
+
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams.toString()}`,
         { withCredentials: true }
       );
-  
+
       if (response.data.status && response.data.documents) {
-        setFilteredData(response.data.documents);
+        setDocuments(response.data.documents);
       } else {
         throw new Error("Invalid response format");
       }
@@ -34,44 +33,50 @@ const DocumentsList = ({ status, department, handleTitleClick, encKey }) => {
       console.error("Fetch error:", err);
       setError(err.response?.data?.message || "Failed to fetch documents");
       toast.error("Failed to load documents");
-      setFilteredData([]);
+      setDocuments([]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Fetch when filters change
   useEffect(() => {
     fetchDocuments();
   }, [status, department]);
 
+  // Apply Filtering for Search, Date, and Category
+  const filteredDocuments = documents.filter((doc) => {
+    const docDate = new Date(doc.createdDate);
+    return (
+      (!startDate || docDate >= new Date(startDate)) &&
+      (!endDate || docDate <= new Date(endDate)) &&
+      (!searchQuery || doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  });
+
+  // Handle Document Download
   const handleDownload = async (fileName) => {
     try {
-      console.log("fileName", fileName);
-      // Download encrypted file
-      const downloadUrl =
-        import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
+      console.log("Downloading:", fileName);
+      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
       });
 
       // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
-
-      // Convert to Uint8Array
+      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
       const typedArray = convertWordArrayToUint8Array(decrypted);
 
       // Create blob and download
-      const blob = new Blob([typedArray], {
-        type: "application/pdf" || "application/octet-stream",
-      });
-
+      const blob = new Blob([typedArray], { type: "application/pdf" });
       downloadBlob(blob, fileName.replace(".enc", ""));
-      console.log("File decrypted and downloaded successfully.");
     } catch (error) {
-      console.error("Decryption error:", error);
+      console.error("Download error:", error);
     }
   };
+
+  // Convert CryptoJS WordArray to Uint8Array
   const convertWordArrayToUint8Array = (wordArray) => {
     const len = wordArray.sigBytes;
     const words = wordArray.words;
@@ -88,11 +93,9 @@ const DocumentsList = ({ status, department, handleTitleClick, encKey }) => {
     return uint8Array;
   };
 
+  // Download Blob File
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
-    setCurrentPdfUrl(url);
-    console.log("url", url);
-
     const link = document.createElement("a");
     link.href = url;
     link.download = filename;
@@ -102,35 +105,29 @@ const DocumentsList = ({ status, department, handleTitleClick, encKey }) => {
     URL.revokeObjectURL(url);
   };
 
+  // Handle Document Preview
   const handlePreview = async (fileName) => {
     try {
-      console.log("fileName", fileName);
-      // Download encrypted file
-      const downloadUrl =
-        import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
+      console.log("Previewing:", fileName);
+      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
       });
 
       // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
-
-      // Convert to Uint8Array
+      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
       const typedArray = convertWordArrayToUint8Array(decrypted);
 
-      // Create blob and download
-      const blob = new Blob([typedArray], {
-        type: "application/pdf" || "application/octet-stream",
-      });
-
+      // Create blob and generate preview URL
+      const blob = new Blob([typedArray], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-      console.log("file url generated for preview : ", url);
       return url;
     } catch (error) {
-      console.error("Decryption error:", error);
+      console.error("Preview error:", error);
     }
   };
+
   return (
     <div className="flex items-start justify-start flex-grow">
       <div className="w-full max-w-4xl bg-white shadow-lg border border-gray-200 rounded-lg p-6">
@@ -143,15 +140,15 @@ const DocumentsList = ({ status, department, handleTitleClick, encKey }) => {
         ) : (
           <>
             <div className="space-y-4">
-              {filteredData.length > 0 ? (
-                filteredData.map((doc) => (
+              {filteredDocuments.length > 0 ? (
+                filteredDocuments.map((doc) => (
                   <div
                     key={doc._id}
                     className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
                   >
                     <div className="flex-grow">
                       <h3
-                        className="text-lg font-semibold w-fit text-gray-800"
+                        className="text-lg font-semibold w-fit text-gray-800 cursor-pointer"
                         onClick={async () => {
                           const url = await handlePreview(doc.fileUniqueName);
                           handleTitleClick(url);
@@ -161,14 +158,10 @@ const DocumentsList = ({ status, department, handleTitleClick, encKey }) => {
                       </h3>
                       <div className="flex flex-wrap gap-4 mt-2">
                         <p className="text-sm text-gray-600">
-                          Department:{" "}
-                          {doc.department?.departmentName || "Unassigned"}
+                          Department: {doc.department?.departmentName || "Unassigned"}
                         </p>
                         <p className="text-sm text-gray-600">
-                          Created by:{" "}
-                          {doc.createdBy?.fullName ||
-                            doc.createdBy?.username ||
-                            "Unknown"}
+                          Created by: {doc.createdBy?.fullName || "Unknown"}
                         </p>
                         <span className="text-xs text-gray-400">
                           {new Date(doc.createdDate).toLocaleDateString()}
@@ -187,9 +180,7 @@ const DocumentsList = ({ status, department, handleTitleClick, encKey }) => {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  No documents found
-                </div>
+                <div className="text-center py-8 text-gray-500">No documents found</div>
               )}
             </div>
           </>
