@@ -47,6 +47,109 @@
 -   **Access**: Authenticated Users
 -   **Description**: Invalidates user session
 
+### Sign Out All Devices
+
+-   **Endpoint**: `POST /user/signout-all`
+-   **Access**: Authenticated Users
+-   **Description**: Invalidates all user sessions across devices
+
+### Verify OTP
+
+-   **Endpoint**: `POST /user/verify-otp`
+-   **Access**: Public
+-   **Request Body**:
+
+```json
+{
+    "username": "string",
+    "otp": "string"
+}
+```
+
+### Resend OTP
+
+-   **Endpoint**: `POST /user/resend-otp`
+-   **Access**: Public
+-   **Request Body**:
+
+```json
+{
+    "username": "string",
+    "email": "string"
+}
+```
+
+### Password Reset Flow
+
+#### 1. Send Password Reset OTP
+
+-   **Endpoint**: `POST /user/send-password-reset-otp`
+-   **Access**: Public
+-   **Request Body**:
+
+```json
+{
+    "email": "string"
+}
+```
+
+#### 2. Verify Special OTP
+
+-   **Endpoint**: `POST /user/verify-sp-otp`
+-   **Access**: Public
+-   **Request Body**:
+
+```json
+{
+    "email": "string",
+    "otp": "string"
+}
+```
+
+#### 3. Reset Password
+
+-   **Endpoint**: `POST /user/reset-password`
+-   **Access**: Users with valid special token
+-   **Request Body**:
+
+```json
+{
+    "newPassword": "string"
+}
+```
+
+### Change Password (Authenticated)
+
+-   **Endpoint**: `POST /user/change-password`
+-   **Access**: Authenticated Users
+-   **Request Body**:
+
+```json
+{
+    "oldPassword": "string",
+    "newPassword": "string"
+}
+```
+
+### Change User Status
+
+-   **Endpoint**: `POST /user/change-user-status`
+-   **Access**: Admin, Senior Assistant
+-   **Request Body**:
+
+```json
+{
+    "username": "string",
+    "isActive": "boolean"
+}
+```
+
+### Get Assistants
+
+-   **Endpoint**: `GET /user/get-assistants`
+-   **Access**: Approver
+-   **Description**: Returns list of assistants assigned to the approver
+
 ### Update Profile
 
 -   **Endpoint**: `POST /user/update-profile`

@@ -25,3 +25,7 @@ When user logs in → Cache isActive in Redis.
 On each request → Check Redis instead of DB.
 When admin updates isActive → Update Redis.
 If Redis entry expires → Fetch from DB again.
+
+
+- if admin deactivates account of an approver, he can add new approver
+- after creation of new approver the old one cannot be re-activated, only one approver can be enabled at a time 
