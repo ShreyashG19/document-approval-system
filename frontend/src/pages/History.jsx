@@ -211,21 +211,6 @@ const History = () => {
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
 
-        {/* Search Bar */}
-        <div className="flex justify-start items-start md:flex-row gap-4">
-          <div className="relative w-full max-w-xs mb-6">
-            <FaSearch className="absolute top-3 left-3 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              disabled={loading}
-            />
-          </div>
-        </div>
-
         {/* Filters */}
         <div className="mb-4 flex flex-col md:flex-row gap-4">
           <div className="flex-shrink-0">

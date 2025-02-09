@@ -41,8 +41,9 @@ const ApproverDashboard = () => {
   const [remark, setRemark] = useState("");
   const [isRemarkEditable, setIsRemarkEditable] = useState(false);
   const navigate = useNavigate();
-  const [currentAction, setCurrentAction] = useState(null);
-
+  const [localRemark, setLocalRemark] = useState("");  
+  const [departments, setDepartments] = useState([]);
+  
   // Authentication Check
   useEffect(() => {
     if (!loggedInUser) {
@@ -341,4 +342,4 @@ const ApproverDashboard = () => {
   );
 };
 
-export default ApproverDashboard;
+  export default ApproverDashboard;
