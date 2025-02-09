@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useState } from "react";
 import {
   FaHistory,
@@ -193,7 +194,7 @@ const ApproverDashboard = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r bg-blue-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-r from-white to-blue-100">
       <div className="flex items-center min-h-screen mt-3 h-auto justify-center flex-grow">
         <div className="w-[90%] max-w-[80vh] bg-white h-full flex flex-col flex-grow-1 shadow-lg border border-gray-200 rounded-lg">
           {/* Tabs */}
@@ -313,7 +314,7 @@ const ApproverDashboard = () => {
         </DialogContent>
         {selectedDocument?.status === "pending" && (
         <DialogActions>
-          <div className="border-t-2 flex border-t-gray-600 w-full items-end justify-end">
+          <div className="border-t-2 flex space-x-2   mt-3 w-full items-end justify-end">
             <button
               onClick={() => handleApprove(fileUnName)}
               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"

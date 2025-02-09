@@ -1,3 +1,8 @@
+ 
+
+ 
+
+ 
 import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import axios from "axios";
@@ -64,7 +69,7 @@ const SentBackTabContent = ({
       }
                 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?status=correction-rejected`,
+        `${import.meta.env.VITE_API_URL}/file/get-documents?status=rejected-correction`,
         { withCredentials: true }
       );
 
@@ -412,3 +417,4 @@ const SentBackTabContent = ({
 };
 
 export default SentBackTabContent;
+

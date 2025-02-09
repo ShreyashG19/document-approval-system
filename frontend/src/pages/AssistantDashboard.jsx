@@ -11,12 +11,9 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import { FaCalendarAlt } from "react-icons/fa";
-import AddIcon from "@mui/icons-material/Add";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
-import CryptoJS, { enc } from "crypto-js";
-import forge from "node-forge";
+import CryptoJS from "crypto-js";
 import DocumentsList from "../components/DocumentsList";
 import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import Loader from "react-loaders";
@@ -25,10 +22,6 @@ import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
 
 const AssistantDashboard = () => {
-  //keys
-  // const [privateKeyPem, setPrivateKeyPem] = useState(null);
-  const [encKey, setEncKey] = useState(null);
-
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,37 +112,7 @@ const AssistantDashboard = () => {
         console.error("Error fetching departments:", error);
       }
     };
-
-    const generateKeysAndRequestEncKey = async () => {
-      // Generate RSA Key Pair
-      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
-      const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
-      const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
-      console.log("publicKeyPem", publicKeyPem);
-
-      // Send Public Key to Server
-      const responseUrl = import.meta.env.VITE_API_URL + "/file/get-enc-key";
-      const response = await axios.post(
-        responseUrl,
-        { clientPublicKey: publicKeyPem },
-        { withCredentials: true }
-      );
-
-      const encryptedEncKey = response.data.encryptedEncKey;
-
-      // Decrypt the encKey using Private Key
-      const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-      const decryptedKey = privateKey.decrypt(
-        forge.util.decode64(encryptedEncKey),
-        "RSA-OAEP",
-        { md: forge.md.sha256.create() }
-      );
-
-      setEncKey(decryptedKey); // Final decrypted encKey
-      console.log("Decrypted encKey:", decryptedKey);
-    };
     fetchDepartments();
-    generateKeysAndRequestEncKey();
   }, []);
 
   // Filter Documents
@@ -187,9 +150,7 @@ const AssistantDashboard = () => {
       // Encrypt the file
       const arrayBuffer = await newDocFile.arrayBuffer();
       const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-
-      // const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
-      const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
+      const encrypted = CryptoJS.AES.encrypt(wordArray, "mykey");
       const encryptedContent = encrypted.toString();
 
       // Prepare form data
@@ -278,18 +239,18 @@ const AssistantDashboard = () => {
               Category
             </label>
             <select
-  value={selectedCategory}
-  onChange={(e) => setSelectedCategory(e.target.value)}
-  className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
->
-  <option value="">All</option>
-  {departments?.map((department, idx) => (
-    <option key={idx} value={department}>
-      {department.charAt(0).toUpperCase() + department.slice(1).toLowerCase()}
-    </option>
-  ))}
-</select>
-
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
+              disabled={loading}
+            >
+              <option value="">All</option>
+              {departments?.map((department, idx) => (
+                <option key={idx} value={department}>
+                  {department}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex-grow">
@@ -372,12 +333,11 @@ const AssistantDashboard = () => {
             department={selectedCategory}
             startDate={startDate}
             endDate={endDate}
-            searchQuery={searchQuery} 
+            searchQuery={searchQuery}  
             handleTitleClick={(url) => {
               setCurrentPdfUrl(url);
               setViewPdfDialogOpen(true);
             }}
-            encKey={encKey}
           />
         )}
       </main>
@@ -490,3 +450,4 @@ const AssistantDashboard = () => {
 };
 
 export default AssistantDashboard;
+ 
