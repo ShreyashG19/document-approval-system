@@ -2,7 +2,7 @@ const Role = {
   SENIOR_ASSISTANT: "senior assistant",
   ASSISTANT: "assistant",
   APPROVER: "approver",
-  ADMIN: "approver",
+  ADMIN: "admin",
 };
 
 const FileStatus = {
@@ -11,6 +11,5 @@ const FileStatus = {
   CORRECTION: "correction",
   PENDING: "pending",
 };
- 
 
-export  { Role, FileStatus };
+export { Role, FileStatus };

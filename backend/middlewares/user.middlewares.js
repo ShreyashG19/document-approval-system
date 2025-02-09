@@ -91,9 +91,9 @@ const verifyToken = asyncHandler(async (req, res, next) => {
 const verifySpToken = asyncHandler(async (req, res, next) => {
     const token = req.cookies.sptoken;
     if (!token) {
-        return res.status(401).json({
+        return res.status(400).json({
             status: false,
-            message: "No token found",
+            message: "Access Denied",
         });
     }
 
