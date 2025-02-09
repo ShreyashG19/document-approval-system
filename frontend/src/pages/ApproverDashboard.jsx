@@ -44,7 +44,9 @@ const ApproverDashboard = () => {
   const [remark, setRemark] = useState("");
   const [isRemarkModalOpen, setIsRemarkModalOpen] = useState(false);
   const navigate = useNavigate();
-  const [localRemark, setLocalRemark] = useState("");
+  const [localRemark, setLocalRemark] = useState("");  
+  const [departments, setDepartments] = useState([]);
+  
   // Authentication Check
   useEffect(() => {
     if (!loggedInUser) {
@@ -76,6 +78,22 @@ const ApproverDashboard = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+          { withCredentials: true }
+        );
+        console.log("departments : ", response.data.data);
+        setDepartments(response.data.data);
+      } catch (error) {
+        console.error("Error fetching departments:", error);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   useEffect(() => {
     fetchDocuments();
@@ -315,78 +333,78 @@ const ApproverDashboard = () => {
         {selectedDocument?.status === "pending" && (
         <DialogActions>
           <div className="border-t-2 flex space-x-2   mt-3 w-full items-end justify-end">
-            <button
-              onClick={() => handleApprove(fileUnName)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
-            >
-              <AiOutlineCheck className="h-5 w-5" />
-              Approve
-            </button>
+              <button
+                onClick={() => handleApprove(fileUnName)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
+              >
+                <AiOutlineCheck className="h-5 w-5" />
+                Approve
+              </button>
 
-            <button
-              onClick={() => handleReject(fileUnName)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
-            >
-              <AiOutlineCloseCircle className="h-5 w-5" />
-              Reject
-            </button>
+              <button
+                onClick={() => handleReject(fileUnName)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
+              >
+                <AiOutlineCloseCircle className="h-5 w-5" />
+                Reject
+              </button>
 
-            <button
-              onClick={openRemarkModal}
-              className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
-            >
-              <FiEdit2 className="h-5 w-5" />
-              Add Remark
-            </button>
-          </div>
-        </DialogActions>)}
-      </Dialog>
+              <button
+                onClick={openRemarkModal}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
+              >
+                <FiEdit2 className="h-5 w-5" />
+                Add Remark
+              </button>
+            </div>
+          </DialogActions>)}
+        </Dialog>
 
-      {/* New Remark Modal */}
-      <Dialog
-        open={isRemarkModalOpen}
-        onClose={closeRemarkModal}
-        maxWidth="sm"
-        fullWidth
-        className="rounded-lg"
-      >
-        <DialogTitle>
-          <div className="flex justify-between rounded-lg items-center">
-            <span>Add Remark</span>
-            <Button onClick={closeRemarkModal}>
-              <AiOutlineClose className="h-5 w-5" />
+        {/* New Remark Modal */}
+        <Dialog
+          open={isRemarkModalOpen}
+          onClose={closeRemarkModal}
+          maxWidth="sm"
+          fullWidth
+          className="rounded-lg"
+        >
+          <DialogTitle>
+            <div className="flex justify-between rounded-lg items-center">
+              <span>Add Remark</span>
+              <Button onClick={closeRemarkModal}>
+                <AiOutlineClose className="h-5 w-5" />
+              </Button>
+            </div>
+          </DialogTitle>
+          <DialogContent>
+            <textarea
+              className="w-full p-2 mt-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              rows="4"
+              required
+              placeholder="Enter your remark here..."
+              value={remark}
+              onChange={(e) => setRemark(e.target.value)}
+            ></textarea>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={closeRemarkModal}
+              className="text-gray-700 hover:bg-blue-600 hover:text-white "
+            >
+              Cancel
             </Button>
-          </div>
-        </DialogTitle>
-        <DialogContent>
-          <textarea
-            className="w-full p-2 mt-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            rows="4"
-            required
-            placeholder="Enter your remark here..."
-            value={remark}
-            onChange={(e) => setRemark(e.target.value)}
-          ></textarea>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={closeRemarkModal}
-            className="text-gray-700 hover:bg-blue-600 hover:text-white "
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleRemarkSubmit}
-            disabled={!remark?.trim()}
-            className={`bg-blue-500 text-white hover:bg-blue-600  hover:text-white
-              ${!remark?.trim() ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-  );
-};
+            <Button
+              onClick={handleRemarkSubmit}
+              disabled={!remark?.trim()}
+              className={`bg-blue-500 text-white hover:bg-blue-600  hover:text-white
+                ${!remark?.trim() ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    );
+  };
 
-export default ApproverDashboard;
+  export default ApproverDashboard;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import axios from "axios";
@@ -30,7 +29,9 @@ const NewCm = ({
   const [isRemarkModalOpen, setIsRemarkModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
   // const [remark, setRemark] = useState("");
+  const [departments, setDepartments] = useState([]);
 
+  const [searchTerm, setSearchTerm] = useState("");
   const convertWordArrayToUint8Array = (wordArray) => {
     const len = wordArray.sigBytes;
     const words = wordArray.words;
@@ -55,26 +56,23 @@ const NewCm = ({
       const queryParams = new URLSearchParams();
       queryParams.append("status", "pending");
 
-      if (category) {
-        queryParams.append("category", category);
-      }
-      if (startDate) {
-        queryParams.append("startDate", startDate);
-      }
-      if (endDate) {
-        queryParams.append("endDate", endDate);
-      }
+      // Add category to query params if selected
+      if (category) queryParams.append("department", category);
+      if (startDate) queryParams.append("startDate", startDate);
+      if (endDate) queryParams.append("endDate", endDate);
+      if (searchTerm.trim()) queryParams.append("search", searchTerm.trim());
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams}`,
         { withCredentials: true }
       );
 
-      console.log("API Response:", response.data);
-
       if (response.data.status && response.data.documents) {
-        setFilteredData(response.data.documents);
-        console.log("Filtered Data:", response.data.documents);
+        // Filter documents based on department/category
+        const filtered = response.data.documents.filter((doc) =>
+          category ? doc.department?.departmentName === category : true
+        );
+        setFilteredData(filtered);
       } else {
         throw new Error("Invalid response format");
       }
@@ -188,7 +186,25 @@ const NewCm = ({
       console.error("Decryption error:", error);
     }
   };
-
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+          { withCredentials: true }
+        );
+        if (response.data && response.data.data) {
+          // Add console.log to debug the response
+          console.log("API Response:", response.data);
+          setDepartments(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching departments:", error);
+        toast.error("Failed to fetch departments");
+      }
+    };
+    fetchDepartments();
+  }, []);
   return (
     <div className="flex flex-col font-sans space-y-6 p-4">
       {/* Search Section */}
@@ -199,22 +215,36 @@ const NewCm = ({
           type="text"
           placeholder="Search"
           className="w-full pl-10 pr-4 py-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       {/* Filters */}
       <div className="flex flex-col space-y-2 tracking-tight scale-90 sm:flex-row sm:space-y-0 sm:space-x-4">
         <select
-          className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => {
+            setCategory(e.target.value);
+            // Trigger immediate fetch when category changes
+            fetchDocuments();
+          }}
+          className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
+          disabled={isLoading}
         >
-          <option value="">Category</option>
-          <option value="Health">Health</option>
-          <option value="Education">Education</option>
-          <option value="Transportation">Transportation</option>
-          <option value="Finance">Finance</option>
+          <option value="">All Categories</option>
+          {departments && departments.length > 0 ? (
+            departments.map((department) => (
+              <option key={department._id} value={department.departmentName}>
+                {department.departmentName}
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>
+              Loading departments...
+            </option>
+          )}
         </select>
+
         <input
           type="date"
           className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
@@ -248,17 +278,25 @@ const NewCm = ({
             No documents found
           </p>
         ) : (
-          filteredData.map((item) => (
-            <div
-              key={item._id}
-              className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-100 p-4 rounded-md shadow-md border border-gray-300"
-            >
-              <div className="flex items-start sm:items-center space-x-4">
-                <div className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md">
-                  📄
-                </div>
-                <div className="flex flex-col">
-                  <div className="relative group">
+          filteredData
+            .filter((doc) =>
+              searchTerm.trim()
+                ? doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  doc.createdBy?.fullName
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase())
+                : true
+            )
+            .map((item) => (
+              <div
+                key={item._id}
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-100 p-4 rounded-md shadow-md border border-gray-300"
+              >
+                <div className="flex items-start sm:items-center space-x-4">
+                  <div className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md">
+                    📄
+                  </div>
+                  <div className="flex flex-col">
                     <h3
                       className="text-xl font-bold tracking-tight font-open-sans text-gray-800 cursor-pointer"
                       onClick={async () => {
@@ -267,35 +305,30 @@ const NewCm = ({
                         setDescription(
                           item.description || "No description available"
                         );
-                        setRemark(item.remark || "No remarks available"); // Ensure default value
-                        console.log("remark", item.remark);
-                        console.log("description", item.description);
-                        handleTitleClick(url, item); // Pass item for safety
+                        setRemark(item.remark || "No remarks available");
+                        handleTitleClick(url, item);
                       }}
                     >
                       {item.title}
                     </h3>
+                    <div className="flex flex-col sm:flex-row sm:space-x-4">
+                      <span className="text-[13px] font-light text-gray-800">
+                        <span className="font-semibold">Department:</span>{" "}
+                        {item.department?.departmentName || "Unassigned"}
+                      </span>
+                      <span className="text-[13px] font-light text-gray-800">
+                        <span className="font-semibold">Created By:</span>{" "}
+                        {item.createdBy?.fullName || "Unknown"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">{item.date}</p>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:space-x-4">
-                    <span className="text-[13px] font-light text-gray-800">
-                      <span className="font-semibold">Department:</span>{" "}
-                      {item.department?.departmentName || "Unassigned"}
-                    </span>
-                    <span className="text-[13px] font-light text-gray-800">
-                      <span className="font-semibold">Created By:</span>{" "}
-                      {item.createdBy?.fullName ||
-                        item.createdBy?.username ||
-                        "Unknown"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">{item.date}</p>
                 </div>
               </div>
-            </div>
-          ))
+            ))
         )}
       </div>
-                                
+
       {/* Modal for PDF display */}
       {isModalOpen && (
         <div
