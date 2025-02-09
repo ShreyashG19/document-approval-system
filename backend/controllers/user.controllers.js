@@ -1,6 +1,6 @@
 const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const uuidv4 = require("uuid").v4;
 const { hashPassword, verifyPassword } = require("../utils/hashPassword");
 const { Role } = require("../utils/enums");
 const crypto = require("crypto");
@@ -21,11 +21,13 @@ const transporter = nodemailer.createTransport({
 const signIn = asyncHandler(async (req, res, next) => {
     let { username, password, deviceToken } = req.body;
     username = username.trim().toLowerCase();
-
-    // Detect device type from request
-    const deviceType = req.headers["user-agent"].includes("Mobile")
-        ? "mobile"
-        : "desktop";
+    password = password.trim();
+    deviceToken = deviceToken.trim();
+    if (!deviceToken) {
+        const error = new Error("Device token is required");
+        error.statusCode = 400;
+        return next(error);
+    }
 
     const user = await User.findOne({ username });
 
@@ -41,6 +43,11 @@ const signIn = asyncHandler(async (req, res, next) => {
         error.statusCode = 400;
         return next(error);
     }
+    if (user.isActive === false) {
+        const error = new Error("User is deactivated");
+        error.statusCode = 400;
+        return next(error);
+    }
 
     const isMatch = await verifyPassword(password, user.password);
 
@@ -50,24 +57,26 @@ const signIn = asyncHandler(async (req, res, next) => {
         return next(error);
     }
 
-    // Manage device tokens
-    const deviceIndex = deviceType === "desktop" ? 0 : 1;
+    // if (user.deviceTokens.includes(deviceToken)) {
+    //     const error = new Error("User already logged in");
+    //     error.statusCode = 400;
+    //     return next(error);
+    // }
 
-    // Update token for specific device type
-    if (user.deviceTokens[deviceIndex] != deviceToken) {
-        user.deviceTokens[deviceIndex] = deviceToken;
-        await user.save();
-    }
+    user.deviceTokens.push(deviceToken);
+    await user.save();
 
+    const jti = uuidv4();
     const token = jwt.sign(
         {
             username: username,
             email: user.email,
             role: user.role,
+            jti: jti,
         },
         process.env.JWT_SECRET
     );
-
+    await User.updateOne({ username }, { $push: { validJtis: jti } });
     res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -75,12 +84,14 @@ const signIn = asyncHandler(async (req, res, next) => {
         maxAge: 24 * 60 * 60 * 1000,
     });
 
-    // await NotificationService.sendNotification(
-    //     deviceToken,
-    //     "Login Successful",
-    //     `Logged in at: ${new Date().toLocaleString()}`
-    // );
-
+    await user.populate({
+        path: "assignedApprover createdAssistants",
+        select: "-password -encKey -deviceTokens",
+        populate: {
+            path: "assignedApprover",
+            select: "fullName",
+        },
+    });
     return res.status(200).json({
         success: true,
         message: "Login success!",
@@ -90,6 +101,7 @@ const signIn = asyncHandler(async (req, res, next) => {
             email: user.email,
             role: user.role,
             fullName: user.fullName,
+            assignedApprover: user?.assignedApprover?.fullName,
         },
     });
 });
@@ -121,26 +133,36 @@ const signUp = asyncHandler(async (req, res, next) => {
         isVerified: false,
     });
 
-    const privateKey = crypto
-        .randomBytes(32)
-        .toString("base64")
-        .replace(/[+/]/g, (m) => (m === "+" ? "-" : "_"));
+    // const privateKey = crypto
+    //     .randomBytes(32)
+    //     .toString("base64")
+    //     .replace(/[+/]/g, (m) => (m === "+" ? "-" : "_"));
+    const encKey = crypto.randomBytes(32).toString("hex");
 
     const hash = await hashPassword(password);
+
     const newUser = await User.create({
         username,
         password: hash,
         fullName,
         email,
         mobileNo,
-        privateKey,
+        encKey,
     });
 
     await newUser.save();
     await sendOTPVerificationEmail({ username, email }, res);
 });
 const signOut = asyncHandler(async (req, res, next) => {
+    const token = req.cookies.token;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     res.clearCookie("token");
+    if (!decoded) {
+        return res.status(200).json({ message: "Logged out successfully" });
+    }
+
+    const jti = decoded.jti;
+    await User.updateOne({ _id: req.user._id }, { $pull: { validJtis: jti } });
     const deviceToken = req.body.deviceToken;
     //remove device token from user.deviceTokens
     if (deviceToken) {
@@ -150,8 +172,30 @@ const signOut = asyncHandler(async (req, res, next) => {
         );
     }
     console.log("cookie removed");
-
     return res.status(200).json({ message: "Logged out successfully" });
+});
+
+const signOutAll = asyncHandler(async (req, res, next) => {
+    const token = req.cookies.token;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.clearCookie("token");
+    if (!decoded) {
+        return res.status(200).json({ message: "Logged out successfully" });
+    }
+
+    await User.updateOne(
+        { _id: req.user._id },
+        {
+            $set: {
+                validJtis: [],
+                deviceTokens: [],
+            },
+        }
+    );
+    console.log("cookie removed");
+    return res
+        .status(200)
+        .json({ message: "Logged out from all devicess successfully" });
 });
 
 const checkAuthStatus = asyncHandler(async (req, res, next) => {
@@ -359,7 +403,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     }
     // const hash = await bcrypt.hash(newPassword, 10);
     const hash = await hashPassword(newPassword);
-    await User.updateOne({ username }, { password: hash });
+    await User.updateOne({ username }, { password: hash, validJtis: [] }); //revoke all jtis if password is changed
     return res.status(200).json({
         status: "SUCCESS",
         message: "Password updated successfully",
@@ -383,30 +427,49 @@ const updateProfile = asyncHandler(async (req, res, next) => {
     });
 });
 
-const toggleUserStatus = asyncHandler(async (req, res, next) => {
+const changeUserStatus = asyncHandler(async (req, res, next) => {
     let { username, isActive } = req.body;
-    username = username.trim().toLowerCase();
-    isActive = isActive.trim().toLowerCase();
-    if (!username || !isActive) {
-        const error = new Error("username and isActive are required");
+
+    if (!username || typeof isActive !== "boolean") {
+        const error = new Error("username and isActive (boolean) are required");
         error.statusCode = 400;
         return next(error);
     }
+
+    username = username.trim().toLowerCase();
+
     const user = await User.findOne({ username });
+
     if (!user) {
         const error = new Error("User not found");
         error.statusCode = 404;
         return next(error);
     }
-    if (user._id === req.user._id || user.role === Role.ADMIN) {
+    if (user._id === req.user._id) {
         const error = new Error("Access Denied!");
         error.statusCode = 400;
         return next(error);
     }
+
+    if (req.user.role === Role.SENIOR_ASSISTANT) {
+        //check if assistant is created by senior assistant
+        if (!req.user.createdAssistants.includes(user._id)) {
+            const error = new Error("Access Denied!");
+            error.statusCode = 400;
+            return next(error);
+        }
+    }
+    //update if everything is ok
+    //set validJtis to empty array if isActive is false
+
     await User.updateOne(
         { username },
-        { isActive: isActive === "true" ? true : false }
+        {
+            isActive,
+            validJtis: !isActive ? [] : user.validJtis, // Clears JTIs if user is deactivated
+        }
     );
+
     return res.status(200).json({
         status: "SUCCESS",
         message: `${username} is now ${isActive ? "activated" : "deactivated"}`,
@@ -437,6 +500,7 @@ module.exports = {
     resetPassword,
     verifySpOTP,
     updateProfile,
-    toggleUserStatus,
+    changeUserStatus,
     getAssistants,
+    signOutAll,
 };

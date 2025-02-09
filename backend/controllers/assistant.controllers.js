@@ -37,11 +37,12 @@ const createAssistant = asyncHandler(async (req, res, next) => {
         isVerified: true,
     });
     const assignedApprover = seniorAssistant.assignedApprover;
-    const privateKey = crypto
-        .randomBytes(32)
-        .toString("base64")
-        .replace(/[+/]/g, (m) => (m === "+" ? "-" : "_"));
+    // const privateKey = crypto
+    //     .randomBytes(32)
+    //     .toString("base64")
+    //     .replace(/[+/]/g, (m) => (m === "+" ? "-" : "_"));
 
+    const encKey = crypto.randomBytes(32).toString("hex");
     const hashedPassword = await hashPassword(password); // Using argon2 to hash the password
 
     const newUser = await new User({
@@ -50,7 +51,7 @@ const createAssistant = asyncHandler(async (req, res, next) => {
         fullName,
         email,
         mobileNo,
-        privateKey,
+        encKey,
         role: Role.ASSISTANT,
         assignedApprover,
         isVerified: true,
@@ -182,7 +183,7 @@ const createUser = asyncHandler(async (req, res, next) => {
 const getCreatedAssistants = asyncHandler(async (req, res, next) => {
     const seniorAssistant = await req.user.populate({
         path: "createdAssistants",
-        select: "-password -privateKey",
+        select: "-password -encKey",
     });
     if (seniorAssistant.createdAssistants.length === 0) {
         const error = new Error("No assistants created");
@@ -199,7 +200,7 @@ const getCreatedAssistants = asyncHandler(async (req, res, next) => {
 const getApprover = asyncHandler(async (req, res, next) => {
     const seniorAssistant = await req.user.populate({
         path: "assignedApprover",
-        select: "-password -privateKey",
+        select: "-password -encKey",
     });
     if (!seniorAssistant.assignedApprover) {
         const error = new Error("No approver assigned");

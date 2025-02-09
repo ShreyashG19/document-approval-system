@@ -10,6 +10,7 @@ const {
     approveDocument,
     rejectDocument,
     requestCorrection,
+    getEncKey,
 } = require("../controllers/file.controllers");
 const {
     verifyToken,
@@ -69,4 +70,17 @@ router.post(
     authorizeRoles([Role.APPROVER]),
     requestCorrection
 );
+
+router.post(
+    "/get-enc-key",
+    verifyToken,
+    authorizeRoles([
+        Role.SENIOR_ASSISTANT,
+        Role.ASSISTANT,
+        Role.APPROVER,
+        Role.ADMIN,
+    ]),
+    getEncKey
+);
+
 module.exports = router;

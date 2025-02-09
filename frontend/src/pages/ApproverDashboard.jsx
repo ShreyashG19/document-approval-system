@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useState } from "react";
 import {
   FaHistory,
@@ -313,7 +314,7 @@ const ApproverDashboard = () => {
         </DialogContent>
         {selectedDocument?.status === "pending" && (
         <DialogActions>
-          <div className="border-t-2 flex border-t-gray-600 w-full items-end justify-end">
+          <div className="border-t-2 flex space-x-2   mt-3 w-full items-end justify-end">
             <button
               onClick={() => handleApprove(fileUnName)}
               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"

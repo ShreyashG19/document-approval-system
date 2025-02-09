@@ -42,7 +42,7 @@ const signiInDetailsValidator = (req, res, next) => {
     }
     next();
 };
- 
+
 const verifyToken = asyncHandler(async (req, res, next) => {
     const token = req.cookies.token;
     if (!token) {
@@ -55,6 +55,7 @@ const verifyToken = asyncHandler(async (req, res, next) => {
     if (!decoded) {
         const error = new Error("Invalid token");
         error.statusCode = 401;
+        res.clearCookie("token");
         return next(error);
     }
 
@@ -63,9 +64,24 @@ const verifyToken = asyncHandler(async (req, res, next) => {
         isActive: true,
         isVerified: true,
     });
+
     if (!user) {
         const error = new Error("User not found");
         error.statusCode = 404;
+        res.clearCookie("token");
+        return next(error);
+    }
+    const jti = decoded.jti;
+    if (user.validJtis.length === 0) {
+        const error = new Error("User not logged in");
+        error.statusCode = 401;
+        res.clearCookie("token");
+        return next(error);
+    }
+    if (!user.validJtis.includes(jti)) {
+        const error = new Error("Invalid token");
+        error.statusCode = 401;
+        res.clearCookie("token");
         return next(error);
     }
     req.user = user;

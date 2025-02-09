@@ -2,15 +2,16 @@ const express = require("express");
 const {
     signIn,
     signUp,
+    signOut,
+    signOutAll,
     verifyOTP,
     resendOTPAndVerify,
     checkAuthStatus,
     sendPasswordResetOTP,
     resetPassword,
     verifySpOTP,
-    signOut,
     updateProfile,
-    toggleUserStatus,
+    changeUserStatus,
     getAssistants,
 } = require("../controllers/user.controllers");
 const {
@@ -28,6 +29,7 @@ const router = express.Router();
 router.post("/signup", signUpDetailsValidator, signUp);
 router.post("/signin", signiInDetailsValidator, signIn);
 router.post("/signout", verifyToken, signOut);
+router.post("/signout-all", verifyToken, signOutAll);
 router.get("/status", verifyToken, checkAuthStatus);
 
 router.post("/verify-otp", verifyOTP);
@@ -45,10 +47,10 @@ router.post("/update-profile", verifyToken, updateProfile);
 
 //route for toggling user status
 router.post(
-    "/toggle-status",
+    "/change-user-status",
     verifyToken,
     authorizeRoles([Role.SENIOR_ASSISTANT, Role.ADMIN]),
-    toggleUserStatus
+    changeUserStatus
 );
 
 router.get(

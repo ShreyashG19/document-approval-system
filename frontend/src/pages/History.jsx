@@ -1,28 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaArrowLeft, FaSearch } from "react-icons/fa";
 import { Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+//import { useAuth } from "../context/AuthContext"; // Corrected path
+//import { useAuth } from "../contexts/AuthContext";
 
 const History = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [historyItems, setHistoryItems] = useState([
-    { id: 1, title: "Letter Title 1", date: "01/02/2025", status: "ACCEPTED" },
-    { id: 2, title: "Letter Title 2", date: "01/03/2025", status: "REJECTED" },
-    { id: 3, title: "Letter Title 3", date: "01/04/2025", status: "PENDING" },
-  ]);
+  const [historyItems, setHistoryItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { loggedInUser } = useAuth();
 
-  // Filter items based on the search term
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const queryParams = new URLSearchParams();
+      queryParams.append('status', 'approved');
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams}`, // Correct API endpoint for admin
+        { withCredentials: true }
+      );
+
+      if (response.data.status && response.data.documents) {
+        setHistoryItems(response.data.documents);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError(err.response?.data?.message || "Failed to fetch documents");
+      toast.error("Failed to load documents");
+      setHistoryItems([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const filteredItems = historyItems.filter((item) =>
     item.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const { loggedInUser, setLoggedInUser, loading, logout } = useAuth();
 
   return (
     <div className="flex items-center justify-center font-roboto min-h-screen bg-gradient-to-r from-white to-blue-100">
       <div className="w-96 bg-white shadow-lg border border-gray-200 rounded-lg p-8">
         {/* Back Button */}
         <RouterLink
-          to= {loggedInUser.role=='Admin'? "/admin/dashboard":"/assistant/dashboard"}
+          to={
+            loggedInUser.role === "Admin"
+              ? "/admin/dashboard"
+              : "/assistant/dashboard"
+          }
           className="text-blue-600 hover:text-blue-800 mb-6 flex items-center transition-colors duration-300"
         >
           <FaArrowLeft size={24} className="mr-2" />
@@ -50,9 +87,13 @@ const History = () => {
         </div>
 
         {/* History List */}
-        <ul className="space-y-4">
-          {filteredItems.length > 0 ? (
-            filteredItems.map((item) => (
+        {isLoading ? (
+          <p className="text-center text-gray-500">Loading...</p>
+        ) : error ? (
+          <p className="text-center text-red-500">{error}</p>
+        ) : filteredItems.length > 0 ? (
+          <ul className="space-y-4">
+            {filteredItems.map((item) => (
               <li
                 key={item.id}
                 className="flex items-center justify-between bg-white p-4 rounded-md shadow-sm hover:bg-gray-100 transition-colors duration-200"
@@ -73,11 +114,11 @@ const History = () => {
                   {item.status}
                 </span>
               </li>
-            ))
-          ) : (
-            <p className="text-center text-gray-500">No history found.</p>
-          )}
-        </ul>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-center text-gray-500">No history found.</p>
+        )}
       </div>
     </div>
   );

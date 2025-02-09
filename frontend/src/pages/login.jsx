@@ -11,6 +11,7 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [tokenLoading, setTokenLoading] = useState(true);
   const [tokenError, setTokenError] = useState(false);
   const { loggedInUser, setLoggedInUser } = useContext(AuthContext);
@@ -98,6 +99,14 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setTimeout(() => {
+      navigate("/forgot-password");
+    }, 1000);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
       <Toaster />
@@ -105,7 +114,7 @@ const Login = () => {
       {tokenLoading && (
         <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
           <span className="loading loading-bars loading-lg"></span>
-          <p className="ml-4 text-gray-700">System Loading. Please wait...</p>
+          <p className="ml-4 text-gray-700">System is Loading. Please wait...</p>
         </div>
       )}
 
@@ -146,12 +155,17 @@ const Login = () => {
             </div>
 
             <div className="flex justify-end">
-              <RouterLink
-                to="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+              <button
+                onClick={handleForgotPassword}
+                className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex items-center"
+                disabled={forgotLoading}
               >
-                Forgot Password?
-              </RouterLink>
+                {forgotLoading ? (
+                  <span className="loading loading-spinner"></span>
+                ) : (
+                  "Forgot Password?"
+                )}
+              </button>
             </div>
 
             <button
@@ -159,6 +173,7 @@ const Login = () => {
               disabled={loading}
               className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
             >
+
               {loading ? (
                 <>
                   <span className="loading loading-spinner"></span>
@@ -168,21 +183,14 @@ const Login = () => {
                 `Login  `
               )}
             </button>
-          </form>
+            <div className="flex justify-center gap-1 space-x-1">
+            <h1 className="text-black">Dont have an account ? </h1>
+            <RouterLink to="/register" className="text-blue-600 hover:underline">
+              Sign Up Here
+            </RouterLink>
 
-          {selectedToggle === "Assistant" && (
-            <div className="text-center mt-6">
-              <span className="text-sm text-gray-600">
-                Don't have an account?{" "}
-              </span>
-              <RouterLink
-                to="/register"
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-              >
-                Register As <span className="font-semibold">Assistant</span>
-              </RouterLink>
             </div>
-          )}
+          </form>
         </div>
       )}
     </div>

@@ -181,6 +181,7 @@ const App = () => {
               }
             />
             <Route path="/support" element={<Support />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </NotificationProvider>
       </UsersProvider>

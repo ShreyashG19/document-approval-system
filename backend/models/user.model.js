@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    privateKey: {
+    encKey: {
         type: String,
     },
     assignedApprover: {
@@ -51,7 +51,11 @@ const UserSchema = new mongoose.Schema({
         required: true,
     },
     deviceTokens: {
-        type: [String], // Changed from [string] to [String]
+        type: [String],
+        default: [],
+    },
+    validJtis: {
+        type: [String],
         default: [],
     },
     isActive: {
