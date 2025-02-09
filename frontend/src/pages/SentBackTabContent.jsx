@@ -52,8 +52,7 @@ const SentBackTabContent = ({
       setError(null);
 
       const queryParams = new URLSearchParams();
-      queryParams.append("status", "correction");
-
+       
       if (category) {
         queryParams.append("category", category);
       }
@@ -188,7 +187,7 @@ const SentBackTabContent = ({
     }
   };
 
-  return ( 
+  return (
     <div className="flex flex-col font-sans space-y-6 p-4">
       {/* Search Section */}
       <Toaster />
@@ -276,7 +275,9 @@ const SentBackTabContent = ({
                     >
                       {item.title}
                     </h3>
-                     
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-center text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {item.description}
+                    </div>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:space-x-4">
                     <span className="text-[13px] font-light text-gray-800">
@@ -285,12 +286,12 @@ const SentBackTabContent = ({
                     </span>
                     <span className="text-[13px] font-light text-gray-800">
                       <span className="font-semibold">Created By:</span>{" "}
-                      {item.createdBy?.username ||
-                        item.createdBy?.fullName ||
+                      {item.createdBy?.fullName ||
+                        item.createdBy?.username ||
                         "Unknown"}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500">  {new Date(item.createdDate).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-500">{item.date}</p>
                 </div>
               </div>
             </div>
@@ -327,7 +328,31 @@ const SentBackTabContent = ({
             </div>
 
             {/* Action Buttons */}
-            
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                onClick={() => handleApprove(selectedDocument.fileUniqueName)}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
+              >
+                <AiOutlineCheck className="h-5 w-5" />
+                Approve
+              </button>
+
+              <button
+                onClick={() => handleReject(selectedDocument.fileUniqueName)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
+              >
+                <AiOutlineCloseCircle className="h-5 w-5" />
+                Reject
+              </button>
+
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
+                onClick={() => openRemarkModal(selectedDocument)}
+              >
+                <FaCommentDots className="h-5 w-5" />
+                Give Remark
+              </button>
+            </div>
           </div>
         </div>
       )}
