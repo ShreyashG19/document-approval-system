@@ -8,11 +8,9 @@ import {
 } from "react-icons/fa";
 import NewCm from "./NewCm";
 import SentBackTabContent from "./SentBackTabContent";
-import Navbar from "../components/Navbar.jsx";
 import { AuthContext } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
-import { MdOutlineDescription } from "react-icons/md";
 
 import {
   Dialog,
@@ -41,10 +39,9 @@ const ApproverDashboard = () => {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [description, setDescription] = useState("");
   const [remark, setRemark] = useState("");
-  const [isRemarkModalOpen, setIsRemarkModalOpen] = useState(false);
+  const [isRemarkEditable, setIsRemarkEditable] = useState(false);
   const navigate = useNavigate();
-  const [localRemark, setLocalRemark] = useState("");
-  const [departments, setDepartments] = useState([]);
+  const [currentAction, setCurrentAction] = useState(null);
 
   // Authentication Check
   useEffect(() => {
@@ -79,208 +76,53 @@ const ApproverDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
-          { withCredentials: true }
-        );
-        console.log("departments : ", response.data.data);
-        setDepartments(response.data.data);
-      } catch (error) {
-        console.error("Error fetching departments:", error);
-      }
-    };
-    fetchDepartments();
-  }, []);
-
-  useEffect(() => {
     fetchDocuments();
   }, []);
 
-  // Document Actions
-  const handleApprove = async (fileUniqueName) => {
-    if (!fileUniqueName) {
-      toast.error("No file selected for approval");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      toast.loading("Approving document...");
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/file/approve`,
-        { fileUniqueName },
-        { withCredentials: true }
-      );
-
-      setViewPdfDialogOpen(false);
-      fetchDocuments();
-      toast.dismiss();
-      toast.success(response.data.message || "Document approved successfully!");
-      setIsLoading(false);
-    } catch (error) {
-      toast.dismiss();
-      console.error("Approval error:", error);
-      toast.error(error.response?.data?.message || "Approval failed");
-    }
-  };
-
-  const handleReject = async (fileUniqueName) => {
-    if (!fileUniqueName) {
-      toast.error("No file selected for rejection");
-      return;
-    }
-
-    try {
-      toast.loading("Rejecting document...");
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/file/reject`,
-        { fileUniqueName },
-        { withCredentials: true }
-      );
-      fetchDocuments();
-      setViewPdfDialogOpen(false);
-      toast.dismiss();
-      toast.success(response.data.message || "Document rejected successfully!");
-      fetchDocuments();
-    } catch (error) {
-      toast.dismiss();
-      console.error("Rejection error:", error);
-      toast.error(error.response?.data?.message || "Rejection failed");
-    }
-  };
-
-  // New Remark Handlers
-  const openRemarkModal = () => {
-    setIsRemarkModalOpen(true);
-  };
-
-  const closeRemarkModal = () => {
-    setIsRemarkModalOpen(false);
-    setRemark("");
-  };
-
-  // Updated handleRemarkSubmit to change status to correction
-  const handleRemarkSubmit = async () => {
-    // Debug logging
-    console.log('Remark Submission Debug - Start', {
-      fileUnName,
-      remark,
-      localRemark,
-      isRemarkModalOpen
-    });
-
-    // Validate file selection
+  // Generic Document Action
+  const handleDocumentAction = async (actionType) => {
     if (!fileUnName) {
-      console.error('Remark Submission Error: No file selected');
       toast.error("No file selected");
       return;
     }
 
-    // Determine the remark to submit with multiple fallback mechanisms
-    const remarkToSubmit = (remark || localRemark || "").trim();
-
-    // Validate remark
-    if (!remarkToSubmit) {
-      console.error('Remark Submission Error: Empty remark', {
-        remark,
-        localRemark
-      });
-      toast.error("Please enter a valid remark");
+    // Validate remark for correction (mandatory)
+    if (actionType === 'correction' && (!remark || !remark.trim())) {
+      toast.error("Remark is mandatory for correction");
       return;
     }
 
     try {
-      console.log('Remark Submission - Preparing request', {
-        fileUniqueName: fileUnName,
-        remarkToSubmit
-      });
-
-      toast.loading("Submitting remark...");
+      toast.loading(`${actionType} document...`);
+      
+      const actionEndpoints = {
+        'approve': `${import.meta.env.VITE_API_URL}/file/approve`,
+        'reject': `${import.meta.env.VITE_API_URL}/file/reject`,
+        'correction': `${import.meta.env.VITE_API_URL}/file/correction`
+      };
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/file/correction`,
-        {
-          fileUniqueName: fileUnName,
-          remark: remarkToSubmit,
-        },
+        actionEndpoints[actionType],
         { 
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+          fileUniqueName: fileUnName,
+          ...(remark && remark.trim() && { remark: remark.trim() })
+        },
+        { withCredentials: true }
       );
 
-      // Debug successful response
-      console.log('Remark Submission - Success', {
-        responseData: response.data,
-        fileUnName,
-        remarkToSubmit
-      });
-
-      toast.dismiss();
-      toast.success(response.data.message || "Remark added successfully!");
-
-      // Update the selected document's remark and status directly
-      setSelectedDocument((prevDoc) => {
-        console.log('Updating Selected Document', {
-          previousDoc: prevDoc,
-          newRemark: remarkToSubmit
-        });
-        return prevDoc 
-          ? { ...prevDoc, remark: remarkToSubmit, status: 'correction' } 
-          : prevDoc;
-      });
-
-      // Update UI instantly
-      setFilteredData((prevData) => {
-        const updatedData = prevData.map((doc) =>
-          doc.fileUniqueName === fileUnName
-            ? { ...doc, remark: remarkToSubmit, status: 'correction' }
-            : doc
-        );
-        
-        console.log('Updated Filtered Data', {
-          previousData: prevData,
-          updatedData
-        });
-
-        return updatedData;
-      });
-
-      // Reset states
-      setRemark("");
-      setLocalRemark("");
-      setIsRemarkModalOpen(false);
       setViewPdfDialogOpen(false);
-      
-      // Refresh the document list to reflect the status change
       await fetchDocuments();
-
-      console.log('Remark Submission - Complete');
-    } catch (error) {
-      // Comprehensive error logging
-      console.error('Remark Submission - Error', {
-        errorMessage: error.message,
-        errorResponse: error.response?.data,
-        errorStatus: error.response?.status,
-        fileUnName,
-        remark,
-        localRemark
-      });
-
       toast.dismiss();
+      toast.success(response.data.message || `Document ${actionType}d successfully!`);
       
-      // More detailed error message
-      const errorMessage = 
-        error.response?.data?.message || 
-        error.response?.data?.error || 
-        "Failed to add remark";
-      
-      toast.error(errorMessage);
+      // Reset states
+      setCurrentAction(null);
+      setRemark("");
+      setIsRemarkEditable(false);
+    } catch (error) {
+      toast.dismiss();
+      console.error(`${actionType} error:`, error);
+      toast.error(error.response?.data?.message || `${actionType} failed`);
     }
   };
 
@@ -290,8 +132,10 @@ const ApproverDashboard = () => {
     setSelectedDocument(document);
     setfileUnName(document?.fileUniqueName || "");
     setDescription(document?.description || "No description available");
-    setRemark(document?.remark || "No remarks available"); // Ensure remark is set
+    setRemark(document?.remark || "");
     setViewPdfDialogOpen(true);
+    setCurrentAction(null);
+    setIsRemarkEditable(false);
   };
 
   const closePdfDialog = () => {
@@ -301,12 +145,14 @@ const ApproverDashboard = () => {
     setfileUnName("");
     setDescription("");
     setRemark("");
+    setCurrentAction(null);
+    setIsRemarkEditable(false);
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r bg-blue-100">
       <div className="flex items-center min-h-screen mt-3 h-auto justify-center flex-grow">
-        <div className="w-[80%]   bg-white h-full flex flex-col flex-grow-1 shadow-lg border border-gray-200 rounded-lg">
+        <div className="w-[90%] bg-white h-full flex flex-col flex-grow-1 shadow-lg border border-gray-200 rounded-lg">
           {/* Tabs */}
           <div className="tabs flex justify-around items-center text-sm text-gray-700 mt-2 border-b border-gray-200">
             <button
@@ -414,42 +260,27 @@ const ApproverDashboard = () => {
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
                   Remarks
-                  {!isRemarkModalOpen && (
+                  {!isRemarkEditable && (
                     <FiEdit2
                       className="h-5 w-5 text-gray-500 ml-2 cursor-pointer hover:text-blue-600"
-                      onClick={() => setIsRemarkModalOpen(true)}
+                      onClick={() => setIsRemarkEditable(true)}
                     />
                   )}
                 </h2>
 
-                {isRemarkModalOpen ? (
+                {isRemarkEditable ? (
                   <div>
                     <textarea
                       className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       rows="4"
-                      required
-                      placeholder="Enter your remark here..."
+                      placeholder={
+                        currentAction === 'correction' 
+                          ? "Enter correction remark (Mandatory)" 
+                          : "Enter optional remark..."
+                      }
                       value={remark}
                       onChange={(e) => setRemark(e.target.value)}
                     ></textarea>
-
-                    <div className="flex justify-end gap-2 mt-2">
-                      <button
-                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md shadow-md hover:bg-gray-400 transition"
-                        onClick={() => setIsRemarkModalOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className={`px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition ${
-                          !remark?.trim() ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                        onClick={handleRemarkSubmit}
-                        disabled={!remark.trim()}
-                      >
-                        Submit
-                      </button>
-                    </div>
                   </div>
                 ) : (
                   <p className="text-gray-600">
@@ -460,23 +291,47 @@ const ApproverDashboard = () => {
             </div>
           </div>
         </DialogContent>
+        
+        {/* Action Buttons */}
         {selectedDocument?.status === "pending" && (
           <DialogActions>
-            <div className="border-t-2 flex space-x-2   mt-3 w-full items-end justify-end">
+            <div className="border-t-2 flex space-x-2 mt-3 w-full items-end justify-end">
+              {/* Approve Button */}
               <button
-                onClick={() => handleApprove(fileUnName)}
+                onClick={() => {
+                  setCurrentAction('approve');
+                  handleDocumentAction('approve');
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
               >
                 <AiOutlineCheck className="h-5 w-5" />
                 Approve
               </button>
 
+              {/* Reject Button */}
               <button
-                onClick={() => handleReject(fileUnName)}
+                onClick={() => {
+                  setCurrentAction('reject');
+                  handleDocumentAction('reject');
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
               >
                 <AiOutlineCloseCircle className="h-5 w-5" />
                 Reject
+              </button>
+
+              {/* Correction Button */}
+              <button
+                onClick={() => {
+                  setCurrentAction('correction');
+                  if (isRemarkEditable && remark && remark.trim()) {
+                    handleDocumentAction('correction');
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
+              >
+                <FiEdit2 className="h-5 w-5" />
+                Correction
               </button>
             </div>
           </DialogActions>
