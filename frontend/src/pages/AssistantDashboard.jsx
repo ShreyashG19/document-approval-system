@@ -372,7 +372,7 @@ const AssistantDashboard = () => {
             department={selectedCategory}
             startDate={startDate}
             endDate={endDate}
-            searchQuery={searchQuery} // 🔹 Added search query prop
+            searchQuery={searchQuery} 
             handleTitleClick={(url) => {
               setCurrentPdfUrl(url);
               setViewPdfDialogOpen(true);
