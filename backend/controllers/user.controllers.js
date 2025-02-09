@@ -57,11 +57,11 @@ const signIn = asyncHandler(async (req, res, next) => {
         return next(error);
     }
 
-    if (user.deviceTokens.includes(deviceToken)) {
-        const error = new Error("User already logged in");
-        error.statusCode = 400;
-        return next(error);
-    }
+    // if (user.deviceTokens.includes(deviceToken)) {
+    //     const error = new Error("User already logged in");
+    //     error.statusCode = 400;
+    //     return next(error);
+    // }
 
     user.deviceTokens.push(deviceToken);
     await user.save();

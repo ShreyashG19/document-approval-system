@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useState } from "react";
 import {
   FaHistory,
@@ -87,6 +88,8 @@ const ApproverDashboard = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       toast.loading("Approving document...");
       const response = await axios.post(
@@ -99,7 +102,7 @@ const ApproverDashboard = () => {
       fetchDocuments();
       toast.dismiss();
       toast.success(response.data.message || "Document approved successfully!");
-      fetchDocuments();
+      setIsLoading(false);
     } catch (error) {
       toast.dismiss();
       console.error("Approval error:", error);
@@ -179,7 +182,7 @@ const ApproverDashboard = () => {
     setRemark(document?.remark || "No remarks available"); // Ensure remark is set
     setViewPdfDialogOpen(true);
   };
-  
+                       
 
   const closePdfDialog = () => {
     setViewPdfDialogOpen(false);
@@ -309,8 +312,9 @@ const ApproverDashboard = () => {
             </div>
           </div>
         </DialogContent>
+        {selectedDocument?.status === "pending" && (
         <DialogActions>
-          <div className="border-t-2 flex border-t-gray-600 w-full items-end justify-end">
+          <div className="border-t-2 flex space-x-2   mt-3 w-full items-end justify-end">
             <button
               onClick={() => handleApprove(fileUnName)}
               className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
@@ -335,7 +339,7 @@ const ApproverDashboard = () => {
               Add Remark
             </button>
           </div>
-        </DialogActions>
+        </DialogActions>)}
       </Dialog>
 
       {/* New Remark Modal */}

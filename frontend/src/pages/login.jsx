@@ -27,7 +27,9 @@ const Login = () => {
       } catch (error) {
         console.error("Error fetching FCM Token:", error);
         setTokenError(true);
-        toast.error("Error getting notification token. Please try again later.");
+        toast.error(
+          "Error getting notification token. Please try again later."
+        );
       } finally {
         setTokenLoading(false);
       }
@@ -112,14 +114,16 @@ const Login = () => {
       {tokenLoading && (
         <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
           <span className="loading loading-bars loading-lg"></span>
-          <p className="ml-4 text-gray-700">System Loading. Please wait...</p>
+          <p className="ml-4 text-gray-700">System is Loading. Please wait...</p>
         </div>
       )}
 
       {!tokenLoading && (
         <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back!</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome Back!
+            </h1>
             <p className="text-gray-600">Sign in to your account</p>
           </div>
 
@@ -169,12 +173,23 @@ const Login = () => {
               disabled={loading}
               className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
             >
+
               {loading ? (
-                <span className="loading loading-spinner"></span>
+                <>
+                  <span className="loading loading-spinner"></span>
+                  <span className="ml-2">Logging in...</span>
+                </>
               ) : (
-                `Login as ${selectedToggle}`
+                `Login  `
               )}
             </button>
+            <div className="flex justify-center gap-1 space-x-1">
+            <h1 className="text-black">Dont have an account ? </h1>
+            <RouterLink to="/register" className="text-blue-600 hover:underline">
+              Sign Up Here
+            </RouterLink>
+
+            </div>
           </form>
         </div>
       )}

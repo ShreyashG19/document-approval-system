@@ -11,23 +11,17 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import { FaCalendarAlt } from "react-icons/fa";
-import AddIcon from "@mui/icons-material/Add";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
-import CryptoJS, { enc } from "crypto-js";
-import forge from "node-forge";
+import CryptoJS from "crypto-js";
 import DocumentsList from "../components/DocumentsList";
-import { IoMdRefresh } from "react-icons/io";
+import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import Loader from "react-loaders";
 import "loaders.css/loaders.min.css";
 import { FaPlus } from "react-icons/fa";
+import { IoMdEye } from "react-icons/io";
 
 const AssistantDashboard = () => {
-  //keys
-  // const [privateKeyPem, setPrivateKeyPem] = useState(null);
-  const [encKey, setEncKey] = useState(null);
-
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,7 +58,9 @@ const AssistantDashboard = () => {
       setIsLoading(true);
       setError(null);
       setDocuments([]);
-      const apiUrl = `${import.meta.env.VITE_API_URL}/file/get-documents?status=${selectedTab.toLowerCase()}`;
+      const apiUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/get-documents?status=${selectedTab.toLowerCase()}`;
       console.log("apiUrl", apiUrl);
 
       const response = await axios.get(apiUrl, {
@@ -116,37 +112,7 @@ const AssistantDashboard = () => {
         console.error("Error fetching departments:", error);
       }
     };
-
-    const generateKeysAndRequestEncKey = async () => {
-      // Generate RSA Key Pair
-      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
-      const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
-      const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
-      console.log("publicKeyPem", publicKeyPem);
-
-      // Send Public Key to Server
-      const responseUrl = import.meta.env.VITE_API_URL + "/file/get-enc-key";
-      const response = await axios.post(
-        responseUrl,
-        { clientPublicKey: publicKeyPem },
-        { withCredentials: true }
-      );
-
-      const encryptedEncKey = response.data.encryptedEncKey;
-
-      // Decrypt the encKey using Private Key
-      const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-      const decryptedKey = privateKey.decrypt(
-        forge.util.decode64(encryptedEncKey),
-        "RSA-OAEP",
-        { md: forge.md.sha256.create() }
-      );
-
-      setEncKey(decryptedKey); // Final decrypted encKey
-      console.log("Decrypted encKey:", decryptedKey);
-    };
     fetchDepartments();
-    generateKeysAndRequestEncKey();
   }, []);
 
   // Filter Documents
@@ -184,9 +150,7 @@ const AssistantDashboard = () => {
       // Encrypt the file
       const arrayBuffer = await newDocFile.arrayBuffer();
       const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-
-      // const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
-      const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
+      const encrypted = CryptoJS.AES.encrypt(wordArray, "mykey");
       const encryptedContent = encrypted.toString();
 
       // Prepare form data
@@ -232,13 +196,7 @@ const AssistantDashboard = () => {
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
       {/*    role="Personal Assistant - Approval Dashboard" /> */}
       <Toaster />
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden p-2 text-gray-600 rounded-md"
-        disabled={loading}
-      >
-        <FaBars />
-      </button>
+      
 
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
@@ -259,19 +217,20 @@ const AssistantDashboard = () => {
           ))}
         </div>
 
-       {/* Search Bar */}
-<div className="relative w-full max-w-xs mr-auto mb-6">
-  <FaSearch className="absolute mt-1 top-3 left-3 text-gray-400" />
-  <input
-    type="text"
-    placeholder="Search documents..."
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    className="w-full pl-10 pr-4 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-  />
-</div>
-
-
+        {/* Search Bar */}
+       <div className="flex  justify-start items-start md:flex-row gap-4">
+       <div className="relative w-full left-10 max-w-xs mx-auto mb-6">
+          <FaSearch className="absolute top-3 left-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search documents..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            disabled={loading}
+          />
+        </div>
+       </div>
 
         {/* Filters */}
         <div className="mb-4 flex flex-col md:flex-row gap-4">
@@ -280,40 +239,78 @@ const AssistantDashboard = () => {
               Category
             </label>
             <select
-  value={selectedCategory}
-  onChange={(e) => setSelectedCategory(e.target.value)}
-  className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
->
-  <option value="">All</option>
-  {departments?.map((department, idx) => (
-    <option key={idx} value={department}>
-      {department.charAt(0).toUpperCase() + department.slice(1).toLowerCase()}
-    </option>
-  ))}
-</select>
-
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
+              disabled={loading}
+            >
+              <option value="">All</option>
+              {departments?.map((department, idx) => (
+                <option key={idx} value={department}>
+                  {department}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex-grow">
-            <label className="block text-sm font-medium text-gray-700">
-              Date Range
-            </label>
+            <label className="block text-sm font-medium  ">Date Range</label>
             <div className="flex flex-col md:flex-row gap-4">
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="p-2 border bg-white border-gray-300 rounded-md"
-                disabled={loading}
-              />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="p-2 border bg-white border-gray-300 rounded-md"
-                min={startDate}
-                disabled={loading}
-              />
+              {/* Start Date Picker */}
+              <div className="relative">
+                <input
+                  ref={(input) => (window.startDateInput = input)}
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  disabled={loading}
+                />
+                <svg
+                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  onClick={() => window.startDateInput?.showPicker()} // Opens Date Picker on SVG Click
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
+                  />
+                </svg>
+              </div>
+
+              {/* End Date Picker */}
+              <div className="relative">
+                <input
+                  ref={(input) => (window.endDateInput = input)}
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  min={startDate}
+                  disabled={loading}
+                />
+                <svg
+                  className="absolute right-3 top-3 w-5 h-5 text-black  cursor-pointer"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  onClick={() => window.endDateInput?.showPicker()} // Opens Date Picker on SVG Click
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
+                  />
+                </svg>
+              </div>
+
               <button
                 onClick={handleRefresh}
                 className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
@@ -332,17 +329,19 @@ const AssistantDashboard = () => {
           </div>
         ) : (
           <DocumentsList
-            documents={filteredData}
             status={selectedTab.toLowerCase()}
             department={selectedCategory}
+            startDate={startDate}
+            endDate={endDate}
+            searchQuery={searchQuery}  
             handleTitleClick={(url) => {
               setCurrentPdfUrl(url);
               setViewPdfDialogOpen(true);
             }}
-            encKey={encKey}
           />
         )}
       </main>
+                  
 
       {/* New Document Dialog */}
       <Dialog
@@ -407,8 +406,8 @@ const AssistantDashboard = () => {
 
       {/* Add Document Button */}
       <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
-        <HiDocumentPlus
-          className="text-5xl "
+        <IoIosAdd
+          className="text-4xl "
           onClick={() => setNewDocDialogOpen(true)}
           disabled={loading}
         />
@@ -438,7 +437,10 @@ const AssistantDashboard = () => {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setViewPdfDialogOpen(false)} disabled={loading}>
+          <Button
+            onClick={() => setViewPdfDialogOpen(false)}
+            disabled={loading}
+          >
             Close
           </Button>
         </DialogActions>
@@ -448,3 +450,4 @@ const AssistantDashboard = () => {
 };
 
 export default AssistantDashboard;
+ 
