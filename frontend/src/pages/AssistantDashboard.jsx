@@ -254,7 +254,7 @@ const AssistantDashboard = () => {
             <label className="block text-sm font-medium">Date Range</label>
             <div className="flex flex-col md:flex-row gap-4 items-center">
               {/* Start Date Picker */}
-              <div className="relative flex-grow">
+              <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.startDateInput = input)}
                   type="date"
@@ -281,7 +281,7 @@ const AssistantDashboard = () => {
               </div>
 
               {/* End Date Picker */}
-              <div className="relative flex-grow">
+              <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.endDateInput = input)}
                   type="date"
