@@ -294,7 +294,7 @@ const NewCm = ({
           ))
         )}
       </div>
-
+                                
       {/* Modal for PDF display */}
       {isModalOpen && (
         <div

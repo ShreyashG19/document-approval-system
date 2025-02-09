@@ -181,6 +181,7 @@ const ApproverDashboard = () => {
     setRemark(document?.remark || "No remarks available"); // Ensure remark is set
     setViewPdfDialogOpen(true);
   };
+                       
 
   const closePdfDialog = () => {
     setViewPdfDialogOpen(false);

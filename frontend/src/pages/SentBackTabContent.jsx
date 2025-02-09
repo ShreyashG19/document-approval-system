@@ -62,7 +62,7 @@ const SentBackTabContent = ({
       if (endDate) {
         queryParams.append("endDate", endDate);
       }
-
+                
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/file/get-documents?status=correction-rejected`,
         { withCredentials: true }

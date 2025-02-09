@@ -8,7 +8,7 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [documents, setDocuments] = useState([]);
-
+         
   // Fetch Documents from API
   const fetchDocuments = async () => {
     try {
