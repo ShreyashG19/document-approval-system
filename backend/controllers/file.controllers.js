@@ -294,13 +294,19 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
         error.status = 404;
         return next(error);
     }
-    if (file.status === FileStatus.REJECTED) {
-        const error = new Error("File has already been rejected");
+    if (
+        file.status === FileStatus.REJECTED ||
+        file.status === FileStatus.CORRECTION ||
+        file.status === FileStatus.APPROVED
+    ) {
+        const error = new Error(
+            "Cannot update file status to " + status.toLowerCase()
+        );
         error.status = 400;
         return next(error);
     }
 
-    if (file.status === FileStatus.CORRECTION && !remarks) {
+    if (status === FileStatus.CORRECTION && !remarks) {
         const error = new Error("Remarks are required for correction");
         error.status = 400;
         return next(error);

@@ -300,6 +300,44 @@
 -   **Endpoint**: `GET /admin/get-all-users`
 -   **Access**: Admin
 
+### Create Approver
+
+-   **Endpoint**: `POST /admin/create-approver`
+-   **Access**: Admin
+-   **Description**: Creates a new approver and assigns them to a senior assistant
+-   **Request Body**:
+
+```json
+{
+    "username": "string",
+    "fullName": "string",
+    "mobileNo": "string",
+    "email": "string",
+    "password": "string",
+    "role": "APPROVER",
+    "seniorAssistantUsername": "string"
+}
+```
+
+### Create Senior Assistant
+
+-   **Endpoint**: `POST /admin/create-sr-assistant`
+-   **Access**: Admin
+-   **Description**: Creates a new senior assistant to replace a deactivated one
+-   **Request Body**:
+
+```json
+{
+    "username": "string",
+    "fullName": "string",
+    "mobileNo": "string",
+    "email": "string",
+    "password": "string",
+    "role": "SENIOR_ASSISTANT",
+    "oldSrAssistantUsername": "string"
+}
+```
+
 ## Common Response Codes
 
 -   200: Success

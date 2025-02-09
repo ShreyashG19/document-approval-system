@@ -165,7 +165,7 @@ const createApprover = asyncHandler(async (req, res, next) => {
         data: {
             username,
             email,
-            role: "Assistant",
+            role: Role.APPROVER,
             fullName,
         },
     });
