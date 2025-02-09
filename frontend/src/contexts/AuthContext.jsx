@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }) => {
         tempUser,
         setTempUser,
         checkAuthStatus,
+        loading,
       }}
     >
       {children}
