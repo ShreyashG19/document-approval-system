@@ -6,7 +6,10 @@ const {
     verifyToken,
     authorizeRoles,
 } = require("../middlewares/user.middlewares");
-const { createApproverValidator } = require("../middlewares/admin.middlewares");
+const {
+    createApproverValidator,
+    createSrAssistantValidator,
+} = require("../middlewares/admin.middlewares");
 const {
     getUsersByRole,
     getAllUsers,
