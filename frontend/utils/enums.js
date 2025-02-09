@@ -11,6 +11,5 @@ const FileStatus = {
   CORRECTION: "correction",
   PENDING: "pending",
 };
- 
 
-export  { Role, FileStatus };
+export { Role, FileStatus };

@@ -320,10 +320,11 @@ const verifySpOTP = asyncHandler(async (req, res) => {
                     { username: user.username, email, usage: "OTP" },
                     process.env.JWT_SECRET
                 );
+                // make age of 1 minute 30 seconds
                 res.cookie("sptoken", sptoken, {
                     httpOnly: true,
                     sameSite: "strict",
-                    maxAge: 10 * 60 * 1000,
+                    maxAge: 60 * 30 * 1000,
                 });
                 return res.status(200).json({ status: true });
             }
