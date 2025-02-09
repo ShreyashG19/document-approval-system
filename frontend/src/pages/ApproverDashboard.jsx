@@ -1,4 +1,3 @@
-
 import React, { useContext, useEffect, useState } from "react";
 import {
   FaHistory,
@@ -46,7 +45,8 @@ const ApproverDashboard = () => {
   const navigate = useNavigate();
   const [localRemark, setLocalRemark] = useState("");  
   const [departments, setDepartments] = useState([]);
-  
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Authentication Check
   useEffect(() => {
     if (!loggedInUser) {
