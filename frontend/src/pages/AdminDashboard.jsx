@@ -119,6 +119,16 @@ const AdminDashboard = () => {
     fetchDepartments();
   }, []);
 
+  const resetFilters = () => {
+
+    // toast.loading("Resetting filters...");
+    setSearchQuery("");
+    setStartDate("");
+    setEndDate("");
+    setSelectedCategory("");
+    toast.success("Filters reset successfully");
+    // toast.dismiss();
+  };
 
   // Filter Documents
   useEffect(() => {
@@ -195,31 +205,29 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }; 
+  };
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
       {/*    role="Personal Assistant - Approval Dashboard" /> */}
       <Toaster />
-      
 
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
-         
 
         {/* Search Bar */}
-       <div className="flex  justify-start items-start md:flex-row gap-4">
-       <div className="relative w-full left-10 max-w-xs mx-auto mb-6">
-          <FaSearch className="absolute top-3 left-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search documents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            disabled={loading}
-          />
+        <div className="flex  justify-start items-start md:flex-row gap-4">
+          <div className="relative w-full left-10 max-w-xs mx-auto mb-6">
+            <FaSearch className="absolute top-3 left-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              disabled={loading}
+            />
+          </div>
         </div>
-       </div>
 
         {/* Filters */}
         <div className="mb-4 flex flex-col md:flex-row gap-4">
@@ -307,6 +315,15 @@ const AdminDashboard = () => {
               >
                 <IoMdRefresh className="h-5 w-5" />
               </button>
+
+              
+                <button
+                  onClick={resetFilters}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
+                  disabled={isLoading}
+                >
+                  Reset Filters
+                </button>
             </div>
           </div>
         </div>
@@ -322,7 +339,7 @@ const AdminDashboard = () => {
             department={selectedCategory}
             startDate={startDate}
             endDate={endDate}
-            searchQuery={searchQuery}  
+            searchQuery={searchQuery}
             handleTitleClick={(url) => {
               setCurrentPdfUrl(url);
               setViewPdfDialogOpen(true);
@@ -330,12 +347,10 @@ const AdminDashboard = () => {
           />
         )}
       </main>
-                  
 
       {/* New Document Dialog */}
-      
+
       {/* Add Document Button */}
-       
 
       {/* PDF Preview Dialog */}
       <Dialog
@@ -374,4 +389,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
- 

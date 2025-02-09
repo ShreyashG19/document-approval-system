@@ -191,6 +191,17 @@ const AssistantDashboard = () => {
     }
   };
 
+   const resetFilters = () => {
+  
+      // toast.loading("Resetting filters...");
+      setSearchQuery("");
+      setStartDate("");
+      setEndDate("");
+      setSelectedCategory("");
+      toast.success("Filters reset successfully");
+      // toast.dismiss();
+    }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
       <Toaster />
@@ -315,6 +326,14 @@ const AssistantDashboard = () => {
               >
                 <IoMdRefresh className="h-5 w-5" />
               </button>
+
+              <button
+          onClick={resetFilters}
+          className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
+          disabled={isLoading}
+        >
+          Reset Filters
+        </button>
             </div>
           </div>
         </div>

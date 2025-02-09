@@ -201,6 +201,14 @@ const NewCm = ({
       console.error("Decryption error:", error);
     }
   };
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStartDate("");
+    setEndDate("");
+    setCategory("");
+    toast.success("Filters reset successfully");
+    toast.dismiss();
+  };
 
   return (
     <div className="flex flex-col font-sans space-y-6 p-4">
@@ -240,7 +248,6 @@ const NewCm = ({
             </option>
           )}
         </select>
-
         <input
           type="date"
           className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
@@ -258,6 +265,13 @@ const NewCm = ({
           className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
         >
           <IoMdRefresh className="h-5 w-5" />
+        </button>{" "}
+        <button
+          onClick={resetFilters}
+          className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
+          disabled={isLoading}
+        >
+          Reset Filters
         </button>
       </div>
 
