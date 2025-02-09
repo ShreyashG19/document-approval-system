@@ -1,8 +1,3 @@
- 
-
- 
-
- 
 import React, { useState, useEffect } from "react";
 import { FaSearch } from "react-icons/fa";
 import axios from "axios";
@@ -27,6 +22,7 @@ const SentBackTabContent = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [category, setCategory] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -57,9 +53,10 @@ const SentBackTabContent = ({
       setError(null);
 
       const queryParams = new URLSearchParams();
-       
+      queryParams.append("status", "rejected-correction");
+
       if (category) {
-        queryParams.append("category", category);
+        queryParams.append("department", category);
       }
       if (startDate) {
         queryParams.append("startDate", startDate);
@@ -67,9 +64,9 @@ const SentBackTabContent = ({
       if (endDate) {
         queryParams.append("endDate", endDate);
       }
-                
+
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?status=rejected-correction`,
+        `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams}`,
         { withCredentials: true }
       );
 
@@ -94,7 +91,25 @@ const SentBackTabContent = ({
   useEffect(() => {
     fetchDocuments();
   }, [category, startDate, endDate]);
-
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+        { withCredentials: true }
+      );
+      if (response.data && response.data.data) {
+        // Add console.log to debug the response
+        console.log("API Response:", response.data);
+        setDepartments(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      toast.error("Failed to fetch departments");
+    }
+  };
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
   const openModal = (document) => {
     setSelectedDocument(document);
     setIsModalOpen(true);
@@ -208,15 +223,26 @@ const SentBackTabContent = ({
       {/* Filters */}
       <div className="flex flex-col space-y-2 tracking-tight scale-90 sm:flex-row sm:space-y-0 sm:space-x-4">
         <select
-          className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => {
+            const newCategory = e.target.value;
+            setCategory(newCategory);
+          }}
+          className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
+          disabled={isLoading}
         >
-          <option value="">Category</option>
-          <option value="Health">Health</option>
-          <option value="Education">Education</option>
-          <option value="Transportation">Transportation</option>
-          <option value="Finance">Finance</option>
+          <option value="">All Categories</option>
+          {departments && departments.length > 0 ? (
+            departments.map((department) => (
+              <option key={department} value={department}>
+                {department}
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>
+              Loading departments...
+            </option>
+          )}
         </select>
         <input
           type="date"
@@ -417,4 +443,3 @@ const SentBackTabContent = ({
 };
 
 export default SentBackTabContent;
-
