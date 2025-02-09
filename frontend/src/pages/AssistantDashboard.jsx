@@ -393,6 +393,7 @@ const AssistantDashboard = () => {
 
           <input
             type="file"
+            accept=".pdf"
             onChange={(e) => setNewDocFile(e.target.files[0])}
             className="my-4"
             disabled={loading}
