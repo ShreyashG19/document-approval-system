@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { FaSearch, FaBars } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import { HiDocumentPlus } from "react-icons/hi2";
-
 import {
   Dialog,
   DialogActions,
@@ -194,9 +193,7 @@ const AssistantDashboard = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
-      {/*    role="Personal Assistant - Approval Dashboard" /> */}
       <Toaster />
-      
 
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
@@ -218,19 +215,19 @@ const AssistantDashboard = () => {
         </div>
 
         {/* Search Bar */}
-       <div className="flex  justify-start items-start md:flex-row gap-4">
-       <div className="relative w-full left-10 max-w-xs mx-auto mb-6">
-          <FaSearch className="absolute top-3 left-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search documents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            disabled={loading}
-          />
+        <div className="flex justify-start items-start md:flex-row gap-4">
+          <div className="relative w-full max-w-xs mx-auto mb-6">
+            <FaSearch className="absolute top-3 left-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              disabled={loading}
+            />
+          </div>
         </div>
-       </div>
 
         {/* Filters */}
         <div className="mb-4 flex flex-col md:flex-row gap-4">
@@ -254,16 +251,16 @@ const AssistantDashboard = () => {
           </div>
 
           <div className="flex-grow">
-            <label className="block text-sm font-medium  ">Date Range</label>
-            <div className="flex flex-col md:flex-row gap-4">
+            <label className="block text-sm font-medium">Date Range</label>
+            <div className="flex flex-col md:flex-row gap-4 items-center">
               {/* Start Date Picker */}
-              <div className="relative">
+              <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.startDateInput = input)}
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
                   disabled={loading}
                 />
                 <svg
@@ -284,18 +281,18 @@ const AssistantDashboard = () => {
               </div>
 
               {/* End Date Picker */}
-              <div className="relative">
+              <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.endDateInput = input)}
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
                   min={startDate}
                   disabled={loading}
                 />
                 <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black  cursor-pointer"
+                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -333,7 +330,7 @@ const AssistantDashboard = () => {
             department={selectedCategory}
             startDate={startDate}
             endDate={endDate}
-            searchQuery={searchQuery}  
+            searchQuery={searchQuery}
             handleTitleClick={(url) => {
               setCurrentPdfUrl(url);
               setViewPdfDialogOpen(true);
@@ -341,7 +338,6 @@ const AssistantDashboard = () => {
           />
         )}
       </main>
-                  
 
       {/* New Document Dialog */}
       <Dialog
@@ -407,7 +403,7 @@ const AssistantDashboard = () => {
       {/* Add Document Button */}
       <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
         <IoIosAdd
-          className="text-4xl "
+          className="text-4xl"
           onClick={() => setNewDocDialogOpen(true)}
           disabled={loading}
         />
@@ -450,4 +446,3 @@ const AssistantDashboard = () => {
 };
 
 export default AssistantDashboard;
- 

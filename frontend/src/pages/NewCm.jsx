@@ -62,17 +62,13 @@ const NewCm = ({
       if (endDate) queryParams.append("endDate", endDate);
       if (searchTerm.trim()) queryParams.append("search", searchTerm.trim());
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams}`,
-        { withCredentials: true }
-      );
+      const getDocsUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/get-documents?${queryParams}`;
+      const response = await axios.get(getDocsUrl, { withCredentials: true });
 
       if (response.data.status && response.data.documents) {
-        // Filter documents based on department/category
-        const filtered = response.data.documents.filter((doc) =>
-          category ? doc.department?.departmentName === category : true
-        );
-        setFilteredData(filtered);
+        setFilteredData(response.data.documents);
       } else {
         throw new Error("Invalid response format");
       }
@@ -85,6 +81,25 @@ const NewCm = ({
       setIsLoading(false);
     }
   };
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+        { withCredentials: true }
+      );
+      if (response.data && response.data.data) {
+        // Add console.log to debug the response
+        console.log("API Response:", response.data);
+        setDepartments(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      toast.error("Failed to fetch departments");
+    }
+  };
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   useEffect(() => {
     fetchDocuments();
@@ -186,25 +201,7 @@ const NewCm = ({
       console.error("Decryption error:", error);
     }
   };
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
-          { withCredentials: true }
-        );
-        if (response.data && response.data.data) {
-          // Add console.log to debug the response
-          console.log("API Response:", response.data);
-          setDepartments(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching departments:", error);
-        toast.error("Failed to fetch departments");
-      }
-    };
-    fetchDepartments();
-  }, []);
+
   return (
     <div className="flex flex-col font-sans space-y-6 p-4">
       {/* Search Section */}
@@ -224,18 +221,17 @@ const NewCm = ({
         <select
           value={category}
           onChange={(e) => {
-            setCategory(e.target.value);
-            // Trigger immediate fetch when category changes
-            fetchDocuments();
+            const newCategory = e.target.value;
+            setCategory(newCategory);
           }}
-          className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
+          className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
           disabled={isLoading}
         >
           <option value="">All Categories</option>
           {departments && departments.length > 0 ? (
             departments.map((department) => (
-              <option key={department._id} value={department.departmentName}>
-                {department.departmentName}
+              <option key={department} value={department}>
+                {department}
               </option>
             ))
           ) : (

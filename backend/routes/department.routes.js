@@ -12,7 +12,12 @@ const {
 router.get(
     "/get-all-departments",
     verifyToken,
-    authorizeRoles([Role.SENIOR_ASSISTANT, Role.ASSISTANT, Role.ADMIN]),
+    authorizeRoles([
+        Role.SENIOR_ASSISTANT,
+        Role.ASSISTANT,
+        Role.ADMIN,
+        Role.APPROVER,
+    ]),
     asyncHandler(async (req, res, next) => {
         const departments = await Department.find({});
         if (departments.length === 0) {
