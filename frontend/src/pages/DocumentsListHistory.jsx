@@ -22,7 +22,7 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
       if (department) queryParams.append("department", department);
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?status=rejected-approved-correction${queryParams}`,
+        `${import.meta.env.VITE_API_URL}/file/get-documents?status=rejected-approved-correction&${queryParams}`,
         { withCredentials: true }
       );
 

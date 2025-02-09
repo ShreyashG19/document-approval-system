@@ -99,21 +99,26 @@ const AdminDashboard = () => {
   }, [selectedTab]);
 
   // Fetch Departments
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
-          { withCredentials: true }
-        );
-        console.log("departments : ", response.data.data);
+  const fetchDepartments = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+        { withCredentials: true }
+      );
+      if (response.data && response.data.data) {
+        // Add console.log to debug the response
+        console.log("API Response:", response.data);
         setDepartments(response.data.data);
-      } catch (error) {
-        console.error("Error fetching departments:", error);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      toast.error("Failed to fetch departments");
+    }
+  };
+  useEffect(() => {
     fetchDepartments();
   }, []);
+
 
   // Filter Documents
   useEffect(() => {
@@ -190,8 +195,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
-
+  }; 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
       {/*    role="Personal Assistant - Approval Dashboard" /> */}
