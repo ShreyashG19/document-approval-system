@@ -38,6 +38,7 @@ import {
   NotificationProvider,
   useNotifications,
 } from "./contexts/NotificationContext";
+import DocumentsListHistory from "./pages/DocumentsListHistory.jsx";
 
 const App = () => {
   const { fetchNotifications, setUnreadCount } = useNotifications();
@@ -130,7 +131,7 @@ const App = () => {
               path="/history"
               element={
                 <MainLayout>
-                  <History />
+                  <DocumentsListHistory />
                 </MainLayout>
               }
             />
