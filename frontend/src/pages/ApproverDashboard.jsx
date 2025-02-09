@@ -88,25 +88,25 @@ const ApproverDashboard = () => {
     }
 
     // Validate remark for correction (mandatory)
-    if (actionType === 'correction' && (!remark || !remark.trim())) {
+    if (actionType === "correction" && (!remark || !remark.trim())) {
       toast.error("Remark is mandatory for correction");
       return;
     }
 
     try {
       toast.loading(`${actionType} document...`);
-      
-      const actionEndpoints = {
-        'approve': `${import.meta.env.VITE_API_URL}/file/approve`,
-        'reject': `${import.meta.env.VITE_API_URL}/file/reject`,
-        'correction': `${import.meta.env.VITE_API_URL}/file/correction`
-      };
 
+      const actionEndpoints = {
+        approve: `${import.meta.env.VITE_API_URL}/file/approve`,
+        reject: `${import.meta.env.VITE_API_URL}/file/reject`,
+        correction: `${import.meta.env.VITE_API_URL}/file/correction`,
+      };
+      
       const response = await axios.post(
         actionEndpoints[actionType],
-        { 
+        {
           fileUniqueName: fileUnName,
-          ...(remark && remark.trim() && { remark: remark.trim() })
+          remarks: remark,
         },
         { withCredentials: true }
       );
@@ -114,8 +114,10 @@ const ApproverDashboard = () => {
       setViewPdfDialogOpen(false);
       await fetchDocuments();
       toast.dismiss();
-      toast.success(response.data.message || `Document ${actionType}d successfully!`);
-      
+      toast.success(
+        response.data.message || `Document ${actionType}d successfully!`
+      );
+
       // Reset states
       setCurrentAction(null);
       setRemark("");
@@ -275,8 +277,8 @@ const ApproverDashboard = () => {
                       className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       rows="4"
                       placeholder={
-                        currentAction === 'correction' 
-                          ? "Enter correction remark (Mandatory)" 
+                        currentAction === "correction"
+                          ? "Enter correction remark (Mandatory)"
                           : "Enter optional remark..."
                       }
                       value={remark}
@@ -292,7 +294,7 @@ const ApproverDashboard = () => {
             </div>
           </div>
         </DialogContent>
-        
+
         {/* Action Buttons */}
         {selectedDocument?.status === "pending" && (
           <DialogActions>
@@ -300,8 +302,8 @@ const ApproverDashboard = () => {
               {/* Approve Button */}
               <button
                 onClick={() => {
-                  setCurrentAction('approve');
-                  handleDocumentAction('approve');
+                  setCurrentAction("approve");
+                  handleDocumentAction("approve");
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
               >
@@ -312,8 +314,8 @@ const ApproverDashboard = () => {
               {/* Reject Button */}
               <button
                 onClick={() => {
-                  setCurrentAction('reject');
-                  handleDocumentAction('reject');
+                  setCurrentAction("reject");
+                  handleDocumentAction("reject");
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
               >
@@ -324,9 +326,9 @@ const ApproverDashboard = () => {
               {/* Correction Button */}
               <button
                 onClick={() => {
-                  setCurrentAction('correction');
+                  setCurrentAction("correction");
                   if (isRemarkEditable && remark && remark.trim()) {
-                    handleDocumentAction('correction');
+                    handleDocumentAction("correction");
                   }
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
