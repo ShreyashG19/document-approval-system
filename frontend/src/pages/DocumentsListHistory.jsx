@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { FaDownload } from "react-icons/fa";
+import { FaDownload, FaSearch } from "react-icons/fa";
 import CryptoJS from "crypto-js";
 
 const DocumentsListHistory = ({ status, department, startDate, endDate, searchQuery, handleTitleClick }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [documents, setDocuments] = useState([]);
-         
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Fetch Documents from API
   const fetchDocuments = async () => {
     try {
@@ -16,7 +17,6 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
       setError(null);
 
       const queryParams = new URLSearchParams();
-      // if (status && status !== "all") queryParams.append("status", status);
       if (department) queryParams.append("department", department);
 
       const response = await axios.get(
@@ -50,7 +50,7 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
     return (
       (!startDate || docDate >= new Date(startDate)) &&
       (!endDate || docDate <= new Date(endDate)) &&
-      (!searchQuery || doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      (!searchTerm || doc.title.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   });
 
@@ -128,9 +128,33 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "approved":
+        return "text-green-500";
+      case "rejected":
+        return "text-red-500";
+      case "correction":
+        return "text-yellow-500";
+      default:
+        return "text-gray-500";
+    }
+  };
+
   return (
-    <div className="flex items-start justify-start flex-grow">
+    <div className="flex flex-col items-start justify-start flex-grow">
       <div className="w-full max-w-4xl bg-white shadow-lg border border-gray-200 rounded-lg p-6">
+        <h2 className="text-2xl font-bold mb-4">History</h2>
+        {/* Search Section */}
+        <div className="relative mb-6">
+          <FaSearch className="absolute top-3 left-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search"
+            className="w-full pl-10 pr-4 py-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         {isLoading ? (
           <div className="text-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
@@ -169,6 +193,9 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
+                      <p className={`text-m font-semibold ${getStatusColor(doc.status)}`}>
+                        {doc.status || "Unknown"}
+                      </p>
                       <button
                         onClick={() => handleDownload(doc.fileUniqueName)}
                         className="p-2 text-blue-600 hover:text-blue-800 transition-colors"

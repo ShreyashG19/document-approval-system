@@ -191,16 +191,13 @@ const AssistantDashboard = () => {
     }
   };
 
-   const resetFilters = () => {
-  
-      // toast.loading("Resetting filters...");
-      setSearchQuery("");
-      setStartDate("");
-      setEndDate("");
-      setSelectedCategory("");
-      toast.success("Filters reset successfully");
-      // toast.dismiss();
-    }
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStartDate("");
+    setEndDate("");
+    setSelectedCategory("");
+    toast.success("Filters reset successfully");
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
@@ -227,7 +224,7 @@ const AssistantDashboard = () => {
 
         {/* Search Bar */}
         <div className="flex justify-start items-start md:flex-row gap-4">
-          <div className="relative w-full max-w-xs mx-auto mb-6">
+          <div className="relative w-full max-w-xs mb-6">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
             <input
               type="text"
@@ -328,12 +325,12 @@ const AssistantDashboard = () => {
               </button>
 
               <button
-          onClick={resetFilters}
-          className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
-          disabled={isLoading}
-        >
-          Reset Filters
-        </button>
+                onClick={resetFilters}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
+                disabled={isLoading}
+              >
+                Reset Filters
+              </button>
             </div>
           </div>
         </div>

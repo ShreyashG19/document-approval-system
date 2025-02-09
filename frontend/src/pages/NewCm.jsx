@@ -210,10 +210,10 @@ const NewCm = ({
   };
 
   return (
-    <div className="flex flex-col font-sans space-y-6 p-4">
+    <div className="flex flex-col font-sans space-y- p-4">
       {/* Search Section */}
       <Toaster />
-      <div className="relative">
+      <div className="relative mb-6">
         <FaSearch className="absolute top-3 left-3 text-gray-400" />
         <input
           type="text"
