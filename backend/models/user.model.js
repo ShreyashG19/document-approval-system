@@ -31,11 +31,19 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
     },
+    pastAssignedApprovers: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "User",
+    },
     assistants: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: "User",
     },
     createdAssistants: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "User",
+    },
+    pastCreatedAssistants: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: "User",
     },
