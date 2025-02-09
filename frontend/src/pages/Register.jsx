@@ -12,6 +12,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const { setTempUser } = useContext(AuthContext);
   const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const apiUrl = import.meta.env.VITE_API_URL + "/user/signup";
@@ -19,6 +20,23 @@ const Register = () => {
     const toastId = toast.loading("Signing up...", {
       position: "top-center",
     });
+
+    if (mobileNo.length !== 10 || isNaN(mobileNo)) {
+      toast.dismiss(toastId);
+      toast.error("Mobile number must be exactly 10 digits.", { position: "top-center", duration: 3000 });
+      return;
+    }
+  
+    // **Simple Password Validation** (Min 8 chars & at least 1 special character)
+    const specialCharacters = "!@#$%^&*()_+-=[]{};:'\"\\|,.<>?/`~";
+    const hasSpecialChar = [...password].some((char) => specialCharacters.includes(char));
+  
+    if (password.length < 8 || !hasSpecialChar) {
+      toast.dismiss(toastId);
+      toast.error("Password must be at least 8 characters long and contain a special character.", { position: "top-center", duration: 3000 });
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast.dismiss(toastId);
       toast.error("Passwords do not match", {
