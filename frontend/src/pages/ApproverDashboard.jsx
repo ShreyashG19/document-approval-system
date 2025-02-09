@@ -212,7 +212,7 @@ const ApproverDashboard = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r from-white to-blue-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-r bg-blue-100">
       <div className="flex items-center min-h-screen mt-3 h-auto justify-center flex-grow">
         <div className="w-[90%]   bg-white h-full flex flex-col flex-grow-1 shadow-lg border border-gray-200 rounded-lg">
           {/* Tabs */}

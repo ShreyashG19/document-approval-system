@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaEye, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import { ClipLoader } from "react-spinners";
@@ -207,7 +207,6 @@ const NewCm = ({
     setEndDate("");
     setCategory("");
     toast.success("Filters reset successfully");
-    toast.dismiss();
   };
 
   return (
@@ -332,6 +331,27 @@ const NewCm = ({
                       </span>
                     </div>
                     <p className="text-xs text-gray-500">{item.date}</p>
+
+
+                         <div className="ml-auto right-52 flex items-end justify-end   text-gray-800 cursor-pointer hover:text-blue-500">
+                      <FaEye
+                        className="h-6 w-6 mb-3 right-52 "
+                        onClick={async () => {
+                          const url = await handlePreview(item.fileUniqueName);
+                          setfileUnName(item.fileUniqueName);
+                          setDescription(
+                            item.description || "No description available"
+                          );
+                          setRemark(item.remark || "No remarks available");
+
+                          console.log("remark", item.remark);
+                          console.log("description", item.description);
+
+                          handleTitleClick(url, item);
+                        }}
+                      />
+                    </div>
+
                   </div>
                 </div>
               </div>

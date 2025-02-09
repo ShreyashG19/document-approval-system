@@ -12,7 +12,7 @@ import { FaCommentDots } from "react-icons/fa";
 import { IoMdRefresh } from "react-icons/io";
 import "../index.css";
 import CryptoJS from "crypto-js";
-
+import { FaEye } from "react-icons/fa";
 const SentBackTabContent = ({
   handleTitleClick,
   setfileUnName,
@@ -28,9 +28,16 @@ const SentBackTabContent = ({
   const [endDate, setEndDate] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemarkModalOpen, setIsRemarkModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocument, setSelectedDocument] = useState(null);
   // const [remark, setRemark] = useState("");
-
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStartDate("");
+    setEndDate("");
+    setCategory("");
+    toast.success("Filters reset successfully");
+  };
   const convertWordArrayToUint8Array = (wordArray) => {
     const len = wordArray.sigBytes;
     const words = wordArray.words;
@@ -206,7 +213,18 @@ const SentBackTabContent = ({
       console.error("Decryption error:", error);
     }
   };
+  const filterDocuments = (documents, query) => {
+    if (!query) return documents;
 
+    return documents.filter((doc) => {
+      const searchString = `${doc.title} ${
+        doc.department?.departmentName || ""
+      } ${doc.createdBy?.fullName || ""} ${
+        doc.createdBy?.username || ""
+      }`.toLowerCase();
+      return searchString.includes(query.toLowerCase());
+    });
+  };
   return (
     <div className="flex flex-col font-sans space-y-6 p-4">
       {/* Search Section */}
@@ -216,6 +234,7 @@ const SentBackTabContent = ({
         <input
           type="text"
           placeholder="Search"
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
       </div>
@@ -262,6 +281,13 @@ const SentBackTabContent = ({
         >
           <IoMdRefresh className="h-5 w-5" />
         </button>
+        <button
+          onClick={resetFilters}
+          className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
+          disabled={isLoading}
+        >
+          Reset Filters
+        </button>
       </div>
 
       {/* Documents */}
@@ -277,7 +303,7 @@ const SentBackTabContent = ({
             No documents found
           </p>
         ) : (
-          filteredData.map((item) => (
+          filterDocuments(filteredData, searchQuery).map((item) => (
             <div
               key={item._id}
               className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-100 p-4 rounded-md shadow-md border border-gray-300"
@@ -306,11 +332,8 @@ const SentBackTabContent = ({
                     >
                       {item.title}
                     </h3>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-center text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {item.description}
-                    </div>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:space-x-4">
+                  <div className="flex flex-row sm:flex-row sm:space-x-4">
                     <span className="text-[13px] font-light text-gray-800">
                       <span className="font-semibold">Department:</span>{" "}
                       {item.department?.departmentName || "Unassigned"}
@@ -321,6 +344,24 @@ const SentBackTabContent = ({
                         item.createdBy?.username ||
                         "Unknown"}
                     </span>
+                    <div className="ml-auto right-52 flex items-end justify-end   text-gray-800 cursor-pointer hover:text-blue-500">
+                      <FaEye
+                        className="h-6 w-6 mb-3 right-52 "
+                        onClick={async () => {
+                          const url = await handlePreview(item.fileUniqueName);
+                          setfileUnName(item.fileUniqueName);
+                          setDescription(
+                            item.description || "No description available"
+                          );
+                          setRemark(item.remark || "No remarks available");
+
+                          console.log("remark", item.remark);
+                          console.log("description", item.description);
+
+                          handleTitleClick(url, item);
+                        }}
+                      />
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500">{item.date}</p>
                 </div>
