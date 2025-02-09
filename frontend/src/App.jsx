@@ -131,7 +131,7 @@ const App = () => {
               path="/history"
               element={
                 <MainLayout>
-                  <DocumentsListHistory />
+                  <History />
                 </MainLayout>
               }
             />
