@@ -20,6 +20,7 @@ import Loader from "react-loaders";
 import "loaders.css/loaders.min.css";
 import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
+import { AiOutlineClose } from "react-icons/ai";
 
 const AdminDashboard = () => {
   // State Management
@@ -387,6 +388,10 @@ const AdminDashboard = () => {
             <span className={getStatusColor(currentDocDetails.status)}>
               {currentDocDetails.status?.toUpperCase() || "UNKNOWN"}
             </span>
+            <button onClick={() => setViewPdfDialogOpen(false)}>
+
+            <AiOutlineClose  />
+          </button>
           </div>
         </DialogTitle>
         <DialogContent>
@@ -455,12 +460,6 @@ const AdminDashboard = () => {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setViewPdfDialogOpen(false)}
-            disabled={loading}
-          >
-            Close
-          </Button>
         </DialogActions>
       </Dialog>
     </div>

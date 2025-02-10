@@ -397,6 +397,12 @@ const AssistantDashboard = () => {
             <span className={getStatusColor(currentDocDetails.status)}>
               {currentDocDetails.status?.toUpperCase() || "UNKNOWN"}
             </span>
+
+          <button onClick={() => setViewPdfDialogOpen(false)}>
+
+            <AiOutlineClose  />
+          </button>
+
           </div>
         </DialogTitle>
         <DialogContent>
@@ -465,12 +471,7 @@ const AssistantDashboard = () => {
           </div>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setViewPdfDialogOpen(false)}
-            disabled={loading}
-          >
-            Close
-          </Button>
+           
         </DialogActions>
       </Dialog>
       {/* Add Document Button */}
