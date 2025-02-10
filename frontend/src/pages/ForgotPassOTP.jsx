@@ -5,7 +5,7 @@ import { AuthContext } from "../contexts/AuthContext";
 
 const ForgotPassOTP = () => {
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(10);
+  const [timer, setTimer] = useState(30);
   const { tempUser, setTempUser, loggedInUser, setLoggedInUser } =
     useContext(AuthContext);
   const navigate = useNavigate();
