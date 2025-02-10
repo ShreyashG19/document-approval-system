@@ -4,7 +4,14 @@ import { toast } from "react-hot-toast";
 import { FaDownload, FaSearch } from "react-icons/fa";
 import CryptoJS from "crypto-js";
 
-const DocumentsListHistory = ({ status, department, startDate, endDate, searchQuery, handleTitleClick }) => {
+const DocumentsListHistory = ({
+  status,
+  department,
+  startDate,
+  endDate,
+  searchQuery,
+  handleTitleClick,
+}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [documents, setDocuments] = useState([]);
@@ -20,7 +27,9 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
       if (department) queryParams.append("department", department);
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?status=rejected-approved-correction&${queryParams}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/file/get-documents?status=rejected-approved-correction&${queryParams}`,
         { withCredentials: true }
       );
 
@@ -50,7 +59,8 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
     return (
       (!startDate || docDate >= new Date(startDate)) &&
       (!endDate || docDate <= new Date(endDate)) &&
-      (!searchTerm || doc.title.toLowerCase().includes(searchTerm.toLowerCase()))
+      (!searchTerm ||
+        doc.title.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   });
 
@@ -58,7 +68,9 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
   const handleDownload = async (fileName) => {
     try {
       console.log("Downloading:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
@@ -109,7 +121,9 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
   const handlePreview = async (fileName) => {
     try {
       console.log("Previewing:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
@@ -127,17 +141,16 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
       console.error("Preview error:", error);
     }
   };
-
   const getStatusColor = (status) => {
     switch (status) {
       case "approved":
-        return "text-green-500";
+        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
       case "rejected":
-        return "text-red-500";
+        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
       case "correction":
-        return "text-yellow-500";
+        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
       default:
-        return "text-gray-500";
+        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
     }
   };
 
@@ -175,14 +188,23 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
                         className="text-lg font-semibold w-fit text-gray-800 cursor-pointer"
                         onClick={async () => {
                           const url = await handlePreview(doc.fileUniqueName);
-                          handleTitleClick(url);
+                          handleTitleClick(url, {
+                            description: doc.description,
+                            remarks: doc.remarks,
+                            title: doc.title,
+                            department: doc.department?.departmentName,
+                            createdBy: doc.createdBy?.fullName,
+                            createdDate: doc.createdDate,
+                            status: doc.status,
+                          });
                         }}
                       >
                         {doc.title || "Untitled"}
                       </h3>
                       <div className="flex flex-wrap gap-4 mt-2">
                         <p className="text-sm text-gray-600">
-                          Department: {doc.department?.departmentName || "Unassigned"}
+                          Department:{" "}
+                          {doc.department?.departmentName || "Unassigned"}
                         </p>
                         <p className="text-sm text-gray-600">
                           Created by: {doc.createdBy?.fullName || "Unknown"}
@@ -193,8 +215,12 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <p className={`text-m font-semibold ${getStatusColor(doc.status)}`}>
-                        {doc.status || "Unknown"}
+                      <p
+                        className={`text-sm font-semibold ${getStatusColor(
+                          doc.status
+                        )}`}
+                      >
+                        {(doc.status || "Unknown").toUpperCase()}
                       </p>
                       <button
                         onClick={() => handleDownload(doc.fileUniqueName)}
@@ -207,7 +233,9 @@ const DocumentsListHistory = ({ status, department, startDate, endDate, searchQu
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">No documents found</div>
+                <div className="text-center py-8 text-gray-500">
+                  No documents found
+                </div>
               )}
             </div>
           </>

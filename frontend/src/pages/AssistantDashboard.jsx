@@ -10,6 +10,11 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import {
+  AiOutlineClose,
+  AiOutlineCheck,
+  AiOutlineCloseCircle,
+} from "react-icons/ai";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 import CryptoJS from "crypto-js";
@@ -19,7 +24,20 @@ import Loader from "react-loaders";
 import "loaders.css/loaders.min.css";
 import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
-
+const getStatusColor = (status) => {
+  switch (status?.toLowerCase()) {
+    case "approved":
+      return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
+    case "rejected":
+      return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
+    case "correction":
+      return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
+    case "pending":
+      return "text-blue-700 bg-blue-100 border border-blue-500 px-2 py-1 rounded-md font-semibold";
+    default:
+      return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
+  }
+};
 const AssistantDashboard = () => {
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
@@ -51,6 +69,15 @@ const AssistantDashboard = () => {
   const [newDocDesc, setNewDocDesc] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [currentDocDetails, setCurrentDocDetails] = useState({
+    description: "",
+    remarks: "",
+    title: "",
+    department: "",
+    createdBy: "",
+    createdDate: "",
+    status: "",
+  });
   // Fetch Documents
   const fetchDocuments = async () => {
     try {
@@ -347,8 +374,9 @@ const AssistantDashboard = () => {
             startDate={startDate}
             endDate={endDate}
             searchQuery={searchQuery}
-            handleTitleClick={(url) => {
+            handleTitleClick={(url, details) => {
               setCurrentPdfUrl(url);
+              setCurrentDocDetails(details);
               setViewPdfDialogOpen(true);
             }}
           />
@@ -356,6 +384,105 @@ const AssistantDashboard = () => {
       </main>
 
       {/* New Document Dialog */}
+      {/* PDF Preview Dialog */}
+      <Dialog
+        open={viewPdfDialogOpen}
+        onClose={() => setViewPdfDialogOpen(false)}
+        maxWidth="xl"
+        fullWidth
+      >
+        <DialogTitle>
+          <div className="flex justify-between items-center">
+            <span>{currentDocDetails.title || "Document Preview"}</span>
+            <span className={getStatusColor(currentDocDetails.status)}>
+              {currentDocDetails.status?.toUpperCase() || "UNKNOWN"}
+            </span>
+          </div>
+        </DialogTitle>
+        <DialogContent>
+          <div className="flex gap-4 h-[80vh]">
+            {/* PDF Viewer - Left Side */}
+            <div className="flex-grow">
+              <object
+                data={currentPdfUrl}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+              >
+                <p>
+                  Your browser does not support PDFs.{" "}
+                  <a href={currentPdfUrl}>Download the PDF</a>.
+                </p>
+              </object>
+            </div>
+
+            {/* Details Panel - Right Side */}
+            <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
+              {/* Document Details */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Document Details</h3>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <span className="font-medium">Department:</span>{" "}
+                    {currentDocDetails.department || "Not assigned"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Created By:</span>{" "}
+                    {currentDocDetails.createdBy || "Unknown"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Date:</span>{" "}
+                    {currentDocDetails.createdDate
+                      ? new Date(
+                          currentDocDetails.createdDate
+                        ).toLocaleDateString()
+                      : "Not available"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Description Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Description</h3>
+                <div className="bg-white p-3 rounded-md border border-gray-200">
+                  <p className="text-gray-700">
+                    {currentDocDetails.description ||
+                      "No description available"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Remarks Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Remarks</h3>
+                <div className="bg-white p-3 rounded-md border border-gray-200">
+                  <p className="text-gray-700">
+                    {currentDocDetails.remarks || "No remarks available"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setViewPdfDialogOpen(false)}
+            disabled={loading}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Add Document Button */}
+      <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
+        <IoIosAdd
+          className="text-4xl"
+          onClick={() => setNewDocDialogOpen(true)}
+          disabled={loading}
+        />
+      </div>
+
+      {/* PDF Preview Dialog */}
       <Dialog
         open={newDocDialogOpen}
         onClose={() => setNewDocDialogOpen(false)}
@@ -413,48 +540,6 @@ const AssistantDashboard = () => {
           </Button>
           <Button onClick={handleDocumentUpload} disabled={loading}>
             Encrypt & Upload
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add Document Button */}
-      <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
-        <IoIosAdd
-          className="text-4xl"
-          onClick={() => setNewDocDialogOpen(true)}
-          disabled={loading}
-        />
-      </div>
-
-      {/* PDF Preview Dialog */}
-      <Dialog
-        open={viewPdfDialogOpen}
-        onClose={() => setViewPdfDialogOpen(false)}
-        maxWidth="xl"
-        fullWidth
-      >
-        <DialogTitle>Document Preview</DialogTitle>
-        <DialogContent>
-          <div style={{ width: "100%", height: "80vh" }}>
-            <object
-              data={currentPdfUrl}
-              type="application/pdf"
-              width="100%"
-              height="100%"
-            >
-              <p>
-                Your browser does not support PDFs.{" "}
-                <a href={currentPdfUrl}>Download the PDF</a>.
-              </p>
-            </object>
-          </div>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setViewPdfDialogOpen(false)}
-            disabled={loading}
-          >
-            Close
           </Button>
         </DialogActions>
       </Dialog>

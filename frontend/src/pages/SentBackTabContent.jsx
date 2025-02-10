@@ -12,7 +12,7 @@ import { FaCommentDots } from "react-icons/fa";
 import { IoMdRefresh } from "react-icons/io";
 import "../index.css";
 import CryptoJS from "crypto-js";
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaDownload } from "react-icons/fa";
 const SentBackTabContent = ({
   handleTitleClick,
   setfileUnName,
@@ -95,6 +95,19 @@ const SentBackTabContent = ({
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "approved":
+        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
+      case "rejected":
+        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
+      case "correction":
+        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
+      default:
+        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
+    }
+  };
+
   useEffect(() => {
     fetchDocuments();
   }, [category, startDate, endDate]);
@@ -140,6 +153,41 @@ const SentBackTabContent = ({
   const handleRemarkSubmit = () => {
     console.log("Remark submitted:", remark);
     closeRemarkModal();
+  };
+
+  const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Add the handleDownload function before the return statement
+  const handleDownload = async (fileName) => {
+    try {
+      console.log("Downloading:", fileName);
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
+      const response = await axios.get(downloadUrl, {
+        withCredentials: true,
+        responseType: "text",
+      });
+
+      // Decrypt the content
+      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+      const typedArray = convertWordArrayToUint8Array(decrypted);
+
+      // Create blob and download
+      const blob = new Blob([typedArray], { type: "application/pdf" });
+      downloadBlob(blob, fileName.replace(".enc", ""));
+    } catch (error) {
+      console.error("Download error:", error);
+    }
   };
 
   const handleApprove = async (fileUniqueName) => {
@@ -308,63 +356,66 @@ const SentBackTabContent = ({
               key={item._id}
               className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-100 p-4 rounded-md shadow-md border border-gray-300"
             >
-              <div className="flex items-start sm:items-center space-x-4">
+              <div className="flex items-start sm:items-center space-x-4 flex-grow">
                 <div className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md">
                   📄
                 </div>
-                <div className="flex flex-col">
-                  <div className="relative group">
-                    <h3
-                      className="text-xl font-bold tracking-tight font-open-sans text-gray-800 cursor-pointer"
-                      onClick={async () => {
-                        const url = await handlePreview(item.fileUniqueName);
-                        setfileUnName(item.fileUniqueName);
-                        setDescription(
-                          item.description || "No description available"
-                        );
-                        setRemark(item.remark || "No remarks available");
-
-                        console.log("remark", item.remark);
-                        console.log("description", item.description);
-
-                        handleTitleClick(url, item);
-                      }}
-                    >
-                      {item.title}
-                    </h3>
-                  </div>
-                  <div className="flex flex-row sm:flex-row sm:space-x-4">
+                <div className="flex flex-col flex-grow">
+                  <h3
+                    className="text-xl font-bold tracking-tight font-open-sans text-gray-800 cursor-pointer"
+                    onClick={async () => {
+                      const url = await handlePreview(item.fileUniqueName);
+                      setfileUnName(item.fileUniqueName || "");
+                      setDescription(
+                        item.description || "No description available"
+                      );
+                      setRemark(item.remark || "No remarks available");
+                      handleTitleClick(url, item);
+                    }}
+                  >
+                    {item.title}
+                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:space-x-4">
                     <span className="text-[13px] font-light text-gray-800">
                       <span className="font-semibold">Department:</span>{" "}
                       {item.department?.departmentName || "Unassigned"}
                     </span>
                     <span className="text-[13px] font-light text-gray-800">
                       <span className="font-semibold">Created By:</span>{" "}
-                      {item.createdBy?.fullName ||
-                        item.createdBy?.username ||
-                        "Unknown"}
+                      {item.createdBy?.fullName || "Unknown"}
                     </span>
-                    <div className="ml-auto right-52 flex items-end justify-end   text-gray-800 cursor-pointer hover:text-blue-500">
-                      <FaEye
-                        className="h-6 w-6 mb-3 right-52 "
-                        onClick={async () => {
-                          const url = await handlePreview(item.fileUniqueName);
-                          setfileUnName(item.fileUniqueName);
-                          setDescription(
-                            item.description || "No description available"
-                          );
-                          setRemark(item.remark || "No remarks available");
-
-                          console.log("remark", item.remark);
-                          console.log("description", item.description);
-
-                          handleTitleClick(url, item);
-                        }}
-                      />
-                    </div>
                   </div>
                   <p className="text-xs text-gray-500">{item.date}</p>
                 </div>
+              </div>
+
+              <div className="flex space-x-4 items-center">
+                <p
+                  className={`text-sm font-semibold ${getStatusColor(
+                    item.status
+                  )}`}
+                >
+                  {(item.status || "Unknown").toUpperCase()}
+                </p>
+
+                <FaEye
+                  className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                  onClick={async () => {
+                    const url = await handlePreview(item.fileUniqueName);
+                    setfileUnName(item.fileUniqueName);
+                    setDescription(
+                      item.description || "No description available"
+                    );
+                    setRemark(item.remark || "No remarks available");
+                    console.log("remark", item.remark);
+                    console.log("description", item.description);
+                    handleTitleClick(url, item);
+                  }}
+                />
+                <FaDownload
+                  className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                  onClick={() => handleDownload(item.fileUniqueName)}
+                />
               </div>
             </div>
           ))

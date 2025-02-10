@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaEye, FaSearch } from "react-icons/fa";
+import { FaEye, FaSearch, FaDownload } from "react-icons/fa";
 import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import { ClipLoader } from "react-spinners";
@@ -46,6 +46,40 @@ const NewCm = ({
     }
 
     return uint8Array;
+  };
+
+  const handleDownload = async (fileName) => {
+    try {
+      console.log("Downloading:", fileName);
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
+      const response = await axios.get(downloadUrl, {
+        withCredentials: true,
+        responseType: "text",
+      });
+
+      // Decrypt the content
+      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+      const typedArray = convertWordArrayToUint8Array(decrypted);
+
+      // Create blob and download
+      const blob = new Blob([typedArray], { type: "application/pdf" });
+      downloadBlob(blob, fileName.replace(".enc", ""));
+    } catch (error) {
+      console.error("Download error:", error);
+    }
+  };
+
+  const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const fetchDocuments = async () => {
@@ -210,7 +244,7 @@ const NewCm = ({
   };
 
   return (
-    <div className="flex flex-col font-sans space-y- p-4">
+    <div className="flex flex-col font-sans space-y-6 p-4">
       {/* Search Section */}
       <Toaster />
       <div className="relative mb-6">
@@ -301,11 +335,11 @@ const NewCm = ({
                 key={item._id}
                 className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-100 p-4 rounded-md shadow-md border border-gray-300"
               >
-                <div className="flex items-start sm:items-center space-x-4">
+                <div className="flex items-start sm:items-center space-x-4 flex-grow">
                   <div className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md">
                     📄
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col flex-grow">
                     <h3
                       className="text-xl font-bold tracking-tight font-open-sans text-gray-800 cursor-pointer"
                       onClick={async () => {
@@ -331,28 +365,28 @@ const NewCm = ({
                       </span>
                     </div>
                     <p className="text-xs text-gray-500">{item.date}</p>
-
-
-                         <div className="ml-auto right-52 flex items-end justify-end   text-gray-800 cursor-pointer hover:text-blue-500">
-                      <FaEye
-                        className="h-6 w-6 mb-3 right-52 "
-                        onClick={async () => {
-                          const url = await handlePreview(item.fileUniqueName);
-                          setfileUnName(item.fileUniqueName);
-                          setDescription(
-                            item.description || "No description available"
-                          );
-                          setRemark(item.remark || "No remarks available");
-
-                          console.log("remark", item.remark);
-                          console.log("description", item.description);
-
-                          handleTitleClick(url, item);
-                        }}
-                      />
-                    </div>
-
                   </div>
+                </div>
+
+                <div className="flex space-x-4 items-center">
+                  <FaEye
+                    className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                    onClick={async () => {
+                      const url = await handlePreview(item.fileUniqueName);
+                      setfileUnName(item.fileUniqueName);
+                      setDescription(
+                        item.description || "No description available"
+                      );
+                      setRemark(item.remark || "No remarks available");
+                      console.log("remark", item.remark);
+                      console.log("description", item.description);
+                      handleTitleClick(url, item);
+                    }}
+                  />
+                  <FaDownload
+                    className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                    onClick= {() => handleDownload(item.fileUniqueName)}
+                  />
                 </div>
               </div>
             ))

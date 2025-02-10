@@ -1,16 +1,21 @@
-
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { FaDownload } from "react-icons/fa";
 import CryptoJS from "crypto-js";
 
-const DocumentsList = ({ status, department, startDate, endDate, searchQuery, handleTitleClick }) => {
+const DocumentsList = ({
+  status,
+  department,
+  startDate,
+  endDate,
+  searchQuery,
+  handleTitleClick,
+}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [documents, setDocuments] = useState([]);
-         
+
   // Fetch Documents from API
   const fetchDocuments = async () => {
     try {
@@ -22,7 +27,9 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
       if (department) queryParams.append("department", department);
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams.toString()}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/file/get-documents?${queryParams.toString()}`,
         { withCredentials: true }
       );
 
@@ -52,7 +59,8 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
     return (
       (!startDate || docDate >= new Date(startDate)) &&
       (!endDate || docDate <= new Date(endDate)) &&
-      (!searchQuery || doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      (!searchQuery ||
+        doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
 
@@ -60,7 +68,9 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
   const handleDownload = async (fileName) => {
     try {
       console.log("Downloading:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
@@ -73,6 +83,7 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
       // Create blob and download
       const blob = new Blob([typedArray], { type: "application/pdf" });
       downloadBlob(blob, fileName.replace(".enc", ""));
+      toast.success(`File Downloaded Successfully  ${fileName.replace(".enc", "")}`);
     } catch (error) {
       console.error("Download error:", error);
     }
@@ -101,9 +112,11 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
     const link = document.createElement("a");
     link.href = url;
     link.download = filename;
+    
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
     URL.revokeObjectURL(url);
   };
 
@@ -111,7 +124,9 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
   const handlePreview = async (fileName) => {
     try {
       console.log("Previewing:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
@@ -153,14 +168,23 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
                         className="text-lg font-semibold w-fit text-gray-800 cursor-pointer"
                         onClick={async () => {
                           const url = await handlePreview(doc.fileUniqueName);
-                          handleTitleClick(url);
+                          handleTitleClick(url, {
+                            description: doc.description,
+                            remarks: doc.remarks,
+                            title: doc.title,
+                            department: doc.department?.departmentName,
+                            createdBy: doc.createdBy?.fullName,
+                            createdDate: doc.createdDate,
+                            status: doc.status
+                          });
                         }}
                       >
                         {doc.title || "Untitled"}
                       </h3>
                       <div className="flex flex-wrap gap-4 mt-2">
                         <p className="text-sm text-gray-600">
-                          Department: {doc.department?.departmentName || "Unassigned"}
+                          Department:{" "}
+                          {doc.department?.departmentName || "Unassigned"}
                         </p>
                         <p className="text-sm text-gray-600">
                           Created by: {doc.createdBy?.fullName || "Unknown"}
@@ -182,7 +206,9 @@ const DocumentsList = ({ status, department, startDate, endDate, searchQuery, ha
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">No documents found</div>
+                <div className="text-center py-8 text-gray-500">
+                  No documents found
+                </div>
               )}
             </div>
           </>

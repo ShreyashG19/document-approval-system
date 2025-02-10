@@ -20,6 +20,7 @@ import Loader from "react-loaders";
 import "loaders.css/loaders.min.css";
 import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
+import { FiEdit2 } from "react-icons/fi";
 
 const History = () => {
   // State Management
@@ -30,7 +31,9 @@ const History = () => {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [isRemarkEditable, setIsRemarkEditable] = useState(false);
+  const [remark, setRemark] = useState("");
+  const [currentAction, setCurrentAction] = useState("");
   // Dialog States
   const [openDialog, setOpenDialog] = useState(false);
   const [remarks, setRemarks] = useState("");
@@ -51,6 +54,29 @@ const History = () => {
   const [newDocFile, setNewDocFile] = useState(null);
   const [newDocDesc, setNewDocDesc] = useState("");
   const [loading, setLoading] = useState(false);
+  const [currentDocDescription, setCurrentDocDescription] = useState("");
+  const [currentDocDetails, setCurrentDocDetails] = useState({
+    description: "",
+    remarks: "",
+    title: "",
+    department: "",
+    createdBy: "",
+    createdDate: "",
+    status: "",
+  });
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "approved":
+        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
+      case "rejected":
+        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
+      case "correction":
+        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
+      default:
+        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
+    }
+  };
 
   // Fetch Documents
   const fetchDocuments = async () => {
@@ -321,8 +347,9 @@ const History = () => {
             startDate={startDate}
             endDate={endDate}
             searchQuery={searchQuery}
-            handleTitleClick={(url) => {
+            handleTitleClick={(url, details) => {
               setCurrentPdfUrl(url);
+              setCurrentDocDetails(details);
               setViewPdfDialogOpen(true);
             }}
           />
@@ -340,29 +367,116 @@ const History = () => {
         maxWidth="xl"
         fullWidth
       >
-        <DialogTitle>Document Preview</DialogTitle>
+        <DialogTitle>
+          <div className="flex justify-between items-center">
+            <span>{currentDocDetails.title}</span>
+            <span className={getStatusColor(currentDocDetails.status)}>
+              {currentDocDetails.status?.toUpperCase()}
+            </span>
+          </div>
+        </DialogTitle>
         <DialogContent>
-          <div style={{ width: "100%", height: "80vh" }}>
-            <object
-              data={currentPdfUrl}
-              type="application/pdf"
-              width="100%"
-              height="100%"
-            >
-              <p>
-                Your browser does not support PDFs.{" "}
-                <a href={currentPdfUrl}>Download the PDF</a>.
-              </p>
-            </object>
+          <div className="flex gap-4 h-[80vh]">
+            {/* PDF Viewer - Left Side */}
+            <div className="flex-grow">
+              <object
+                data={currentPdfUrl}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+              >
+                <p>
+                  Your browser does not support PDFs.{" "}
+                  <a href={currentPdfUrl}>Download the PDF</a>.
+                </p>
+              </object>
+            </div>
+
+            {/* Details Panel - Right Side */}
+            <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
+              {/* Document Details */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Document Details</h3>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <span className="font-medium">Department:</span>{" "}
+                    {currentDocDetails.department}
+                  </p>
+                  <p>
+                    <span className="font-medium">Created By:</span>{" "}
+                    {currentDocDetails.createdBy}
+                  </p>
+                  <p>
+                    <span className="font-medium">Date:</span>{" "}
+                    {new Date(
+                      currentDocDetails.createdDate
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Description Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Description</h3>
+                <div className="bg-white p-3 rounded-md border border-gray-200">
+                  <p className="text-gray-700">
+                    {currentDocDetails.description ||
+                      "No description available"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Remarks Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2 flex items-center justify-between">
+                  Remarks
+                  {!isRemarkEditable && (
+                    <button
+                      onClick={() => setIsRemarkEditable(true)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FiEdit2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </h3>
+                {isRemarkEditable ? (
+                  <div>
+                    <textarea
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                      rows="4"
+                      value={remark}
+                      onChange={(e) => setRemark(e.target.value)}
+                      placeholder="Enter remarks..."
+                    />
+                    <div className="mt-2 flex justify-end gap-2">
+                      <Button
+                        size="small"
+                        onClick={() => setIsRemarkEditable(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={handleSaveRemarks}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white p-3 rounded-md border border-gray-200">
+                    <p className="text-gray-700">
+                      {currentDocDetails.remarks || "No remarks available"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setViewPdfDialogOpen(false)}
-            disabled={loading}
-          >
-            Close
-          </Button>
+          <Button onClick={() => setViewPdfDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </div>

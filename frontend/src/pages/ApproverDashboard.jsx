@@ -43,7 +43,7 @@ const ApproverDashboard = () => {
   const navigate = useNavigate();
   const [localRemark, setLocalRemark] = useState("");  
   const [departments, setDepartments] = useState([]);
-  
+  const [currentAction, setCurrentAction] = useState('')
   // Authentication Check
   useEffect(() => {
     if (!loggedInUser) {
@@ -181,7 +181,7 @@ const ApproverDashboard = () => {
           </div>
 
           {/* Content */}
-          <div className="content p-4">
+          <div className="content p-4 ">
             {selectedTab === "NEW" ? (
               <NewCm
                 setfileUnName={setfileUnName}
