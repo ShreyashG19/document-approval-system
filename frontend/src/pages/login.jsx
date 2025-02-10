@@ -156,6 +156,7 @@ const Login = () => {
 
             <div className="flex justify-end">
               <button
+                type="button"
                 onClick={handleForgotPassword}
                 className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex items-center"
                 disabled={forgotLoading}
@@ -173,22 +174,20 @@ const Login = () => {
               disabled={loading}
               className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 flex items-center justify-center"
             >
-
               {loading ? (
                 <>
                   <span className="loading loading-spinner"></span>
                   <span className="ml-2">Logging in...</span>
                 </>
               ) : (
-                `Login  `
+                "Login"
               )}
             </button>
             <div className="flex justify-center gap-1 space-x-1">
-            <h1 className="text-black">Dont have an account ? </h1>
-            <RouterLink to="/register" className="text-blue-600 hover:underline">
-              Sign Up Here
-            </RouterLink>
-
+              <h1 className="text-black">Don't have an account?</h1>
+              <RouterLink to="/register" className="text-blue-600 hover:underline">
+                Sign Up Here
+              </RouterLink>
             </div>
           </form>
         </div>

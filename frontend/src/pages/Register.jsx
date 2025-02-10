@@ -1,8 +1,10 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 import { toast, Toaster } from "react-hot-toast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -10,47 +12,64 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [mobileNo, setMobileNo] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { setTempUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!username) newErrors.username = "Username is required";
+    if (!fullName) newErrors.fullName = "Full Name is required";
+    if (!mobileNo) {
+      newErrors.mobileNo = "Mobile number is required";
+    } else if (mobileNo.length !== 10 || isNaN(mobileNo)) {
+      newErrors.mobileNo = "Mobile number must be exactly 10 digits";
+    }
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email address is invalid";
+    }
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters long";
+    }
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  useEffect(() => {
+    validateForm();
+  }, [username, fullName, mobileNo, email, password, confirmPassword]);
+
+  const handleBlur = (field) => {
+    setTouched({ ...touched, [field]: true });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     const apiUrl = import.meta.env.VITE_API_URL + "/user/signup";
-    // const apiUrl = "http://localhost:4000/user/signup";
     const toastId = toast.loading("Signing up...", {
       position: "top-center",
     });
 
-    if (mobileNo.length !== 10 || isNaN(mobileNo)) {
-      toast.dismiss(toastId);
-      toast.error("Mobile number must be exactly 10 digits.", { position: "top-center", duration: 3000 });
-      return;
-    }
-  
-    // **Simple Password Validation** (Min 8 chars & at least 1 special character)
-    const specialCharacters = "!@#$%^&*()_+-=[]{};:'\"\\|,.<>?/`~";
-    const hasSpecialChar = [...password].some((char) => specialCharacters.includes(char));
-  
-    if (password.length < 8 || !hasSpecialChar) {
-      toast.dismiss(toastId);
-      toast.error("Password must be at least 8 characters long and contain a special character.", { position: "top-center", duration: 3000 });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      toast.dismiss(toastId);
-      toast.error("Passwords do not match", {
-        position: "top-center",
-        duration: 3000,
-      });
-      return;
-    }
     const formData = {
       username,
       password,
       email,
       fullName,
-      mobileNo,
+      mobileNo: `+91${mobileNo}`,
     };
 
     try {
@@ -72,7 +91,7 @@ const Register = () => {
           duration: 2000,
         });
 
-        throw new Error(`HTTP error{! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -86,13 +105,13 @@ const Register = () => {
         username,
         fullName,
         email,
-        mobileNo,
+        mobileNo: `+91${mobileNo}`,
       });
       navigate("/otp/verify");
     } catch (error) {
       console.error("Error during signup:", error);
       toast.dismiss(toastId);
-      toast.error(error, {
+      toast.error(error.message, {
         position: "top-center",
         duration: 2000,
       });
@@ -113,78 +132,101 @@ const Register = () => {
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Username
+                Username <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                placeholder="Select a username"
                 className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-700 focus:border-blue-500 focus:outline-none"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                onBlur={() => handleBlur("username")}
               />
+              {touched.username && errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                placeholder="Enter your full name"
                 className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-700 focus:border-blue-500 focus:outline-none"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                onBlur={() => handleBlur("fullName")}
               />
+              {touched.fullName && errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
             </div>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mobile Number
+                Mobile Number <span className="text-red-500">*</span>
               </label>
-              <input
-                type="number"
-                placeholder="Enter your mobile number"
-                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500  text-gray-700 focus:border-blue-500 focus:outline-none"
-                value={mobileNo}
-                onChange={(e) => setMobileNo(e.target.value)}
-              />
+              <div className="flex">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  +91
+                </span>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 text-gray-700 focus:border-blue-500 focus:outline-none"
+                  value={mobileNo}
+                  onChange={(e) => setMobileNo(e.target.value)}
+                  onBlur={() => handleBlur("mobileNo")}
+                />
+              </div>
+              {touched.mobileNo && errors.mobileNo && <p className="text-red-500 text-sm">{errors.mobileNo}</p>}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+                Email Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
-                placeholder="Enter your email"
-                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500  text-gray-700 focus:border-blue-500 focus:outline-none"
+                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-700 focus:border-blue-500 focus:outline-none"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => handleBlur("email")}
               />
+              {touched.email && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
 
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
+                Password <span className="text-red-500">*</span> (min 8 characters)
               </label>
               <input
-                type="password"
-                placeholder="Enter your password"
-                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md  text-gray-700  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                type={showPassword ? "text" : "password"}
+                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => handleBlur("password")}
               />
+              <span
+                className="absolute right-3 top-10 cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+              {touched.password && errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
             </div>
 
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm Password
+                Confirm Password <span className="text-red-500">*</span>
               </label>
               <input
-                type="password"
-                placeholder="Confirm your password"
-                className="w-full px-4 py-2  text-gray-700 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                type={showConfirmPassword ? "text" : "password"}
+                className="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                onBlur={() => handleBlur("confirmPassword")}
               />
+              <span
+                className="absolute right-3 top-10 cursor-pointer"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </span>
+              {touched.confirmPassword && errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
             </div>
 
             <button className="w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition duration-200">
