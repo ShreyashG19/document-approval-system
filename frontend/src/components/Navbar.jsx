@@ -13,7 +13,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const { loggedInUser, setLoggedInUser, loading, logout } = useAuth();
-  const { unreadCount, resetCount, fetchNotifications, fcmToken } = useNotifications();
+  const { unreadCount, resetCount, fetchNotifications, fcmToken } =
+    useNotifications();
 
   useEffect(() => {
     fetchNotifications();
@@ -59,17 +60,23 @@ const Navbar = () => {
     const toastId = toast.loading("Logging out...", { position: "top-center" });
 
     try {
-      const response = await fetch(import.meta.env.VITE_API_URL + "/user/signout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deviceToken: fcmToken }),
-        credentials: "include",
-      });
+      const response = await fetch(
+        import.meta.env.VITE_API_URL + "/user/signout",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceToken: fcmToken }),
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) throw new Error("Failed to logout");
 
       toast.dismiss(toastId);
-      toast.success("Logged out successfully!", { position: "top-center", duration: 2000 });
+      toast.success("Logged out successfully!", {
+        position: "top-center",
+        duration: 2000,
+      });
 
       logout();
       navigate("/");
@@ -94,7 +101,10 @@ const Navbar = () => {
       <div className="flex items-center space-x-6">
         {/* Home Button */}
         <Tooltip title="Home" arrow>
-          <button onClick={navigateHome} className="text-gray-600 mb-2 text-xl hover:text-blue-500">
+          <button
+            onClick={navigateHome}
+            className="text-gray-600 mb-2 text-xl hover:text-blue-500"
+          >
             <AiFillHome />
           </button>
         </Tooltip>
@@ -102,7 +112,10 @@ const Navbar = () => {
         {/* Notifications Button */}
         <div className="relative">
           <Tooltip title="Notifications" arrow>
-            <button onClick={navigateNoti} className="text-gray-600 text-xl hover:text-blue-500">
+            <button
+              onClick={navigateNoti}
+              className="text-gray-600 text-xl hover:text-blue-500"
+            >
               <FaBell />
               {unreadCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -127,11 +140,13 @@ const Navbar = () => {
           PaperProps={{ style: { maxHeight: 200, width: "20ch" } }}
         >
           <MenuItem onClick={navigateProfile}>View Profile</MenuItem>
-          <MenuItem onClick={navigateHistory}>History</MenuItem>
-          {loggedInUser && 
-          loggedInUser.role !== Role.APPROVER && 
-          (loggedInUser.role === Role.SENIOR_ASSISTANT || loggedInUser.role === Role.ADMIN) && (
-            <MenuItem onClick={navigateManageUsers}>Manage Users</MenuItem>
+          {loggedInUser?.role !== Role.ADMIN && (
+            <>
+              <MenuItem onClick={navigateHistory}>History</MenuItem>
+              {loggedInUser?.role === Role.SENIOR_ASSISTANT && (
+                <MenuItem onClick={navigateManageUsers}>Manage Users</MenuItem>
+              )}
+            </>
           )}
           <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
