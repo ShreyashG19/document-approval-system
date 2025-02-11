@@ -16,6 +16,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import {
   AiOutlineClose,
+  AiOutlineInfoCircle,
   AiOutlineCheck,
   AiOutlineCloseCircle,
 } from "react-icons/ai";
@@ -37,6 +38,7 @@ const ApproverDashboard = () => {
   const [localRemark, setLocalRemark] = useState("");
   const [, setDepartments] = useState([]);
   const [currentAction, setCurrentAction] = useState("");
+  const [isActionInProgress, setIsActionInProgress] = useState(false);
 
   const [currentDocDetails, setCurrentDocDetails] = useState({
     description: "",
@@ -105,21 +107,19 @@ const ApproverDashboard = () => {
       return;
     }
 
-    // Validate remark for correction (mandatory)
     if (actionType === "correction" && (!remark || !remark.trim())) {
       toast.error("Remark is mandatory for correction");
       return;
     }
-
     try {
-      {
-        actionType === "approve"
-          ? toast.success("Document Approved Successfully")
-          : actionType === "reject"
-          ? toast.error("Document Rejected Successfully")
-          : toast("Document Correction Successfully");
-      }
+      setIsActionInProgress(true);
+      const actionMessages = {
+        approve: "Approving Document...",
+        reject: "Rejecting Document...",
+        correction: "Sending Document for Correction...",
+      };
 
+      const loadingToast = toast.loading(actionMessages[actionType]);
       const actionEndpoints = {
         approve: `${import.meta.env.VITE_API_URL}/file/approve`,
         reject: `${import.meta.env.VITE_API_URL}/file/reject`,
@@ -135,9 +135,9 @@ const ApproverDashboard = () => {
         { withCredentials: true }
       );
 
+      toast.dismiss(loadingToast);
       setViewPdfDialogOpen(false);
       await fetchDocuments();
-      toast.dismiss();
       toast.success(
         response.data.message || `Document ${actionType}d successfully!`
       );
@@ -147,9 +147,10 @@ const ApproverDashboard = () => {
       setRemark("");
       setIsRemarkEditable(false);
     } catch (error) {
-      toast.dismiss();
       console.error(`${actionType} error:`, error);
       toast.error(error.response?.data?.message || `${actionType} failed`);
+    } finally {
+      setIsActionInProgress(false);
     }
   };
 
@@ -160,7 +161,7 @@ const ApproverDashboard = () => {
     setfileUnName(document?.fileUniqueName || "");
     setCurrentDocDetails({
       description: document?.description || "",
-      remarks: document?.remark || "",
+      remarks: document?.remarks || "",
       title: document?.title || "",
       department: document?.department?.departmentName || "",
       createdBy: document?.createdBy?.fullName || "",
@@ -169,6 +170,7 @@ const ApproverDashboard = () => {
     });
     setViewPdfDialogOpen(true);
     setCurrentAction("");
+    setRemark("");
     setIsRemarkEditable(false);
   };
   const closePdfDialog = () => {
@@ -180,6 +182,12 @@ const ApproverDashboard = () => {
     setRemark("");
     setCurrentAction(null);
     setIsRemarkEditable(false);
+  };
+
+  const handleTextareaBlur = () => {
+    setTimeout(() => {
+      setIsRemarkEditable(false);
+    }, 100);
   };
 
   return (
@@ -296,7 +304,6 @@ const ApproverDashboard = () => {
                   </p>
                 </div>
               </div>
-
               {/* Description Section */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Description</h3>
@@ -308,10 +315,19 @@ const ApproverDashboard = () => {
                 </div>
               </div>
 
-              {/* Remarks Section */}
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-2 flex items-center">
                   Remarks
+                  <div className="relative inline-block ml-2 group">
+                    <AiOutlineInfoCircle className="h-5 w-5 text-gray-500 cursor-help" />
+                    <div className="absolute right-2 invisible group-hover:visible bg-gray-700 text-white text-sm rounded-lg p-3 w-56 bottom-full left-1/2 transform -translate-x-1/2 mb-2 shadow-lg z-50">
+                      <ul className="space-y-1 list-disc pl-4 text-left">
+                        <li>Approve: Optional</li>
+                        <li>Reject: Optional</li>
+                        <li>Correction: Required</li>
+                      </ul>
+                    </div>
+                  </div>
                   {!isRemarkEditable && selectedTab !== "SENT BACK" && (
                     <FiEdit2
                       className="h-5 w-5 text-gray-500 ml-2 cursor-pointer hover:text-blue-600"
@@ -322,21 +338,18 @@ const ApproverDashboard = () => {
                 {isRemarkEditable ? (
                   <div>
                     <textarea
-                      className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2"
                       rows="4"
-                      placeholder={
-                        currentAction === "correction"
-                          ? "Enter correction remark (Mandatory)"
-                          : "Enter optional remark..."
-                      }
+                      placeholder="Enter your remarks here..."
                       value={remark}
                       onChange={(e) => setRemark(e.target.value)}
+                      onBlur={handleTextareaBlur}
                     />
                   </div>
                 ) : (
                   <div className="bg-white p-3 rounded-md border border-gray-200">
                     <p className="text-gray-700">
-                      {currentDocDetails.remarks || "No remarks available"}
+                      {currentDocDetails.remarks || "Remark not available"}
                     </p>
                   </div>
                 )}
@@ -347,16 +360,20 @@ const ApproverDashboard = () => {
         {selectedDocument?.status === "pending" && (
           <DialogActions>
             <div className="border-t-2 flex space-x-2 mt-3 w-full items-end justify-end">
-              {/* Keep your existing action buttons */}
               <button
                 onClick={() => {
                   setCurrentAction("approve");
                   handleDocumentAction("approve");
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
+                disabled={isActionInProgress}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition ${
+                  isActionInProgress
+                    ? "bg-gray-400 cursor-not-allowed opacity-50"
+                    : "bg-green-500 hover:bg-green-600"
+                } text-white`}
               >
                 <AiOutlineCheck className="h-5 w-5" />
-                Approve
+                {isActionInProgress ? "Processing..." : "Approve"}
               </button>
 
               <button
@@ -364,10 +381,15 @@ const ApproverDashboard = () => {
                   setCurrentAction("reject");
                   handleDocumentAction("reject");
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
+                disabled={isActionInProgress}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition ${
+                  isActionInProgress
+                    ? "bg-gray-400 cursor-not-allowed opacity-50"
+                    : "bg-red-500 hover:bg-red-600"
+                } text-white`}
               >
                 <AiOutlineCloseCircle className="h-5 w-5" />
-                Reject
+                {isActionInProgress ? "Processing..." : "Reject"}
               </button>
 
               <button
@@ -377,10 +399,15 @@ const ApproverDashboard = () => {
                     handleDocumentAction("correction");
                   }
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
+                disabled={isActionInProgress}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition ${
+                  isActionInProgress
+                    ? "bg-gray-400 cursor-not-allowed opacity-50"
+                    : "bg-yellow-500 hover:bg-yellow-600"
+                } text-white`}
               >
                 <FiEdit2 className="h-5 w-5" />
-                Correction
+                {isActionInProgress ? "Processing..." : "Correction"}
               </button>
             </div>
           </DialogActions>
