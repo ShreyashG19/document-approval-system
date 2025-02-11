@@ -13,16 +13,11 @@ const EditProfile = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  
   const navigate = useNavigate();
 
-  const [errors, setErrors] = useState({
-    name: "",
-    phone: "",
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
+  // Fetch logged-in user details
   useEffect(() => {
     if (loggedInUser) {
       setName(loggedInUser.fullName);
@@ -31,67 +26,25 @@ const EditProfile = () => {
     }
   }, [loggedInUser]);
 
-  const validatePhone = (value) => {
-    if (!value) return "Phone number is required";
-
-    // Convert to string if it's a number
-    const phoneStr = value.toString();
-
-    if (!/^\d{10}$/.test(phoneStr)) {
-      return "Phone number must be 10 digits";
+  // Form Validation
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!phone) {
+      newErrors.phone = "Mobile number is required";
+    } else if (phone.length !== 10 || isNaN(phone)) {
+      newErrors.phone = "Mobile number must be exactly 10 digits";
     }
-    return "";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Update the validateName function
-  const validateName = (value) => {
-    if (!value) return "Name is required";
-
-    const nameStr = value.toString().trim();
-
-    if (nameStr.length < 2) {
-      return "Name must be at least 2 characters";
-    }
-    if (!/^[a-zA-Z\s]*$/.test(nameStr)) {
-      return "Name should only contain letters and spaces";
-    }
-    return "";
-  };
-
-  const handleNameChange = (e) => {
-    const value = e.target.value;
-    setName(value);
-    setErrors((prev) => ({
-      ...prev,
-      name: validateName(value),
-    }));
-  };
-
-  const handlePhoneChange = (e) => {
-    const value = e.target.value;
-    setPhone(value);
-    setErrors((prev) => ({
-      ...prev,
-      phone: validatePhone(value),
-    }));
-  };
-
+  // Save Changes logic
   const handleSaveChanges = async (e) => {
     e.preventDefault();
 
-    // Validate all fields
-    const nameError = validateName(name);
-    const phoneError = validatePhone(phone);
-
-    setErrors((prev) => ({
-      ...prev,
-      name: nameError,
-      phone: phoneError,
-    }));
-
-    if (nameError || phoneError) {
-      return;
-    }
+    if (!validateForm()) return;
 
     const toastId = toast.loading("Saving changes...");
     try {
@@ -101,6 +54,7 @@ const EditProfile = () => {
       };
       const updateProfileUrl =
         import.meta.env.VITE_API_URL + "/user/update-profile";
+
       const response = await axios.post(updateProfileUrl, updatedData, {
         withCredentials: true,
       });
@@ -117,7 +71,39 @@ const EditProfile = () => {
     } catch (error) {
       toast.dismiss(toastId);
       console.error("Error saving changes:", error);
-      toast.error(error.response?.data?.message || "Failed to update profile", {
+      toast.error(error.response?.data?.message || "An error occurred", {
+        position: "top-center",
+        duration: 3000,
+      });
+    }
+  };
+
+  // Change Password logic
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirm password do not match.", {
+        position: "top-center",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      const passwordData = {
+        currentPassword,
+        newPassword,
+      };
+
+      console.log("Password Data:", passwordData);
+      toast.success("Password changed successfully!", {
+        position: "top-center",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error("Failed to change password. Please try again.", {
         position: "top-center",
         duration: 3000,
       });
@@ -178,25 +164,21 @@ const EditProfile = () => {
           </div>
 
           <div className="mb-4">
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Phone
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mobile Number
             </label>
-            <input
-              type="tel"
-              id="phone"
-              className={`mt-1 px-4 py-2 w-full bg-white border ${
-                errors.phone ? "border-red-500" : "border-gray-300"
-              } rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-900`}
-              value={phone}
-              onChange={handlePhoneChange}
-              required
-            />
-            {errors.phone && (
-              <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
-            )}
+            <div className="flex">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                +91
+              </span>
+              <input
+                type="text"
+                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 text-gray-700 focus:border-blue-500 focus:outline-none"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
           </div>
           <button
             type="submit"
