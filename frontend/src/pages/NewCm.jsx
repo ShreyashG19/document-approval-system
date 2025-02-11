@@ -30,6 +30,7 @@ const NewCm = ({
   const [selectedDocument, setSelectedDocument] = useState(null);
   // const [remark, setRemark] = useState("");
   const [departments, setDepartments] = useState([]);
+  const [displayRemark, setDisplayRemark] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const convertWordArrayToUint8Array = (wordArray) => {
@@ -151,6 +152,7 @@ const NewCm = ({
 
   const openRemarkModal = (document) => {
     setSelectedDocument(document);
+    setRemark("");
     setIsRemarkModalOpen(true);
   };
 
@@ -161,6 +163,7 @@ const NewCm = ({
 
   const handleRemarkSubmit = () => {
     console.log("Remark submitted:", remark);
+    setDisplayRemark(remark || "No remarks available");
     closeRemarkModal();
   };
 
@@ -377,15 +380,14 @@ const NewCm = ({
                       setDescription(
                         item.description || "No description available"
                       );
-                      setRemark(item.remark || "No remarks available");
-                      console.log("remark", item.remark);
-                      console.log("description", item.description);
+                      setDisplayRemark(item.remark || "No remarks available"); // For display
+                      setRemark(item.remark || ""); // For editing
                       handleTitleClick(url, item);
                     }}
                   />
                   <FaDownload
                     className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
-                    onClick= {() => handleDownload(item.fileUniqueName)}
+                    onClick={() => handleDownload(item.fileUniqueName)}
                   />
                 </div>
               </div>

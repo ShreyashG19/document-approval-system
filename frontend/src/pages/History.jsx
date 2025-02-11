@@ -381,14 +381,7 @@ const History = () => {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 flex items-center justify-between">
                   Remarks
-                  {loggedInUser?.role === Role.APPROVER && (
-                    <button
-                      onClick={() => setIsRemarkEditable(true)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <FiEdit2 className="h-4 w-4" />
-                    </button>
-                  )}
+                      
                 </h3>
                 {isRemarkEditable ? (
                   <div>

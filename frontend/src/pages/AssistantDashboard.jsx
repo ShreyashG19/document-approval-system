@@ -558,7 +558,7 @@ const AssistantDashboard = () => {
             Cancel
           </Button>
           <Button onClick={handleDocumentUpload} disabled={isLoading}>
-            Encrypt & Upload
+            Upload
           </Button>
         </DialogActions>
       </Dialog>
