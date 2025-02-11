@@ -4,6 +4,7 @@ import { IoArrowBack } from "react-icons/io5";
 import { toast, Toaster } from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
+
 const EditProfile = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -12,10 +13,11 @@ const EditProfile = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [errors, setErrors] = useState({});
+  
   const navigate = useNavigate();
 
-  // Mock data fetch
+  // Fetch logged-in user details
   useEffect(() => {
     if (loggedInUser) {
       setName(loggedInUser.fullName);
@@ -24,21 +26,39 @@ const EditProfile = () => {
     }
   }, [loggedInUser]);
 
+  // Form Validation
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!phone) {
+      newErrors.phone = "Mobile number is required";
+    } else if (phone.length !== 10 || isNaN(phone)) {
+      newErrors.phone = "Mobile number must be exactly 10 digits";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Save Changes logic
   const handleSaveChanges = async (e) => {
-    const toastId = toast.loading("Saving changes...");
     e.preventDefault();
+
+    if (!validateForm()) return;
+
+    const toastId = toast.loading("Saving changes...");
     try {
-      // Mock API call to update user data
       const updatedData = {
         fullName: name,
         mobileNo: phone,
       };
       const updateProfileUrl =
         import.meta.env.VITE_API_URL + "/user/update-profile";
+
       const response = await axios.post(updateProfileUrl, updatedData, {
         withCredentials: true,
       });
+
       toast.dismiss(toastId);
       if (response.status === 200) {
         checkAuthStatus();
@@ -55,7 +75,7 @@ const EditProfile = () => {
     } catch (error) {
       toast.dismiss(toastId);
       console.error("Error saving changes:", error);
-      toast.error(error.response.data.message, {
+      toast.error(error.response?.data?.message || "An error occurred", {
         position: "top-center",
         duration: 3000,
       });
@@ -65,19 +85,21 @@ const EditProfile = () => {
   // Change Password logic
   const handleChangePassword = async (e) => {
     e.preventDefault();
+    
     if (newPassword !== confirmPassword) {
-      toast.success("New password and confirm password do not match.", {
+      toast.error("New password and confirm password do not match.", {
         position: "top-center",
         duration: 3000,
-      }); // Clear previous messages
+      });
       return;
     }
+
     try {
-      // Mock API call to change password
       const passwordData = {
         currentPassword,
         newPassword,
       };
+
       console.log("Password Data:", passwordData);
       toast.success("Password changed successfully!", {
         position: "top-center",
@@ -139,20 +161,21 @@ const EditProfile = () => {
             />
           </div>
           <div className="mb-4">
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Phone
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mobile Number
             </label>
-            <input
-              type="tel"
-              id="phone"
-              className="mt-1 px-4 py-2 w-full bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-900"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
+            <div className="flex">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                +91
+              </span>
+              <input
+                type="text"
+                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500 text-gray-700 focus:border-blue-500 focus:outline-none"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
           </div>
 
           <button
@@ -162,7 +185,6 @@ const EditProfile = () => {
             Save Changes
           </button>
         </form>
-        {/* Change Password Section */}
       </div>
     </div>
   );
