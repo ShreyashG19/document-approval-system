@@ -4,6 +4,7 @@ import { IoArrowBack } from "react-icons/io5";
 import { toast, Toaster } from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
+
 const EditProfile = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -12,10 +13,16 @@ const EditProfile = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const navigate = useNavigate();
 
-  // Mock data fetch
+  const [errors, setErrors] = useState({
+    name: "",
+    phone: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
   useEffect(() => {
     if (loggedInUser) {
       setName(loggedInUser.fullName);
@@ -24,12 +31,70 @@ const EditProfile = () => {
     }
   }, [loggedInUser]);
 
-  // Save Changes logic
+  const validatePhone = (value) => {
+    if (!value) return "Phone number is required";
+
+    // Convert to string if it's a number
+    const phoneStr = value.toString();
+
+    if (!/^\d{10}$/.test(phoneStr)) {
+      return "Phone number must be 10 digits";
+    }
+    return "";
+  };
+
+  // Update the validateName function
+  const validateName = (value) => {
+    if (!value) return "Name is required";
+
+    const nameStr = value.toString().trim();
+
+    if (nameStr.length < 2) {
+      return "Name must be at least 2 characters";
+    }
+    if (!/^[a-zA-Z\s]*$/.test(nameStr)) {
+      return "Name should only contain letters and spaces";
+    }
+    return "";
+  };
+
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setName(value);
+    setErrors((prev) => ({
+      ...prev,
+      name: validateName(value),
+    }));
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    setPhone(value);
+    setErrors((prev) => ({
+      ...prev,
+      phone: validatePhone(value),
+    }));
+  };
+
   const handleSaveChanges = async (e) => {
-    const toastId = toast.loading("Saving changes...");
     e.preventDefault();
+
+    // Validate all fields
+    const nameError = validateName(name);
+    const phoneError = validatePhone(phone);
+
+    setErrors((prev) => ({
+      ...prev,
+      name: nameError,
+      phone: phoneError,
+    }));
+
+    if (nameError || phoneError) {
+      return;
+    }
+
+    const toastId = toast.loading("Saving changes...");
     try {
-      // Mock API call to update user data
       const updatedData = {
         fullName: name,
         mobileNo: phone,
@@ -39,15 +104,12 @@ const EditProfile = () => {
       const response = await axios.post(updateProfileUrl, updatedData, {
         withCredentials: true,
       });
+
       toast.dismiss(toastId);
       if (response.status === 200) {
         checkAuthStatus();
+        navigate("/profile");
         toast.success("Profile updated successfully!", {
-          position: "top-center",
-          duration: 3000,
-        });
-      } else {
-        toast.error(response.data.message, {
           position: "top-center",
           duration: 3000,
         });
@@ -55,37 +117,7 @@ const EditProfile = () => {
     } catch (error) {
       toast.dismiss(toastId);
       console.error("Error saving changes:", error);
-      toast.error(error.response.data.message, {
-        position: "top-center",
-        duration: 3000,
-      });
-    }
-  };
-
-  // Change Password logic
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.success("New password and confirm password do not match.", {
-        position: "top-center",
-        duration: 3000,
-      }); // Clear previous messages
-      return;
-    }
-    try {
-      // Mock API call to change password
-      const passwordData = {
-        currentPassword,
-        newPassword,
-      };
-      console.log("Password Data:", passwordData);
-      toast.success("Password changed successfully!", {
-        position: "top-center",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error("Error changing password:", error);
-      toast.error("Failed to change password. Please try again.", {
+      toast.error(error.response?.data?.message || "Failed to update profile", {
         position: "top-center",
         duration: 3000,
       });
@@ -105,7 +137,7 @@ const EditProfile = () => {
             Edit Profile
           </h1>
         </div>
-        {/* Profile Edit Form */}
+
         <form onSubmit={handleSaveChanges}>
           <div className="mb-4">
             <label
@@ -117,12 +149,18 @@ const EditProfile = () => {
             <input
               type="text"
               id="name"
-              className="mt-1 px-4 py-2 w-full bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-900"
+              className={`mt-1 px-4 py-2 w-full bg-white border ${
+                errors.name ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-900`}
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleNameChange}
               required
             />
+            {errors.name && (
+              <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+            )}
           </div>
+
           <div className="mb-4">
             <label
               htmlFor="email"
@@ -138,6 +176,7 @@ const EditProfile = () => {
               disabled
             />
           </div>
+
           <div className="mb-4">
             <label
               htmlFor="phone"
@@ -148,21 +187,29 @@ const EditProfile = () => {
             <input
               type="tel"
               id="phone"
-              className="mt-1 px-4 py-2 w-full bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-900"
+              className={`mt-1 px-4 py-2 w-full bg-white border ${
+                errors.phone ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-gray-900`}
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={handlePhoneChange}
               required
             />
+            {errors.phone && (
+              <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
+            )}
           </div>
-
           <button
             type="submit"
-            className="w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition duration-200"
+            disabled={errors.name || errors.phone}
+            className={`w-full px-4 py-2 ${
+              errors.name || errors.phone
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
+            } text-white font-medium rounded-md transition duration-200`}
           >
             Save Changes
           </button>
         </form>
-        {/* Change Password Section */}
       </div>
     </div>
   );
