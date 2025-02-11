@@ -14,13 +14,17 @@ const SARestrictedRoute = ({ children }) => {
   return loggedInUser && loggedInUser.role === Role.SENIOR_ASSISTANT ? (
     children
   ) : (
-    <h2>
-      You are not authorized to access this page.
-      <br />
-      <NavLink to="/" className={"text-sky-500 underline"}>
-        Go to Home
-      </NavLink>
-    </h2>
+    <div className="flex  items-center justify-center h-screen">
+      <h2 className="text-4xl text-gray-100 mb-5">
+        🚫You are not authorized to access this page.
+        <br />
+        <div className="mt-7  ml-8 ">
+          <NavLink to="/" className={"text-sky-500  underline"}>
+            Go to Home
+          </NavLink>
+        </div>
+      </h2>
+    </div>
   );
 };
 

@@ -112,7 +112,13 @@ const ApproverDashboard = () => {
     }
 
     try {
-     {actionType==="approve"?toast.success("Document Approved Successfully"):actionType==="reject"?toast.error("Document Rejected Successfully"):toast("Document Correction Successfully")}
+      {
+        actionType === "approve"
+          ? toast.success("Document Approved Successfully")
+          : actionType === "reject"
+          ? toast.error("Document Rejected Successfully")
+          : toast("Document Correction Successfully");
+      }
 
       const actionEndpoints = {
         approve: `${import.meta.env.VITE_API_URL}/file/approve`,
@@ -237,16 +243,16 @@ const ApproverDashboard = () => {
         fullWidth
       >
         <DialogTitle>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center w-full">
             <span>{currentDocDetails.title || "Document Preview"}</span>
-            <div className="flex items-center gap-2">
+            <div className="flex-1 flex justify-center">
               <span className={getStatusColor(currentDocDetails.status)}>
                 {currentDocDetails.status?.toUpperCase() || "UNKNOWN"}
               </span>
-              <button onClick={closePdfDialog}>
-                <AiOutlineClose className="h-5 w-5" />
-              </button>
             </div>
+            <button onClick={closePdfDialog}>
+              <AiOutlineClose className="h-5 w-5" />
+            </button>
           </div>
         </DialogTitle>
         <DialogContent>

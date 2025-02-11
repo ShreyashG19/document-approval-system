@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { FaSearch, FaBars } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import { HiDocumentPlus } from "react-icons/hi2";
+import { Skeleton } from "@mui/material";
+
 import {
   Dialog,
   DialogActions,
@@ -20,8 +22,7 @@ import axios from "axios";
 import CryptoJS from "crypto-js";
 import DocumentsList from "../components/DocumentsList";
 import { IoIosAdd, IoMdRefresh } from "react-icons/io";
-import Loader from "react-loaders";
-import "loaders.css/loaders.min.css";
+
 import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
 const getStatusColor = (status) => {
@@ -67,7 +68,6 @@ const AssistantDashboard = () => {
   const [newDocDepartment, setNewDocDepartment] = useState("");
   const [newDocFile, setNewDocFile] = useState(null);
   const [newDocDesc, setNewDocDesc] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const [currentDocDetails, setCurrentDocDetails] = useState({
     description: "",
@@ -113,11 +113,10 @@ const AssistantDashboard = () => {
       setIsLoading(false);
     }
   };
-
   const handleRefresh = async () => {
-    setLoading(true);
+    setIsLoading(true);
     await fetchDocuments();
-    setLoading(false);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -156,19 +155,19 @@ const AssistantDashboard = () => {
   // Handle Document Upload
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
-    setLoading(true);
+    setIsLoading(true);
 
     // Validate all fields
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
       toast.error("Please fill all required fields");
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
 
     // Validate file type
     if (!newDocFile.type.includes("pdf")) {
       toast.error("Please upload only PDF files");
-      setLoading(false);
+      setIsLoading(false);
       return;
     }
 
@@ -214,7 +213,7 @@ const AssistantDashboard = () => {
       console.error("Upload error:", error);
       toast.error(error.response?.data?.message || "Error uploading document");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -242,7 +241,7 @@ const AssistantDashboard = () => {
                   ? "border-b-2 border-blue-500 text-blue-500"
                   : "text-gray-600 hover:text-blue-500"
               }`}
-              disabled={loading}
+              disabled={isLoading}
             >
               {tab}
             </button>
@@ -259,7 +258,7 @@ const AssistantDashboard = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-3 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              disabled={loading}
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -274,7 +273,7 @@ const AssistantDashboard = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
-              disabled={loading}
+              disabled={isLoading}
             >
               <option value="">All</option>
               {departments?.map((department, idx) => (
@@ -296,7 +295,7 @@ const AssistantDashboard = () => {
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
-                  disabled={loading}
+                  disabled={isLoading}
                 />
                 <svg
                   className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
@@ -324,7 +323,7 @@ const AssistantDashboard = () => {
                   onChange={(e) => setEndDate(e.target.value)}
                   className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
                   min={startDate}
-                  disabled={loading}
+                  disabled={isLoading}
                 />
                 <svg
                   className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
@@ -346,7 +345,7 @@ const AssistantDashboard = () => {
               <button
                 onClick={handleRefresh}
                 className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-                disabled={loading}
+                disabled={isLoading}
               >
                 <IoMdRefresh className="h-5 w-5" />
               </button>
@@ -362,25 +361,45 @@ const AssistantDashboard = () => {
           </div>
         </div>
 
-        {/* Document List */}
-        {isLoading || loading ? (
-          <div className="flex justify-center items-center">
-            <Loader type="ball-pulse" active />
-          </div>
-        ) : (
-          <DocumentsList
-            status={selectedTab.toLowerCase()}
-            department={selectedCategory}
-            startDate={startDate}
-            endDate={endDate}
-            searchQuery={searchQuery}
-            handleTitleClick={(url, details) => {
-              setCurrentPdfUrl(url);
-              setCurrentDocDetails(details);
-              setViewPdfDialogOpen(true);
-            }}
-          />
-        )}
+        <div className="space-y-4">
+          {isLoading ? (
+            // Skeleton loading state
+            Array(3)
+              .fill(0)
+              .map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white p-4 rounded-lg shadow animate-pulse w-full max-w-4xl"
+                >
+                  <div className="flex justify-between items-center w-full">
+                    <div className="w-1/2 h-5 bg-gray-200 rounded"></div>
+                    <div className="w-32 h-8 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    <div className="w-full h-4 bg-gray-200 rounded"></div>
+                    <div className="w-3/4 h-4 bg-gray-200 rounded"></div>
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="w-36 h-4 bg-gray-200 rounded"></div>
+                      <div className="w-24 h-4 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+          ) : (
+            <DocumentsList
+              status={selectedTab.toLowerCase()}
+              department={selectedCategory}
+              startDate={startDate}
+              endDate={endDate}
+              searchQuery={searchQuery}
+              handleTitleClick={(url, details) => {
+                setCurrentPdfUrl(url);
+                setCurrentDocDetails(details);
+                setViewPdfDialogOpen(true);
+              }}
+            />
+          )}
+        </div>
       </main>
 
       {/* New Document Dialog */}
@@ -398,11 +417,9 @@ const AssistantDashboard = () => {
               {currentDocDetails.status?.toUpperCase() || "UNKNOWN"}
             </span>
 
-          <button onClick={() => setViewPdfDialogOpen(false)}>
-
-            <AiOutlineClose  />
-          </button>
-
+            <button onClick={() => setViewPdfDialogOpen(false)}>
+              <AiOutlineClose />
+            </button>
           </div>
         </DialogTitle>
         <DialogContent>
@@ -470,16 +487,14 @@ const AssistantDashboard = () => {
             </div>
           </div>
         </DialogContent>
-        <DialogActions>
-           
-        </DialogActions>
+        <DialogActions></DialogActions>
       </Dialog>
       {/* Add Document Button */}
       <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
         <IoIosAdd
           className="text-4xl"
           onClick={() => setNewDocDialogOpen(true)}
-          disabled={loading}
+          disabled={isLoading}
         />
       </div>
 
@@ -497,7 +512,7 @@ const AssistantDashboard = () => {
             fullWidth
             value={newDocTitle}
             onChange={(e) => setNewDocTitle(e.target.value)}
-            disabled={loading}
+            disabled={isLoading}
           />
           <TextField
             select
@@ -506,7 +521,7 @@ const AssistantDashboard = () => {
             value={newDocDepartment}
             onChange={(e) => setNewDocDepartment(e.target.value)}
             SelectProps={{ native: true }}
-            disabled={loading}
+            disabled={isLoading}
           >
             <option value="">Select Department</option>
             {departments?.map((department, idx) => (
@@ -521,7 +536,7 @@ const AssistantDashboard = () => {
             accept=".pdf"
             onChange={(e) => setNewDocFile(e.target.files[0])}
             className="my-4"
-            disabled={loading}
+            disabled={isLoading}
           />
           <TextField
             margin="dense"
@@ -532,14 +547,17 @@ const AssistantDashboard = () => {
             rows={4}
             value={newDocDesc}
             onChange={(e) => setNewDocDesc(e.target.value)}
-            disabled={loading}
+            disabled={isLoading}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setNewDocDialogOpen(false)} disabled={loading}>
+          <Button
+            onClick={() => setNewDocDialogOpen(false)}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
-          <Button onClick={handleDocumentUpload} disabled={loading}>
+          <Button onClick={handleDocumentUpload} disabled={isLoading}>
             Encrypt & Upload
           </Button>
         </DialogActions>

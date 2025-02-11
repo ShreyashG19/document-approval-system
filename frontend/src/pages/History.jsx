@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { FaSearch, FaBars } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import { HiDocumentPlus } from "react-icons/hi2";
+import {
+  AiOutlineClose,
+  AiOutlineCheck,
+  AiOutlineCloseCircle,
+} from "react-icons/ai";
+import { useAuth } from "../contexts/AuthContext";
 
 import {
   Dialog,
@@ -21,6 +27,7 @@ import "loaders.css/loaders.min.css";
 import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
 import { FiEdit2 } from "react-icons/fi";
+import { Role } from "../../utils/enums";
 
 const History = () => {
   // State Management
@@ -64,6 +71,7 @@ const History = () => {
     createdDate: "",
     status: "",
   });
+  const { loggedInUser } = useAuth();
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -166,69 +174,6 @@ const History = () => {
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
   // Handle Document Upload
-  const handleDocumentUpload = async () => {
-    const toastId = toast.loading("Uploading document...");
-    setLoading(true);
-
-    // Validate all fields
-    if (!newDocFile || !newDocDepartment || !newDocTitle) {
-      toast.error("Please fill all required fields");
-      setLoading(false);
-      return;
-    }
-
-    // Validate file type
-    if (!newDocFile.type.includes("pdf")) {
-      toast.error("Please upload only PDF files");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // Encrypt the file
-      const arrayBuffer = await newDocFile.arrayBuffer();
-      const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-      const encrypted = CryptoJS.AES.encrypt(wordArray, "mykey");
-      const encryptedContent = encrypted.toString();
-
-      // Prepare form data
-      const formData = new FormData();
-      const blob = new Blob([encryptedContent], { type: "text/plain" });
-      formData.append("pdfFile", new File([blob], `${newDocFile.name}.enc`));
-      formData.append("department", newDocDepartment);
-      formData.append("title", newDocTitle);
-      formData.append("description", newDocDesc || "");
-
-      // Upload the file
-      const uploadUrl = import.meta.env.VITE_API_URL + "/file/upload-pdf";
-      const response = await axios.post(uploadUrl, formData, {
-        withCredentials: true,
-      });
-
-      if (response.data) {
-        toast.dismiss(toastId);
-        toast.success("Document uploaded successfully");
-
-        // Reset form fields
-        setNewDocFile(null);
-        setNewDocDepartment("");
-        setNewDocTitle("");
-        setNewDocDesc("");
-
-        // Refresh the document list
-        fetchDocuments();
-
-        // Close the dialog
-        setNewDocDialogOpen(false);
-      }
-    } catch (error) {
-      toast.dismiss(toastId);
-      console.error("Upload error:", error);
-      toast.error(error.response?.data?.message || "Error uploading document");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
@@ -373,6 +318,12 @@ const History = () => {
             <span className={getStatusColor(currentDocDetails.status)}>
               {currentDocDetails.status?.toUpperCase()}
             </span>
+            <button>
+              <AiOutlineClose
+                onClick={() => setViewPdfDialogOpen(false)}
+                className="h-5 w-5"
+              />
+            </button>
           </div>
         </DialogTitle>
         <DialogContent>
@@ -430,7 +381,7 @@ const History = () => {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 flex items-center justify-between">
                   Remarks
-                  {!isRemarkEditable && (
+                  {loggedInUser?.role === Role.APPROVER && (
                     <button
                       onClick={() => setIsRemarkEditable(true)}
                       className="text-blue-600 hover:text-blue-800"
@@ -475,9 +426,7 @@ const History = () => {
             </div>
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewPdfDialogOpen(false)}>Close</Button>
-        </DialogActions>
+        <DialogActions></DialogActions>
       </Dialog>
     </div>
   );
