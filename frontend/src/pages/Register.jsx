@@ -22,19 +22,19 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!username) newErrors.username = "Username is required";
-    if (!fullName) newErrors.fullName = "Full Name is required";
-    if (!mobileNo) {
+    if (!username.trim()) newErrors.username = "Username is required";
+    if (!fullName.trim()) newErrors.fullName = "Full Name is required";
+    if (!mobileNo.trim()) {
       newErrors.mobileNo = "Mobile number is required";
     } else if (mobileNo.length !== 10 || isNaN(mobileNo)) {
       newErrors.mobileNo = "Mobile number must be exactly 10 digits";
     }
-    if (!email) {
+    if (!email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Email address is invalid";
     }
-    if (!password) {
+    if (!password.trim()) {
       newErrors.password = "Password is required";
     } else if (password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long";
@@ -141,7 +141,9 @@ const Register = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 onBlur={() => handleBlur("username")}
               />
-              {touched.username && errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
+              {touched.username && errors.username && (
+                <p className="text-red-500 text-sm">{errors.username}</p>
+              )}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -154,7 +156,9 @@ const Register = () => {
                 onChange={(e) => setFullName(e.target.value)}
                 onBlur={() => handleBlur("fullName")}
               />
-              {touched.fullName && errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
+              {touched.fullName && errors.fullName && (
+                <p className="text-red-500 text-sm">{errors.fullName}</p>
+              )}
             </div>
 
             <div className="mb-4">
@@ -173,7 +177,9 @@ const Register = () => {
                   onBlur={() => handleBlur("mobileNo")}
                 />
               </div>
-              {touched.mobileNo && errors.mobileNo && <p className="text-red-500 text-sm">{errors.mobileNo}</p>}
+              {touched.mobileNo && errors.mobileNo && (
+                <p className="text-red-500 text-sm">{errors.mobileNo}</p>
+              )}
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -186,12 +192,15 @@ const Register = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => handleBlur("email")}
               />
-              {touched.email && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+              {touched.email && errors.email && (
+                <p className="text-red-500 text-sm">{errors.email}</p>
+              )}
             </div>
 
             <div className="mb-4 relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password <span className="text-red-500">*</span> (min 8 characters)
+                Password <span className="text-red-500">*</span> (min 8
+                characters)
               </label>
               <input
                 type={showPassword ? "text" : "password"}
@@ -206,7 +215,9 @@ const Register = () => {
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
-              {touched.password && errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+              {touched.password && errors.password && (
+                <p className="text-red-500 text-sm">{errors.password}</p>
+              )}
             </div>
 
             <div className="mb-4 relative">
@@ -226,7 +237,9 @@ const Register = () => {
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
-              {touched.confirmPassword && errors.confirmPassword && <p className="text-red-500 text-sm">{errors.confirmPassword}</p>}
+              {touched.confirmPassword && errors.confirmPassword && (
+                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+              )}
             </div>
 
             <button className="w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition duration-200">
