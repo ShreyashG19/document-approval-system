@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { FaSearch, FaBars } from "react-icons/fa";
-import Navbar from "../components/Navbar";
-import { HiDocumentPlus } from "react-icons/hi2";
-import { Skeleton } from "@mui/material";
+import { useState, useEffect } from "react";
+import { FaSearch } from "react-icons/fa";
 
 import {
   Dialog,
@@ -12,19 +9,14 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import {
-  AiOutlineClose,
-  AiOutlineCheck,
-  AiOutlineCloseCircle,
-} from "react-icons/ai";
+import { AiOutlineClose } from "react-icons/ai";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 import CryptoJS from "crypto-js";
 import DocumentsList from "../components/DocumentsList";
 import { IoIosAdd, IoMdRefresh } from "react-icons/io";
+import forge from "node-forge";
 
-import { FaPlus } from "react-icons/fa";
-import { IoMdEye } from "react-icons/io";
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
     case "approved":
@@ -48,6 +40,7 @@ const AssistantDashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [encKey, setEncKey] = useState(null);
 
   // Dialog States
   const [openDialog, setOpenDialog] = useState(false);
@@ -119,10 +112,46 @@ const AssistantDashboard = () => {
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [selectedTab]);
+  const generateKeysAndRequestEncKey = async () => {
+    try {
+      // Generate RSA Key Pair
+      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
+      const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
+      const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
 
+      // Send Public Key to Server
+      const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
+      const response = await axios.post(
+        responseUrl,
+        { clientPublicKey: publicKeyPem },
+        { withCredentials: true }
+      );
+
+      const encryptedEncKey = response.data.encryptedEncKey;
+
+      // Decrypt the encKey using Private Key
+      const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+      const decryptedKey = privateKey.decrypt(
+        forge.util.decode64(encryptedEncKey),
+        "RSA-OAEP",
+        { md: forge.md.sha256.create() }
+      );
+
+      setEncKey(decryptedKey);
+      console.log("Successfully received and decrypted encryption key");
+    } catch (error) {
+      console.error("Error in key exchange:", error);
+      toast.error("Failed to establish secure connection");
+    }
+  };
+  //fetch documents on tab change
+  useEffect(() => {
+    const initialize = async () => {
+      await generateKeysAndRequestEncKey();
+      fetchDocuments();
+    };
+    initialize();
+  }, [selectedTab]);
   // Fetch Departments
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -155,30 +184,24 @@ const AssistantDashboard = () => {
   // Handle Document Upload
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
-    setIsLoading(true);
-
-    // Validate all fields
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
       toast.error("Please fill all required fields");
-      setIsLoading(false);
       return;
     }
 
-    // Validate file type
     if (!newDocFile.type.includes("pdf")) {
       toast.error("Please upload only PDF files");
-      setIsLoading(false);
       return;
     }
 
     try {
-      // Encrypt the file
       const arrayBuffer = await newDocFile.arrayBuffer();
       const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-      const encrypted = CryptoJS.AES.encrypt(wordArray, "mykey");
+
+      // const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
+      const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
       const encryptedContent = encrypted.toString();
 
-      // Prepare form data
       const formData = new FormData();
       const blob = new Blob([encryptedContent], { type: "text/plain" });
       formData.append("pdfFile", new File([blob], `${newDocFile.name}.enc`));
@@ -186,7 +209,7 @@ const AssistantDashboard = () => {
       formData.append("title", newDocTitle);
       formData.append("description", newDocDesc || "");
 
-      // Upload the file
+      console.log("formData", formData);
       const uploadUrl = import.meta.env.VITE_API_URL + "/file/upload-pdf";
       const response = await axios.post(uploadUrl, formData, {
         withCredentials: true,
@@ -195,28 +218,19 @@ const AssistantDashboard = () => {
       if (response.data) {
         toast.dismiss(toastId);
         toast.success("Document uploaded successfully");
-
-        // Reset form fields
         setNewDocFile(null);
         setNewDocDepartment("");
         setNewDocTitle("");
         setNewDocDesc("");
-
-        // Refresh the document list
         fetchDocuments();
-
-        // Close the dialog
         setNewDocDialogOpen(false);
       }
     } catch (error) {
       toast.dismiss(toastId);
       console.error("Upload error:", error);
       toast.error(error.response?.data?.message || "Error uploading document");
-    } finally {
-      setIsLoading(false);
     }
   };
-
   const resetFilters = () => {
     setSearchQuery("");
     setStartDate("");
@@ -397,6 +411,7 @@ const AssistantDashboard = () => {
                 setCurrentDocDetails(details);
                 setViewPdfDialogOpen(true);
               }}
+              encKey={encKey}
             />
           )}
         </div>
