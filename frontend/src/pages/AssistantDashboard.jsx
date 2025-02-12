@@ -262,7 +262,6 @@ const AssistantDashboard = () => {
           ))}
         </div>
 
-        {/* Search Bar */}
         <div className="flex justify-start items-start md:flex-row gap-4">
           <div className="relative w-full max-w-xs mb-6">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
@@ -274,6 +273,15 @@ const AssistantDashboard = () => {
               className="w-full pl-10 pr-3 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               disabled={isLoading}
             />
+          </div>
+          <div>
+            <button
+              onClick={handleRefresh}
+              className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
+              disabled={isLoading}
+            >
+              <IoMdRefresh className="h-6 w-5"/>
+            </button>
           </div>
         </div>
 
@@ -312,7 +320,7 @@ const AssistantDashboard = () => {
                   disabled={isLoading}
                 />
                 <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
+                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -329,6 +337,7 @@ const AssistantDashboard = () => {
               </div>
 
               {/* End Date Picker */}
+              <label className="block text-sm font-medium">-- To --</label>
               <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.endDateInput = input)}
@@ -340,7 +349,7 @@ const AssistantDashboard = () => {
                   disabled={isLoading}
                 />
                 <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
+                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -357,19 +366,11 @@ const AssistantDashboard = () => {
               </div>
 
               <button
-                onClick={handleRefresh}
-                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-                disabled={isLoading}
-              >
-                <IoMdRefresh className="h-5 w-5" />
-              </button>
-
-              <button
                 onClick={resetFilters}
                 className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
                 disabled={isLoading}
               >
-                Reset Filters
+                Reset
               </button>
             </div>
           </div>
