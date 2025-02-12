@@ -16,6 +16,7 @@ import CryptoJS from "crypto-js";
 import DocumentsList from "../components/DocumentsList";
 import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
+import { CryptoService } from "../../utils/cryptoSecurity";
 
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
@@ -32,6 +33,8 @@ const getStatusColor = (status) => {
   }
 };
 const AssistantDashboard = () => {
+  const [cryptoService] = useState(new CryptoService());
+
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
@@ -112,32 +115,46 @@ const AssistantDashboard = () => {
     setIsLoading(false);
   };
 
+  // const generateKeysAndRequestEncKey = async () => {
+  //   try {
+  //     // Generate RSA Key Pair
+  //     const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
+  //     const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
+  //     const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
+
+  //     // Send Public Key to Server
+  //     const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
+  //     const response = await axios.post(
+  //       responseUrl,
+  //       { clientPublicKey: publicKeyPem },
+  //       { withCredentials: true }
+  //     );
+
+  //     const encryptedEncKey = response.data.encryptedEncKey;
+
+  //     // Decrypt the encKey using Private Key
+  //     const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+  //     const decryptedKey = privateKey.decrypt(
+  //       forge.util.decode64(encryptedEncKey),
+  //       "RSA-OAEP",
+  //       { md: forge.md.sha256.create() }
+  //     );
+
+  //     setEncKey(decryptedKey);
+  //     console.log("Successfully received and decrypted encryption key");
+  //   } catch (error) {
+  //     console.error("Error in key exchange:", error);
+  //     toast.error("Failed to establish secure connection");
+  //   }
+  // };
+
   const generateKeysAndRequestEncKey = async () => {
     try {
-      // Generate RSA Key Pair
-      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
-      const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
-      const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
-
-      // Send Public Key to Server
-      const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
-      const response = await axios.post(
-        responseUrl,
-        { clientPublicKey: publicKeyPem },
-        { withCredentials: true }
+      await cryptoService.generateKeysAndRequestEncKey(
+        import.meta.env.VITE_API_URL
       );
-
-      const encryptedEncKey = response.data.encryptedEncKey;
-
-      // Decrypt the encKey using Private Key
-      const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-      const decryptedKey = privateKey.decrypt(
-        forge.util.decode64(encryptedEncKey),
-        "RSA-OAEP",
-        { md: forge.md.sha256.create() }
-      );
-
-      setEncKey(decryptedKey);
+      const key = cryptoService.getEncKey();
+      setEncKey(key);
       console.log("Successfully received and decrypted encryption key");
     } catch (error) {
       console.error("Error in key exchange:", error);
@@ -181,7 +198,57 @@ const AssistantDashboard = () => {
     setFilteredData(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
-  // Handle Document Upload
+   
+  // const handleDocumentUpload = async () => {
+  //   const toastId = toast.loading("Uploading document...");
+  //   if (!newDocFile || !newDocDepartment || !newDocTitle) {
+  //     toast.error("Please fill all required fields");
+  //     return;
+  //   }
+
+  //   if (!newDocFile.type.includes("pdf")) {
+  //     toast.error("Please upload only PDF files");
+  //     return;
+  //   }
+
+  //   try {
+  //     const arrayBuffer = await newDocFile.arrayBuffer();
+  //     const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
+
+  //     // const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
+  //     const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
+  //     const encryptedContent = encrypted.toString();
+
+  //     const formData = new FormData();
+  //     const blob = new Blob([encryptedContent], { type: "text/plain" });
+  //     formData.append("pdfFile", new File([blob], `${newDocFile.name}.enc`));
+  //     formData.append("department", newDocDepartment);
+  //     formData.append("title", newDocTitle);
+  //     formData.append("description", newDocDesc || "");
+
+  //     console.log("formData", formData);
+  //     const uploadUrl = import.meta.env.VITE_API_URL + "/file/upload-pdf";
+  //     const response = await axios.post(uploadUrl, formData, {
+  //       withCredentials: true,
+  //     });
+
+  //     if (response.data) {
+  //       toast.dismiss(toastId);
+  //       toast.success("Document uploaded successfully");
+  //       setNewDocFile(null);
+  //       setNewDocDepartment("");
+  //       setNewDocTitle("");
+  //       setNewDocDesc("");
+  //       fetchDocuments();
+  //       setNewDocDialogOpen(false);
+  //     }
+  //   } catch (error) {
+  //     toast.dismiss(toastId);
+  //     console.error("Upload error:", error);
+  //     toast.error(error.response?.data?.message || "Error uploading document");
+  //   }
+  // };
+//modular 
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
@@ -189,18 +256,8 @@ const AssistantDashboard = () => {
       return;
     }
 
-    if (!newDocFile.type.includes("pdf")) {
-      toast.error("Please upload only PDF files");
-      return;
-    }
-
     try {
-      const arrayBuffer = await newDocFile.arrayBuffer();
-      const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-
-      // const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
-      const encrypted = CryptoJS.AES.encrypt(wordArray, encKey);
-      const encryptedContent = encrypted.toString();
+      const encryptedContent = await cryptoService.encryptFile(newDocFile);
 
       const formData = new FormData();
       const blob = new Blob([encryptedContent], { type: "text/plain" });
@@ -209,8 +266,7 @@ const AssistantDashboard = () => {
       formData.append("title", newDocTitle);
       formData.append("description", newDocDesc || "");
 
-      console.log("formData", formData);
-      const uploadUrl = import.meta.env.VITE_API_URL + "/file/upload-pdf";
+      const uploadUrl = `${import.meta.env.VITE_API_URL}/file/upload-pdf`;
       const response = await axios.post(uploadUrl, formData, {
         withCredentials: true,
       });
@@ -231,6 +287,7 @@ const AssistantDashboard = () => {
       toast.error(error.response?.data?.message || "Error uploading document");
     }
   };
+
   const resetFilters = () => {
     setSearchQuery("");
     setStartDate("");
