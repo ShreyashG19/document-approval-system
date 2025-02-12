@@ -5,6 +5,7 @@ import { FaDownload, FaSearch } from "react-icons/fa";
 import CryptoJS from "crypto-js";
 import { fileUtils, CryptoService } from "../../utils/cryptoSecurity";
 import forge from "node-forge";
+import { getStatusColor } from "../../utils/statusColors";
 
 const DocumentsListHistory = ({
   status,
@@ -182,20 +183,7 @@ const DocumentsListHistory = ({
   // Download Blob File
 
   // Handle Document Preview
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "approved":
-        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
-      case "rejected":
-        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
-      case "correction":
-        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
-      default:
-        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
-    }
-  };
-
+ 
   return (
     <div className="flex flex-col items-start justify-start flex-grow">
       <div className="w-full max-w-4xl bg-white shadow-lg border border-gray-200 rounded-lg p-6">
