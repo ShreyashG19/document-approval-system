@@ -254,6 +254,7 @@ const Register = () => {
             </button>
           </form>
 
+
           {/* Footer */}
           <div className="text-center mt-6">
             <span className="text-sm text-gray-600">
