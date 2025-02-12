@@ -14,6 +14,9 @@ const Login = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [tokenLoading, setTokenLoading] = useState(true);
   const [tokenError, setTokenError] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { loggedInUser, setLoggedInUser } = useContext(AuthContext);
   const { fcmToken, setFcmToken } = useNotifications();
   const navigate = useNavigate();
@@ -60,7 +63,39 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+    setUsernameError("");
+    setPasswordError("");
+
+    if (!username) {
+      setUsernameError("Username is required");
+      setLoading(false);
+      return;
+    }
+
+    if (/\s/.test(username)) {
+      setUsernameError("Username cannot include spaces");
+      setLoading(false);
+      return;
+    }
+
+    if (!password) {
+      setPasswordError("Password is required");
+      setLoading(false);
+      return;
+    }
+
+    if (/\s/.test(password)) {
+      setPasswordError("Password cannot include spaces");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
+
     const apiUrl = import.meta.env.VITE_API_URL + "/user/signin";
     const formData = { username, password, deviceToken: fcmToken };
 
@@ -88,6 +123,23 @@ const Login = () => {
         position: "top-center",
         duration: 2000,
       });
+
+      // Redirect to the appropriate dashboard based on user role
+      switch (result.user.role) {
+        case Role.APPROVER:
+          navigate("/approver/dashboard");
+          break;
+        case Role.SENIOR_ASSISTANT:
+        case Role.ASSISTANT:
+          navigate("/assistant/dashboard");
+          break;
+        case Role.ADMIN:
+          navigate("/admin/dashboard");
+          break;
+        default:
+          console.warn("Unknown role:", result.user.role);
+          navigate("/");
+      }
     } catch (error) {
       console.error("Error during signup:", error);
       toast.error(error.message, {
@@ -107,6 +159,10 @@ const Login = () => {
     }, 1000);
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
       <Toaster />
@@ -122,7 +178,7 @@ const Login = () => {
         <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome Back!
+              Welcome !
             </h1>
             <p className="text-gray-600">Sign in to your account</p>
           </div>
@@ -139,19 +195,102 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
+              {usernameError && (
+                <p className="text-red-500 text-sm mt-1 flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01M12 5a7 7 0 110 14 7 7 0 010-14z"
+                    />
+                  </svg>
+                  {usernameError}
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                className="w-full px-4 py-3 text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition duration-200"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  className="w-full px-4 py-3 text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition duration-200"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <svg
+                      className="h-5 w-5 text-gray-500"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-.274.823-.676 1.59-1.186 2.258M15 12a3 3 0 01-6 0 3 3 0 016 0zm-3 3c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 0c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 0c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-5 w-5 text-gray-500"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7 .274-.823.676-1.59 1.186-2.258M15 12a3 3 0 01-6 0 3 3 0 016 0zm-3 3c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 0c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 0c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {passwordError && (
+                <p className="text-red-500 text-sm mt-1 flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01M12 5a7 7 0 110 14 7 7 0 010-14z"
+                    />
+                  </svg>
+                  {passwordError}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end">

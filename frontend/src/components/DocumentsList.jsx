@@ -10,7 +10,7 @@ const DocumentsList = ({
   startDate,
   endDate,
   searchQuery,
-  handleTitleClick,
+  handleTitleClick,encKey
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -59,36 +59,37 @@ const DocumentsList = ({
     return (
       (!startDate || docDate >= new Date(startDate)) &&
       (!endDate || docDate <= new Date(endDate)) &&
-      (!searchQuery ||
-        doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      (!searchQuery || doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
 
   // Handle Document Download
   const handleDownload = async (fileName) => {
     try {
+      if (!encKey) {
+        toast.error('Encryption key not available');
+        return;
+      }
+  
       console.log("Downloading:", fileName);
-      const downloadUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/download-pdf/${fileName}`;
+      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
       });
-
-      // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+  
+      // Decrypt the content using the secure key
+      const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
       const typedArray = convertWordArrayToUint8Array(decrypted);
-
-      // Create blob and download
+  
+      // Create blob and download 
       const blob = new Blob([typedArray], { type: "application/pdf" });
       downloadBlob(blob, fileName.replace(".enc", ""));
-      toast.success(`File Downloaded Successfully  ${fileName.replace(".enc", "")}`);
     } catch (error) {
       console.error("Download error:", error);
+      toast.error('Failed to download document');
     }
   };
-
   // Convert CryptoJS WordArray to Uint8Array
   const convertWordArrayToUint8Array = (wordArray) => {
     const len = wordArray.sigBytes;
@@ -133,7 +134,7 @@ const DocumentsList = ({
       });
 
       // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+      const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
       const typedArray = convertWordArrayToUint8Array(decrypted);
 
       // Create blob and generate preview URL

@@ -12,7 +12,7 @@ import { FaCommentDots } from "react-icons/fa";
 import { IoMdRefresh } from "react-icons/io";
 import "../index.css";
 import CryptoJS from "crypto-js";
-
+import forge from "node-forge";
 const NewCm = ({
   handleTitleClick,
   setfileUnName,
@@ -31,6 +31,7 @@ const NewCm = ({
   // const [remark, setRemark] = useState("");
   const [departments, setDepartments] = useState([]);
   const [displayRemark, setDisplayRemark] = useState("");
+  const [encKey, setEncKey] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const convertWordArrayToUint8Array = (wordArray) => {
@@ -49,8 +50,57 @@ const NewCm = ({
     return uint8Array;
   };
 
+  const generateKeysAndRequestEncKey = async (fileUniqueName) => {
+    try {
+      if (!fileUniqueName) {
+        throw new Error("File unique name is required");
+      }
+
+      // Generate RSA Key Pair
+      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
+      const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
+      const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
+
+      // Send Public Key to Server
+      const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
+      const response = await axios.post(
+        responseUrl,
+        {
+          clientPublicKey: publicKeyPem,
+          fileUniqueName: fileUniqueName,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const encryptedEncKey = response.data.encryptedEncKey;
+
+      // Decrypt the encKey using Private Key
+      const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+      const decryptedKey = privateKey.decrypt(
+        forge.util.decode64(encryptedEncKey),
+        "RSA-OAEP",
+        { md: forge.md.sha256.create() }
+      );
+
+      setEncKey(decryptedKey);
+      console.log("Successfully received and decrypted encryption key");
+      return decryptedKey;
+    } catch (error) {
+      console.error("Error in key exchange:", error);
+      toast.error("Failed to establish secure connection");
+      throw error;
+    }
+  };
   const handleDownload = async (fileName) => {
     try {
+      let   currentEncKey = await generateKeysAndRequestEncKey(fileName);
+ 
+
       console.log("Downloading:", fileName);
       const downloadUrl = `${
         import.meta.env.VITE_API_URL
@@ -60,8 +110,8 @@ const NewCm = ({
         responseType: "text",
       });
 
-      // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+      // Decrypt the content using the secure key
+      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
       const typedArray = convertWordArrayToUint8Array(decrypted);
 
       // Create blob and download
@@ -69,9 +119,9 @@ const NewCm = ({
       downloadBlob(blob, fileName.replace(".enc", ""));
     } catch (error) {
       console.error("Download error:", error);
+      toast.error("Failed to download document");
     }
   };
-
   const downloadBlob = (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -137,7 +187,10 @@ const NewCm = ({
   }, []);
 
   useEffect(() => {
-    fetchDocuments();
+    const initialize = async () => {
+      fetchDocuments();
+    };
+    initialize();
   }, [category, startDate, endDate]);
 
   const openModal = (document) => {
@@ -211,8 +264,10 @@ const NewCm = ({
 
   const handlePreview = async (fileName) => {
     try {
+      let   currentEncKey = await generateKeysAndRequestEncKey(fileName);
+ 
+
       console.log("fileName", fileName);
-      // Download encrypted file
       const downloadUrl =
         import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
@@ -220,8 +275,8 @@ const NewCm = ({
         responseType: "text",
       });
 
-      // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+      // Decrypt the content using the secure key
+      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
 
       // Convert to Uint8Array
       const typedArray = convertWordArrayToUint8Array(decrypted);
@@ -236,6 +291,7 @@ const NewCm = ({
       return url;
     } catch (error) {
       console.error("Decryption error:", error);
+      toast.error("Failed to decrypt document");
     }
   };
   const resetFilters = () => {
