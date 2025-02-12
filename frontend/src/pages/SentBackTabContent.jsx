@@ -13,6 +13,7 @@ import { IoMdRefresh } from "react-icons/io";
 import "../index.css";
 import { fileUtils, CryptoService } from "../../utils/cryptoSecurity";
 import forge from "node-forge";
+import { getStatusColor } from "../../utils/statusColors";
 
 import CryptoJS from "crypto-js";
 import { FaEye, FaDownload } from "react-icons/fa";
@@ -91,19 +92,7 @@ const SentBackTabContent = ({
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "approved":
-        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
-      case "rejected":
-        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
-      case "correction":
-        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
-      default:
-        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
-    }
-  };
-
+   
   useEffect(() => {
     fetchDocuments();
   }, [category, startDate, endDate]);
