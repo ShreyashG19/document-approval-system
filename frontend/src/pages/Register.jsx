@@ -39,8 +39,15 @@ const Register = () => {
     } else if (password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long";
     }
+    
+    
     if (password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
+    }
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters long";
     }
 
     setErrors(newErrors);
@@ -246,6 +253,7 @@ const Register = () => {
               Register as Assistant
             </button>
           </form>
+
 
           {/* Footer */}
           <div className="text-center mt-6">
