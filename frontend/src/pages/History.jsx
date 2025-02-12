@@ -28,7 +28,9 @@ import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
 import { FiEdit2 } from "react-icons/fi";
 import { Role } from "../../utils/enums";
-
+import { fileUtils, CryptoService } from "../../utils/cryptoSecurity";
+import { getStatusColor } from "../../utils/statusColors";
+ 
 const History = () => {
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
@@ -72,19 +74,10 @@ const History = () => {
     status: "",
   });
   const { loggedInUser } = useAuth();
+  
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "approved":
-        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
-      case "rejected":
-        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
-      case "correction":
-        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
-      default:
-        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
-    }
-  };
+
+  
 
   // Fetch Documents
   const fetchDocuments = async () => {
