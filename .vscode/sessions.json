@@ -1,42 +1,42 @@
 {
-  "active": "default",
-  "activateOnStartup": true,
-  "keepExistingTerminals": true,
-  "theme": "Dice",
-  "sessions": {
-    "default": [
-      {
-        "name": "Frontend Server",
-        "shell": "powershell",
-        "icon": "terminal-debian",
-        "color": "terminal.ansiBrightGreen",
-        "commands": [
-          "cd frontend && npm run dev"
+    "active": "default",
+    "activateOnStartup": true,
+    "keepExistingTerminals": true,
+    "theme": "Dice",
+    "sessions": {
+        "default": [
+            {
+                "name": "Frontend Server",
+                "shell": "powershell",
+                "icon": "terminal-debian",
+                "color": "terminal.ansiBrightGreen",
+                "commands": [
+                    "cd frontend && npm run dev"
+                ]
+            },
+            {
+                "name": "Backend Server",
+                "shell": "powershell",
+                "icon": "chip",
+                "color": "terminal.ansiBrightRed",
+                "commands": [
+                    "cd backend && npm run dev"
+                ]
+            },
+            {
+                "name": "Package Installation",
+                "shell": "cmd.exe",
+                "icon": "add",
+                "color": "terminal.ansiBrightYellow",
+                "commands": []
+            },
+            {
+                "name": "Git Bash",
+                "shell": "C:\\PROGRA~1\\Git\\git-bash.exe",
+                "icon": "github",
+                "color": "Purple",
+                "commands": []
+            }
         ]
-      },
-      {
-        "name": "Backend Server",
-        "shell": "powershell",
-        "icon": "chip",
-        "color": "terminal.ansiBrightRed",
-        "commands": [
-          "cd backend && npm run dev"
-        ]
-      },
-      {
-        "name": "Package Installation",
-        "shell": "cmd.exe",
-        "icon": "add",
-        "color": "terminal.ansiBrightYellow",
-        "commands": []
-      },
-      {
-        "name": "Git Bash",
-        "shell": "C:\\PROGRA~1\\Git\\git-bash.exe",
-        "icon": "github",
-        "color": "Purple",
-        "commands": []
-      }
-    ]
-  }
+    }
 }
