@@ -14,6 +14,8 @@ const Login = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [tokenLoading, setTokenLoading] = useState(true);
   const [tokenError, setTokenError] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const { loggedInUser, setLoggedInUser } = useContext(AuthContext);
   const { fcmToken, setFcmToken } = useNotifications();
   const navigate = useNavigate();
@@ -60,7 +62,33 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+    setUsernameError("");
+    setPasswordError("");
+
+    if (!username) {
+      setUsernameError("Username is required");
+      setLoading(false);
+      return;
+    }
+
+    if (/\s/.test(username)) {
+      setUsernameError("Username cannot include spaces");
+      setLoading(false);
+      return;
+    }
+
+    if (!password) {
+      setPasswordError("Password is required");
+      setLoading(false);
+      return;
+    }
+
+    if (/\s/.test(password)) {
+      setPasswordError("Password cannot include spaces");
+      setLoading(false);
+      return;
+    }
+
     const apiUrl = import.meta.env.VITE_API_URL + "/user/signin";
     const formData = { username, password, deviceToken: fcmToken };
 
@@ -88,6 +116,23 @@ const Login = () => {
         position: "top-center",
         duration: 2000,
       });
+
+      // Redirect to the appropriate dashboard based on user role
+      switch (result.user.role) {
+        case Role.APPROVER:
+          navigate("/approver/dashboard");
+          break;
+        case Role.SENIOR_ASSISTANT:
+        case Role.ASSISTANT:
+          navigate("/assistant/dashboard");
+          break;
+        case Role.ADMIN:
+          navigate("/admin/dashboard");
+          break;
+        default:
+          console.warn("Unknown role:", result.user.role);
+          navigate("/");
+      }
     } catch (error) {
       console.error("Error during signup:", error);
       toast.error(error.message, {
@@ -139,6 +184,25 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
+              {usernameError && (
+                <p className="text-red-500 text-sm mt-1 flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01M12 5a7 7 0 110 14 7 7 0 010-14z"
+                    />
+                  </svg>
+                  {usernameError}
+                </p>
+              )}
             </div>
 
             <div>
@@ -152,6 +216,25 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              {passwordError && (
+                <p className="text-red-500 text-sm mt-1 flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01M12 5a7 7 0 110 14 7 7 0 010-14z"
+                    />
+                  </svg>
+                  {passwordError}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end">
