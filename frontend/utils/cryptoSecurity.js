@@ -4,13 +4,31 @@ import axios from "axios";
 
 export class CryptoService {
   constructor() {
-    this.encKey = null;
+    this._encKey = null;
+    this._initialized = false;
+  }
+  isInitialized() {
+    return this._initialized;
   }
 
   setEncKey(key) {
     this.encKey = key;
   }
+  getEncKey() {
+    return this.encKey;
+  }
 
+  async initialize(apiUrl) {
+    if (this._initialized) return;
+
+    try {
+      await this.generateKeysAndRequestEncKey(apiUrl);
+      this._initialized = true;
+    } catch (error) {
+      this._initialized = false;
+      throw error;
+    }
+  }
   async generateKeysAndRequestEncKey(apiUrl) {
     try {
       const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
