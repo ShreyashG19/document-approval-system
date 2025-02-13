@@ -5,6 +5,9 @@ import { toast, Toaster } from "react-hot-toast";
 import { Role } from "../../utils/enums";
 import { requestFCMToken } from "../../utils/firebaseUtils";
 import { useNotifications } from "../contexts/NotificationContext";
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
+
 
 const Login = () => {
   const [selectedToggle, setSelectedToggle] = useState("Assistant");
@@ -233,7 +236,7 @@ const Login = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
                   onClick={togglePasswordVisibility}
                 >
-                  {showPassword ? (
+                  {/* {showPassword ? (
                     <svg
                       className="h-5 w-5 text-gray-500"
                       fill="none"
@@ -269,6 +272,15 @@ const Login = () => {
                         d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7 .274-.823.676-1.59 1.186-2.258M15 12a3 3 0 01-6 0 3 3 0 016 0zm-3 3c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 0c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3zm0 0c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"
                       />
                     </svg>
+                  )} */}
+                  {showPassword ? (
+                    <div>
+                      <FaEye/>
+                    </div>
+                  ) : (
+                    <div>
+                      <FaEyeSlash/>
+                    </div>
                   )}
                 </button>
               </div>
