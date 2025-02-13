@@ -32,7 +32,7 @@ const ManageUsers = () => {
     setLoading(true); // Start loading
     try {
       // Your API call to add a new user
-      await axios.post("/api/add-user", newUserData);
+      await axios.post("/assistant/create-user", newUserData);
       toast.success("User added successfully!");
       refreshUsers(); // Refresh user list after adding the new user
     } catch (error) {

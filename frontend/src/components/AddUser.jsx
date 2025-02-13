@@ -12,61 +12,76 @@ const AddUser = ({ showAddUser, setShowAddUser, handleAddUser, userType }) => {
     confirmPassword: "",
   });
 
+  const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
-    setNewUserData({ ...newUserData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setNewUserData({ ...newUserData, [name]: value });
+    validateField(name, value);
   };
 
-  const validateInputs = (user) => {
-    let valid = true;
-    if (!user.username.trim()) {
-      toast.error("Username is required.", {
-        position: "top-right",
-        duration: 3000,
-      });
-      valid = false;
+  const validateField = (name, value) => {
+    let error = "";
+    switch (name) {
+      case "username":
+        if (!value.trim()) {
+          error = "Username is required.";
+        }
+        break;
+      case "fullName":
+        if (!value.trim()) {
+          error = "Full Name is required.";
+        }
+        break;
+      case "email":
+        if (!value.trim()) {
+          error = "Email is required.";
+        } else if (!/\S+@\S+\.\S+/.test(value)) {
+          error = "Email is invalid.";
+        }
+        break;
+      case "mobileNo":
+        if (!value.trim()) {
+          error = "Mobile Number is required.";
+        } else if (!/^\d{10}$/.test(value)) {
+          error = "A valid 10-digit Mobile Number is required.";
+        }
+        break;
+      case "password":
+        if (!value.trim()) {
+          error = "Password is required.";
+        } else if (value.length < 6) {
+          error = "Password must be at least 6 characters long.";
+        }
+        break;
+      case "confirmPassword":
+        if (!value.trim()) {
+          error = "Confirm Password is required.";
+        } else if (value !== newUserData.password) {
+          error = "Passwords do not match.";
+        }
+        break;
+      default:
+        break;
     }
-    if (!user.fullName.trim()) {
-      toast.error("Full Name is required.", {
-        position: "top-right",
-        duration: 3000,
-      });
-      valid = false;
-    }
-    if (!user.email.trim()) {
-      toast.error("Email is required.", {
-        position: "top-right",
-        duration: 3000,
-      });
-      valid = false;
-    }
-    if (!user.mobileNo.trim() || !/^\d{10}$/.test(user.mobileNo)) {
-      toast.error("A valid 10-digit Mobile Number is required.", {
-        position: "top-right",
-        duration: 3000,
-      });
-      valid = false;
-    }
-    if (!user.password.trim() || user.password.length < 6) {
-      toast.error("Password must be at least 6 characters long.", {
-        position: "top-right",
-        duration: 3000,
-      });
-      valid = false;
-    }
-    if (user.password !== user.confirmPassword) {
-      toast.error("Passwords do not match.", {
-        position: "top-right",
-        duration: 3000,
-      });
-      valid = false;
-    }
+    setErrors({ ...errors, [name]: error });
+  };
 
-    return valid;
+  const validateInputs = () => {
+    const newErrors = {};
+    Object.keys(newUserData).forEach((key) => {
+      validateField(key, newUserData[key]);
+      if (errors[key]) {
+        newErrors[key] = errors[key];
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateInputs(newUserData)) {
+    if (validateInputs()) {
       handleAddUser({ ...newUserData, role: userType });
       setShowAddUser(false);
     }
@@ -96,6 +111,7 @@ const AddUser = ({ showAddUser, setShowAddUser, handleAddUser, userType }) => {
               className="w-full p-2 border border-gray-300 rounded-lg"
               required
             />
+            {errors.username && <p className="text-red-600 text-sm">{errors.username}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Full Name</label>
@@ -107,6 +123,7 @@ const AddUser = ({ showAddUser, setShowAddUser, handleAddUser, userType }) => {
               className="w-full p-2 border border-gray-300 rounded-lg"
               required
             />
+            {errors.fullName && <p className="text-red-600 text-sm">{errors.fullName}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Email</label>
@@ -118,17 +135,19 @@ const AddUser = ({ showAddUser, setShowAddUser, handleAddUser, userType }) => {
               className="w-full p-2 border border-gray-300 rounded-lg"
               required
             />
+            {errors.email && <p className="text-red-600 text-sm">{errors.email}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Mobile Number</label>
             <input
-              type="text"
+              type="number"
               name="mobileNo"
               value={newUserData.mobileNo}
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded-lg"
               required
             />
+            {errors.mobileNo && <p className="text-red-600 text-sm">{errors.mobileNo}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Password</label>
@@ -140,6 +159,7 @@ const AddUser = ({ showAddUser, setShowAddUser, handleAddUser, userType }) => {
               className="w-full p-2 border border-gray-300 rounded-lg"
               required
             />
+            {errors.password && <p className="text-red-600 text-sm">{errors.password}</p>}
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Confirm Password</label>
@@ -151,6 +171,7 @@ const AddUser = ({ showAddUser, setShowAddUser, handleAddUser, userType }) => {
               className="w-full p-2 border border-gray-300 rounded-lg"
               required
             />
+            {errors.confirmPassword && <p className="text-red-600 text-sm">{errors.confirmPassword}</p>}
           </div>
           <div className="flex justify-end">
             <button
