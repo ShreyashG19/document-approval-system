@@ -60,7 +60,7 @@ const ManageUsers = () => {
               onClick={handleOpenAddUser}
               className="text-white bg-blue-600 hover:bg-blue-700 p-2 rounded-lg flex items-center gap-2"
             >
-              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Add New</>}
+              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Create Employer Credentials</>}
             </button>
           </div>
 
