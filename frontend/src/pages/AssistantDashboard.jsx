@@ -18,11 +18,10 @@ import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
-
  
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
-
+  const [username, setUsername] = useState("John Doe"); // Replace with actual username fetching logic
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,8 +154,7 @@ const AssistantDashboard = () => {
     setFilteredData(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
-   
-  
+ 
 //modular 
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
@@ -208,7 +206,6 @@ const AssistantDashboard = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
       <Toaster />
-
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
         <div className="flex flex-wrap gap-4 mb-6 border-b">
