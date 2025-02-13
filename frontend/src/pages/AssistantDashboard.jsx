@@ -483,7 +483,7 @@ const AssistantDashboard = () => {
         open={newDocDialogOpen}
         onClose={() => setNewDocDialogOpen(false)}
       >
-        <DialogTitle>Prepare New Document</DialogTitle>
+        <DialogTitle>Upload Document</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
