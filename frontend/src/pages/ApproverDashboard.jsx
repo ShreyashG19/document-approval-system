@@ -20,6 +20,7 @@ import {
   AiOutlineCheck,
   AiOutlineCloseCircle,
 } from "react-icons/ai";
+import { getStatusColor } from "../../utils/statusColors";
 
 const ApproverDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("NEW");
@@ -50,19 +51,7 @@ const ApproverDashboard = () => {
     status: "",
   });
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "approved":
-        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
-      case "rejected":
-        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
-      case "correction":
-        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
-
-      default:
-        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
-    }
-  };
+   
 
   // Authentication Check
   useEffect(() => {

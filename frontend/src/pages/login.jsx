@@ -322,10 +322,10 @@ const Login = () => {
                 "Login"
               )}
             </button>
-            <div className="flex justify-center gap-1 space-x-1">
-              <h1 className="text-black">Don't have an account?</h1>
+            <div className="flex justify-center font-semibold gap-1 ">
+              <h1 className="text-black ">Don't have an account?</h1>
               <RouterLink to="/register" className="text-blue-600 hover:underline">
-                Sign Up Here
+                Sign Up 
               </RouterLink>
             </div>
           </form>
