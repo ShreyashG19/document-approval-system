@@ -8,14 +8,15 @@ const UserOTPVerification = require("../models/userotp.model");
 const { NotificationService } = require("../utils/NotificationService");
 const nodemailer = require("nodemailer");
 const asyncHandler = require("../utils/asyncHandler");
+const config = require("../config/appConfig");
 const transporter = nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
     auth: {
-        user: process.env.AUTH_EMAIL,
-        pass: process.env.AUTH_PASS,
+        user: config.authEmail,
+        pass: config.authPass,
     },
 });
 const signIn = asyncHandler(async (req, res, next) => {
@@ -70,7 +71,7 @@ const signIn = asyncHandler(async (req, res, next) => {
             role: user.role,
             jti: jti,
         },
-        process.env.JWT_SECRET
+        config.jwtSecret
     );
     await User.updateOne({ username }, { $push: { validJtis: jti } });
     res.cookie("token", token, {
@@ -151,7 +152,7 @@ const signUp = asyncHandler(async (req, res, next) => {
 });
 const signOut = asyncHandler(async (req, res, next) => {
     const token = req.cookies.token;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwtSecret);
     res.clearCookie("token");
     if (!decoded) {
         return res.status(200).json({ message: "Logged out successfully" });
@@ -173,7 +174,7 @@ const signOut = asyncHandler(async (req, res, next) => {
 
 const signOutAll = asyncHandler(async (req, res, next) => {
     const token = req.cookies.token;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwtSecret);
     res.clearCookie("token");
     if (!decoded) {
         return res.status(200).json({ message: "Logged out successfully" });
@@ -211,7 +212,7 @@ const sendOTPVerificationEmail = asyncHandler(
     async ({ username, email }, res) => {
         const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
         const mailOptions = {
-            from: process.env.AUTH_EMAIL,
+            from: config.authEmail,
             to: email,
             subject: "Verify your email",
             html: `<p>Enter the OTP : <b>${otp}</b> on verification page to complete your registration</p><p>The OTP will expire in 10 minutes</p>`,
@@ -318,7 +319,7 @@ const verifySpOTP = asyncHandler(async (req, res) => {
                 await UserOTPVerification.deleteMany({ username });
                 const sptoken = jwt.sign(
                     { username: user.username, email, usage: "OTP" },
-                    process.env.JWT_SECRET
+                    config.jwtSecret
                 );
                 // make age of 1 minute 30 seconds
                 res.cookie("sptoken", sptoken, {
@@ -354,7 +355,7 @@ const sendPasswordResetOTP = asyncHandler(async (req, res) => {
     }
     const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
     const mailOptions = {
-        from: process.env.AUTH_EMAIL,
+        from: config.authEmail,
         to: email,
         subject: "OTP for reseting password",
         html: `<p>Enter the OTP : <b>${otp}</b> on verification page for changing your password</p><p>The OTP will expire in 10 minutes</p>`,
