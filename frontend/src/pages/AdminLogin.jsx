@@ -41,8 +41,8 @@ const AdminLogin = () => {
 
       const result = await response.json();
       setLoggedInUser(result.user);
-        toast.success("Sign-in successful!", {
-          position: "top-center", // Center the notification
+      toast.success("Sign-in successful!", {
+        position: "top-center", // Center the notification
       });
       navigate("/admin/dashboard");
     } catch (error) {
@@ -50,8 +50,8 @@ const AdminLogin = () => {
       toast.error("Sign-in failed! Please try again.", {
         position: "top-center",
       });
-      }
-    };
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -88,22 +88,6 @@ const AdminLogin = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-          </div>
-
-          <div className="flex justify-between items-center mb-6">
-            <label className="flex items-center text-sm text-gray-600">
-              <input
-                type="checkbox"
-                className="focus:ring-red-500 text-red-600 border-gray-300 rounded"
-              />
-              <span className="ml-2">Remember Me</span>
-            </label>
-            <RouterLink
-              to="/forgot-password"
-              className="text-sm text-red-600 hover:underline"
-            >
-              Forgot Password?
-            </RouterLink>
           </div>
 
           <button
