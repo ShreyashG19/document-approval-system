@@ -5,7 +5,8 @@ import { AuthContext } from "../contexts/AuthContext";
 
 const OTPUI = () => {
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(30); // Set initial timer to 30 seconds
+  const [timer, setTimer] = useState(30);
+  const [errors, setErrors] = useState({});
   const { tempUser, loggedInUser, setLoggedInUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -18,6 +19,13 @@ const OTPUI = () => {
       return () => clearInterval(interval);
     }
   }, [timer]);
+
+  const handleOtpChange = (e) => {
+    const value = e.target.value;
+    if (/^\d{0,4}$/.test(value)) {
+      setOtp(value);
+    }
+  };
 
   const handleResendOtp = async () => {
     const toastId = toast.loading("Resending OTP...", {
@@ -65,8 +73,23 @@ const OTPUI = () => {
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if (!otp) {
+      newErrors.otp = "OTP is required";
+    } else if (!/^\d{4}$/.test(otp)) {
+      newErrors.otp = "OTP must be exactly 4 digits";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
     const toastId = toast.loading("Verifying OTP...", {
       position: "top-center",
     });
@@ -138,9 +161,10 @@ const OTPUI = () => {
                 type="text"
                 placeholder="Enter OTP"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                onChange={handleOtpChange}
                 className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-black"
               />
+              {errors.otp && <p className="text-red-500 text-sm">{errors.otp}</p>}
             </div>
 
             {/* Timer and Resend Link */}

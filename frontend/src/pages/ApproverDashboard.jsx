@@ -3,23 +3,52 @@ import { FaSearch } from "react-icons/fa";
 import { IoMdRefresh } from "react-icons/io";
 import { Toaster } from "react-hot-toast";
 import DocumentsList from "../components/DocumentsList";
+import { getStatusColor } from "../../utils/statusColors";
 
 const ApproverDashboard = () => {
-  const [selectedTab, setSelectedTab] = useState("PENDING");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [departments, setDepartments] = useState([]);
-  const [encKey, setEncKey] = useState("");
-  const [counts, setCounts] = useState({
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    correction: 0,
+  const [selectedTab, setSelectedTab] = useState("NEW");
+  const { loggedInUser } = useContext(AuthContext);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState("");
+  const [viewPdfDialogOpen, setViewPdfDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [fileUnName, setfileUnName] = useState("");
+  const [filteredData, setFilteredData] = useState([]);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [description, setDescription] = useState("");
+  const [remark, setRemark] = useState("");
+  const [isRemarkEditable, setIsRemarkEditable] = useState(false);
+  const navigate = useNavigate();
+  const [localRemark, setLocalRemark] = useState("");
+  const [, setDepartments] = useState([]);
+  const [currentAction, setCurrentAction] = useState("");
+  const [isActionInProgress, setIsActionInProgress] = useState(false);
+
+  const [currentDocDetails, setCurrentDocDetails] = useState({
+    description: "",
+    remarks: "",
+    title: "",
+    department: "",
+    createdBy: "",
+    createdDate: "",
+    status: "",
   });
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
+      case "rejected":
+        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
+      case "correction":
+        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
+
+      default:
+        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
+    }
+  };
+
+  // Authentication Check
   useEffect(() => {
     // Fetch departments and encryption key
     // Fetch document counts
