@@ -1,15 +1,16 @@
-// Sidebar.js
-
 import React from 'react';
 import { FaChartLine, FaHistory, FaUsers, FaBell, FaHome } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const Sidebar = () => {
+const Sidebar = ({ username }) => {
   const navigate = useNavigate();
+  
 
   return (
     <div className="w-64 h-full bg-gray-800 text-white p-4">
-      <div className="text-2xl font-bold mb-6 text-center">Admin Panel</div>
+      <div className="text-2xl font-bold mb-6 text-center">
+        {username}'s Assistant Dashboard
+      </div>
       <div className="space-y-4">
         <button
           onClick={() => navigate("/dashboard")}
@@ -44,7 +45,7 @@ const Sidebar = () => {
           className="flex items-center gap-2 p-3 hover:bg-gray-700 rounded-md w-full"
         >
           <FaBell />
-         Log Out
+          Log Out
         </button>
       </div>
     </div>

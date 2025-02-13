@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
 import { toast, Toaster } from "react-hot-toast";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -22,25 +22,36 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!username.trim()) newErrors.username = "Username is required";
-    if (!fullName.trim()) newErrors.fullName = "Full Name is required";
-    if (!mobileNo.trim()) {
+    if (!username) {
+      newErrors.username = "Username is required";
+    } else if (/\s/.test(username)) {
+      newErrors.username = "Username cannot contain spaces";
+    }
+    if (!fullName) newErrors.fullName = "Full Name is required";
+    if (!mobileNo) {
       newErrors.mobileNo = "Mobile number is required";
     } else if (mobileNo.length !== 10 || isNaN(mobileNo)) {
       newErrors.mobileNo = "Mobile number must be exactly 10 digits";
     }
-    if (!email.trim()) {
+    if (!email) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Email address is invalid";
+    }
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters long";
+    }
+    
+    
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     }
     if (!password.trim()) {
       newErrors.password = "Password is required";
     } else if (password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long";
-    }
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -142,7 +153,9 @@ const Register = () => {
                 onBlur={() => handleBlur("username")}
               />
               {touched.username && errors.username && (
-                <p className="text-red-500 text-sm">{errors.username}</p>
+                <p className="text-red-500 text-sm flex items-center">
+                  <FaExclamationCircle className="mr-1" /> {errors.username}
+                </p>
               )}
             </div>
             <div className="mb-4">
@@ -157,7 +170,9 @@ const Register = () => {
                 onBlur={() => handleBlur("fullName")}
               />
               {touched.fullName && errors.fullName && (
-                <p className="text-red-500 text-sm">{errors.fullName}</p>
+                <p className="text-red-500 text-sm flex items-center">
+                  <FaExclamationCircle className="mr-1" /> {errors.fullName}
+                </p>
               )}
             </div>
 
@@ -178,7 +193,9 @@ const Register = () => {
                 />
               </div>
               {touched.mobileNo && errors.mobileNo && (
-                <p className="text-red-500 text-sm">{errors.mobileNo}</p>
+                <p className="text-red-500 text-sm flex items-center">
+                  <FaExclamationCircle className="mr-1" /> {errors.mobileNo}
+                </p>
               )}
             </div>
             <div className="mb-4">
@@ -193,7 +210,9 @@ const Register = () => {
                 onBlur={() => handleBlur("email")}
               />
               {touched.email && errors.email && (
-                <p className="text-red-500 text-sm">{errors.email}</p>
+                <p className="text-red-500 text-sm flex items-center">
+                  <FaExclamationCircle className="mr-1" /> {errors.email}
+                </p>
               )}
             </div>
 
@@ -216,7 +235,9 @@ const Register = () => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
               {touched.password && errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
+                <p className="text-red-500 text-sm flex items-center">
+                  <FaExclamationCircle className="mr-1" /> {errors.password}
+                </p>
               )}
             </div>
 
@@ -238,7 +259,9 @@ const Register = () => {
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
               {touched.confirmPassword && errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+                <p className="text-red-500 text-sm flex items-center">
+                  <FaExclamationCircle className="mr-1" /> {errors.confirmPassword}
+                </p>
               )}
             </div>
 
@@ -246,6 +269,7 @@ const Register = () => {
               Register as Assistant
             </button>
           </form>
+
 
           {/* Footer */}
           <div className="text-center mt-6">
