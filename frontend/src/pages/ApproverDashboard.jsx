@@ -1,8 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { FaSearch } from "react-icons/fa";
-import { IoMdRefresh } from "react-icons/io";
-import { Toaster } from "react-hot-toast";
-import DocumentsList from "../components/DocumentsList";
+import React, { useContext, useEffect, useState } from "react";
+import NewCm from "./NewCm";
+import SentBackTabContent from "./SentBackTabContent";
+import { AuthContext } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { FiEdit2 } from "react-icons/fi";
+
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Button,
+} from "@mui/material";
+import axios from "axios";
+import toast from "react-hot-toast";
+import {
+  AiOutlineClose,
+  AiOutlineInfoCircle,
+  AiOutlineCheck,
+  AiOutlineCloseCircle,
+} from "react-icons/ai";
 import { getStatusColor } from "../../utils/statusColors";
 
 const ApproverDashboard = () => {
@@ -34,219 +51,357 @@ const ApproverDashboard = () => {
     status: "",
   });
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "approved":
-        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
-      case "rejected":
-        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
-      case "correction":
-        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
-
-      default:
-        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
-    }
-  };
+   
 
   // Authentication Check
   useEffect(() => {
-    // Fetch departments and encryption key
-    // Fetch document counts
-    fetchDocumentCounts();
+    if (!loggedInUser) {
+      navigate("/");
+    }
+  }, [loggedInUser, navigate]);
+
+  // Fetch Documents
+  const fetchDocuments = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/file/get-documents?status=pending`,
+        { withCredentials: true }
+      );
+
+      if (response.data.status && response.data.documents) {
+        setFilteredData(response.data.documents);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError(err.response?.data?.message || "Failed to fetch documents");
+      toast.error("Failed to load documents");
+      setFilteredData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocuments();
   }, []);
 
-  const fetchDocumentCounts = async () => {
-    // Fetch the counts of documents for each status
-    // This is a placeholder implementation
-    const response = await fetch("/api/document-counts");
-    const data = await response.json();
-    setCounts(data);
+  // Generic Document Action
+  const handleDocumentAction = async (actionType) => {
+    if (!fileUnName) {
+      toast.error("No file selected");
+      return;
+    }
+
+    if (actionType === "correction" && (!remark || !remark.trim())) {
+      toast.error("Remark is mandatory for correction");
+      return;
+    }
+    try {
+      setIsActionInProgress(true);
+      const actionMessages = {
+        approve: "Approving Document...",
+        reject: "Rejecting Document...",
+        correction: "Sending Document for Correction...",
+      };
+
+      const loadingToast = toast.loading(actionMessages[actionType]);
+      const actionEndpoints = {
+        approve: `${import.meta.env.VITE_API_URL}/file/approve`,
+        reject: `${import.meta.env.VITE_API_URL}/file/reject`,
+        correction: `${import.meta.env.VITE_API_URL}/file/correction`,
+      };
+
+      const response = await axios.post(
+        actionEndpoints[actionType],
+        {
+          fileUniqueName: fileUnName,
+          remarks: remark,
+        },
+        { withCredentials: true }
+      );
+
+      toast.dismiss(loadingToast);
+      setViewPdfDialogOpen(false);
+      await fetchDocuments();
+      toast.success(
+        response.data.message || `Document ${actionType}d successfully!`
+      );
+
+      // Reset states
+      setCurrentAction(null);
+      setRemark("");
+      setIsRemarkEditable(false);
+    } catch (error) {
+      console.error(`${actionType} error:`, error);
+      toast.error(error.response?.data?.message || `${actionType} failed`);
+    } finally {
+      setIsActionInProgress(false);
+    }
   };
 
-  const handleRefresh = () => {
-    // Refresh logic
-    fetchDocumentCounts();
+  // PDF Dialog Handlers
+  const openPdfDialog = (url, document) => {
+    setCurrentPdfUrl(url);
+    setSelectedDocument(document);
+    setfileUnName(document?.fileUniqueName || "");
+    setCurrentDocDetails({
+      description: document?.description || "",
+      remarks: document?.remarks || "",
+      title: document?.title || "",
+      department: document?.department?.departmentName || "",
+      createdBy: document?.createdBy?.fullName || "",
+      createdDate: document?.createdDate || "",
+      status: document?.status || "",
+    });
+    setViewPdfDialogOpen(true);
+    setCurrentAction("");
+    setRemark("");
+    setIsRemarkEditable(false);
+  };
+  const closePdfDialog = () => {
+    setViewPdfDialogOpen(false);
+    setCurrentPdfUrl("");
+    setSelectedDocument(null);
+    setfileUnName("");
+    setDescription("");
+    setRemark("");
+    setCurrentAction(null);
+    setIsRemarkEditable(false);
   };
 
-  const resetFilters = () => {
-    setSearchQuery("");
-    setSelectedCategory("");
-    setStartDate("");
-    setEndDate("");
-  };
-
-  const capitalizeFirstLetter = (string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  const handleTextareaBlur = () => {
+    setTimeout(() => {
+      setIsRemarkEditable(false);
+    }, 100);
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
-      <Toaster />
-
-      <main className="p-6 flex-grow">
-        <div className="flex flex-wrap gap-4 mb-6 border-b">
-          {["PENDING", "APPROVED", "REJECTED", "CORRECTION"].map((tab) => (
+    <div className="flex  flex-col min-h-full bg-gradient-to-r bg-blue-100">
+      <div className="flex items-center min-h-screen mt-3 h-auto justify-center flex-grow">
+        <div className="w-[70%] bg-white h-fit flex flex-col flex-grow-1 shadow-lg border border-gray-200 rounded-lg absolute top-40 p-3">
+          {/* Tabs */}
+          <div className="tabs flex justify-around items-center text-sm text-gray-700 mt-2 border-b border-gray-200">
             <button
-              key={tab}
-              onClick={() => setSelectedTab(tab)}
-              className={`px-4 py-2 ${
-                selectedTab === tab
-                  ? "border-b-2 border-blue-500 text-blue-500"
-                  : "text-gray-600 hover:text-blue-500"
+              onClick={() => setSelectedTab("NEW")}
+              className={`px-4 py-2 font-medium rounded-md ${
+                selectedTab === "NEW"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700"
               }`}
-              disabled={isLoading}
             >
-              {tab} ({counts[tab.toLowerCase()]})
+              NEW
             </button>
-          ))}
-        </div>
-
-        <div className="flex justify-start items-start md:flex-row gap-4">
-          <div className="relative w-full max-w-xs mb-6">
-            <FaSearch className="absolute top-3.5 left-3 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              disabled={isLoading}
-            />
-          </div>
-          <button
-            onClick={handleRefresh}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-            disabled={isLoading}
-          >
-            <IoMdRefresh className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="mb-4 flex flex-col md:flex-row gap-4">
-          <div className="flex-shrink-0">
-            <label className="block text-sm font-medium text-gray-700">
-              Category
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
-              disabled={isLoading}
+            <button
+              onClick={() => setSelectedTab("SENT BACK")}
+              className={`px-4 py-2 font-medium rounded-md ${
+                selectedTab === "SENT BACK"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
             >
-              <option value="">All</option>
-              {departments?.map((department, idx) => (
-                <option key={idx} value={department}>
-                  {capitalizeFirstLetter(department)}
-                </option>
-              ))}
-            </select>
+              SENT BACK
+            </button>
           </div>
 
-          <div className="flex-grow">
-            <label className="block text-sm font-medium">Date Range</label>
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="relative flex-grow md:flex-grow-0 md:w-48">
-                <input
-                  ref={(input) => (window.startDateInput = input)}
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 border bg-white text-gray-500 border-gray-300 rounded-md appearance-none pointer-events-none w-full"
-                  disabled={isLoading}
-                />
-                <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  onClick={() => window.startDateInput?.showPicker()} // Opens Date Picker on SVG Click
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
-                  />
-                </svg>
-              </div>
-
-              <div className="relative flex-grow md:flex-grow-0 md:w-48">
-                <input
-                  ref={(input) => (window.endDateInput = input)}
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 border bg-white text-gray-500 border-gray-300 rounded-md appearance-none pointer-events-none w-full"
-                  min={startDate}
-                  disabled={isLoading}
-                />
-                <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  onClick={() => window.endDateInput?.showPicker()} // Opens Date Picker on SVG Click
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
-                  />
-                </svg>
-              </div>
-
-              <button
-                onClick={resetFilters}
-                className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
-                disabled={isLoading}
-              >
-                Reset Filters
-              </button>
-            </div>
+          {/* Content */}
+          <div className="content p-4 ">
+            {selectedTab === "NEW" ? (
+              <NewCm
+                setfileUnName={setfileUnName}
+                setDescription={setDescription}
+                setRemark={setRemark}
+                handleTitleClick={(url, document) =>
+                  openPdfDialog(url, document)
+                }
+              />
+            ) : (
+              <SentBackTabContent
+                setfileUnName={setfileUnName}
+                setDescription={setDescription}
+                setRemark={setRemark}
+                handleTitleClick={(url, document) =>
+                  openPdfDialog(url, document)
+                }
+              />
+            )}
           </div>
         </div>
+      </div>
 
-        <div className="space-y-4">
-          {isLoading ? (
-            Array(3)
-              .fill(0)
-              .map((_, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-4 rounded-lg shadow animate-pulse w-full max-w-4xl"
-                >
-                  <div className="flex justify-between items-center w-full">
-                    <div className="w-1/2 h-5 bg-gray-200 rounded"></div>
-                    <div className="w-32 h-8 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="mt-4 space-y-3">
-                    <div className="w-full h-4 bg-gray-200 rounded"></div>
-                    <div className="w-3/4 h-4 bg-gray-200 rounded"></div>
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="w-36 h-4 bg-gray-200 rounded"></div>
-                      <div className="w-24 h-4 bg-gray-200 rounded"></div>
+      {/* PDF Preview Dialog */}
+      <Dialog
+        open={viewPdfDialogOpen}
+        onClose={closePdfDialog}
+        maxWidth="xl"
+        fullWidth
+      >
+        <DialogTitle>
+          <div className="flex justify-between items-center w-full">
+            <span>{currentDocDetails.title || "Document Preview"}</span>
+            <div className="flex-1 flex justify-center">
+              <span className={getStatusColor(currentDocDetails.status)}>
+                {currentDocDetails.status?.toUpperCase() || "UNKNOWN"}
+              </span>
+            </div>
+            <button onClick={closePdfDialog}>
+              <AiOutlineClose className="h-5 w-5" />
+            </button>
+          </div>
+        </DialogTitle>
+        <DialogContent>
+          <div className="flex gap-4 h-[80vh]">
+            {/* PDF Viewer - Left Side */}
+            <div className="flex-grow">
+              <object
+                data={currentPdfUrl}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+              >
+                <p>
+                  Your browser does not support PDFs.{" "}
+                  <a href={currentPdfUrl}>Download the PDF</a>.
+                </p>
+              </object>
+            </div>
+
+            {/* Details Panel - Right Side */}
+            <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
+              {/* Document Details */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Document Details</h3>
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <span className="font-medium">Department:</span>{" "}
+                    {currentDocDetails.department || "Not assigned"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Created By:</span>{" "}
+                    {currentDocDetails.createdBy || "Unknown"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Date:</span>{" "}
+                    {currentDocDetails.createdDate
+                      ? new Date(
+                          currentDocDetails.createdDate
+                        ).toLocaleDateString()
+                      : "Not available"}
+                  </p>
+                </div>
+              </div>
+              {/* Description Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-2">Description</h3>
+                <div className="bg-white p-3 rounded-md border border-gray-200">
+                  <p className="text-gray-700">
+                    {currentDocDetails.description ||
+                      "No description available"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold mb-2 flex items-center">
+                  Remarks
+                  <div className="relative inline-block ml-2 group">
+                    <AiOutlineInfoCircle className="h-5 w-5 text-gray-500 cursor-help" />
+                    <div className="absolute right-2 invisible group-hover:visible bg-gray-700 text-white text-sm rounded-lg p-3 w-56 bottom-full left-1/2 transform -translate-x-1/2 mb-2 shadow-lg z-50">
+                      <ul className="space-y-1 list-disc pl-4 text-left">
+                        <li>Approve: Optional</li>
+                        <li>Reject: Optional</li>
+                        <li>Correction: Required</li>
+                      </ul>
                     </div>
                   </div>
-                </div>
-              ))
-          ) : (
-            <DocumentsList
-              status={selectedTab.toLowerCase()}
-              department={selectedCategory}
-              startDate={startDate}
-              endDate={endDate}
-              searchQuery={searchQuery}
-              handleTitleClick={(url, details) => {
-                // Handle title click
-              }}
-              encKey={encKey}
-            />
-          )}
-        </div>
-      </main>
+                  {!isRemarkEditable && selectedTab !== "SENT BACK" && (
+                    <FiEdit2
+                      className="h-5 w-5 text-gray-500 ml-2 cursor-pointer hover:text-blue-600"
+                      onClick={() => setIsRemarkEditable(true)}
+                    />
+                  )}
+                </h2>
+                {isRemarkEditable ? (
+                  <div>
+                    <textarea
+                      className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2"
+                      rows="4"
+                      placeholder="Enter your remarks here..."
+                      value={remark}
+                      onChange={(e) => setRemark(e.target.value)}
+                      onBlur={handleTextareaBlur}
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-white p-3 rounded-md border border-gray-200">
+                    <p className="text-gray-700">
+                      {currentDocDetails.remarks || "Remark not available"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+        {selectedDocument?.status === "pending" && (
+          <DialogActions>
+            <div className="border-t-2 flex space-x-2 mt-3 w-full items-end justify-end">
+              <button
+                onClick={() => {
+                  setCurrentAction("approve");
+                  handleDocumentAction("approve");
+                }}
+                disabled={isActionInProgress}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition ${
+                  isActionInProgress
+                    ? "bg-gray-400 cursor-not-allowed opacity-50"
+                    : "bg-green-500 hover:bg-green-600"
+                } text-white`}
+              >
+                <AiOutlineCheck className="h-5 w-5" />
+                {isActionInProgress ? "Processing..." : "Approve"}
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentAction("reject");
+                  handleDocumentAction("reject");
+                }}
+                disabled={isActionInProgress}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition ${
+                  isActionInProgress
+                    ? "bg-gray-400 cursor-not-allowed opacity-50"
+                    : "bg-red-500 hover:bg-red-600"
+                } text-white`}
+              >
+                <AiOutlineCloseCircle className="h-5 w-5" />
+                {isActionInProgress ? "Processing..." : "Reject"}
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentAction("correction");
+                  if (isRemarkEditable && remark && remark.trim()) {
+                    handleDocumentAction("correction");
+                  }
+                }}
+                disabled={isActionInProgress}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition ${
+                  isActionInProgress
+                    ? "bg-gray-400 cursor-not-allowed opacity-50"
+                    : "bg-yellow-500 hover:bg-yellow-600"
+                } text-white`}
+              >
+                <FiEdit2 className="h-5 w-5" />
+                {isActionInProgress ? "Processing..." : "Correction"}
+              </button>
+            </div>
+          </DialogActions>
+        )}
+      </Dialog>
     </div>
   );
 };
