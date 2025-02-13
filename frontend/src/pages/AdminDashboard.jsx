@@ -270,7 +270,7 @@ const AdminDashboard = () => {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  className="p-2 border bg-white text-gray-400 border-gray-300 rounded-md appearance-none pointer-events-none"
                   disabled={loading}
                 />
                 <svg
@@ -297,7 +297,7 @@ const AdminDashboard = () => {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  className="p-2 border bg-white text-gray-400 border-gray-300 rounded-md appearance-none pointer-events-none"
                   min={startDate}
                   disabled={loading}
                 />
