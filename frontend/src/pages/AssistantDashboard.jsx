@@ -384,7 +384,7 @@ const AssistantDashboard = () => {
         </div>
       </main>
 
-      {/* New Document Dialog */}
+       {/* New Document Dialog */}
       {/* PDF Preview Dialog */}
       <Dialog
         open={viewPdfDialogOpen}
@@ -414,12 +414,13 @@ const AssistantDashboard = () => {
                 width="100%"
                 height="100%"
               >
-                <p>
+               <p>
                   Your browser does not support PDFs.{" "}
                   <a href={currentPdfUrl}>Download the PDF</a>.
                 </p>
               </object>
             </div>
+
 
             {/* Details Panel - Right Side */}
             <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
