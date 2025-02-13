@@ -1,74 +1,59 @@
-import React, { useState, useContext, useEffect } from "react";
-import { FaUserPlus, FaEdit, FaTrashAlt } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { Toaster, toast } from "react-hot-toast";
-import { UsersContext } from "../contexts/UsersContext";
-import { AuthContext } from "../contexts/AuthContext";
-import { Role } from "../../utils/enums";
-import axios from "axios";
-const AddUser = ({ showAddUser, setShowAddUser }) => {
-  const navigate = useNavigate();
-  const { refreshUsers } = useContext(UsersContext);
-  const { loggedInUser } = useContext(AuthContext);
-  const [newUser, setNewUser] = useState({
+import React, { useState } from "react";
+import { FaTimes } from "react-icons/fa";
+import { toast } from "react-hot-toast";
+
+const AddUser = ({ showAddUser, setShowAddUser, handleAddUser, userType }) => {
+  const [newUserData, setNewUserData] = useState({
+    username: "",
     fullName: "",
-    role: Role.APPROVER,
     email: "",
     mobileNo: "",
     password: "",
     confirmPassword: "",
   });
-  const [username, setUsername] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState(Role.ASSISTANT);
-  const [email, setEmail] = useState("");
-  const [mobileNo, setMobileNo] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
-  // useEffect(() => {
-  //   if (!loggedInUser) {
-  //     navigate("/");
-  //   }
-  // }, [loggedInUser]);
+  const handleChange = (e) => {
+    setNewUserData({ ...newUserData, [e.target.name]: e.target.value });
+  };
+
   const validateInputs = (user) => {
     let valid = true;
-    if (!username.trim()) {
-      toast.error("username is required.", {
+    if (!user.username.trim()) {
+      toast.error("Username is required.", {
         position: "top-right",
         duration: 3000,
       });
       valid = false;
     }
-    if (!fullName.trim()) {
+    if (!user.fullName.trim()) {
       toast.error("Full Name is required.", {
         position: "top-right",
         duration: 3000,
       });
       valid = false;
     }
-    if (!email.trim()) {
+    if (!user.email.trim()) {
       toast.error("Email is required.", {
         position: "top-right",
         duration: 3000,
       });
       valid = false;
     }
-    if (!mobileNo.trim() || !/^\d{10}$/.test(mobileNo)) {
+    if (!user.mobileNo.trim() || !/^\d{10}$/.test(user.mobileNo)) {
       toast.error("A valid 10-digit Mobile Number is required.", {
         position: "top-right",
         duration: 3000,
       });
       valid = false;
     }
-    if (!password.trim() || password.length < 6) {
+    if (!user.password.trim() || user.password.length < 6) {
       toast.error("Password must be at least 6 characters long.", {
         position: "top-right",
         duration: 3000,
       });
       valid = false;
     }
-    if (password !== confirmPassword) {
+    if (user.password !== user.confirmPassword) {
       toast.error("Passwords do not match.", {
         position: "top-right",
         duration: 3000,
@@ -79,144 +64,105 @@ const AddUser = ({ showAddUser, setShowAddUser }) => {
     return valid;
   };
 
-  const handleAddUser = async () => {
-    const newUser = {
-      username,
-      fullName,
-      role,
-      email,
-      mobileNo,
-      password,
-      confirmPassword,
-    };
-    if (!validateInputs(newUser)) return;
-    try {
-      delete newUser.confirmPassword;
-      const createUserUrl =
-        import.meta.env.VITE_API_URL + "/assistant/create-user";
-      const response = await axios.post(createUserUrl, newUser, {
-        withCredentials: true,
-      });
-
-      if (response.status === 200) {
-        refreshUsers();
-        toast.success("User added successfully", {
-          position: "top-right",
-          duration: 3000,
-        });
-        setShowAddUser(false);
-        setNewUser({
-          fullName: "",
-          role: "Assistant",
-          email: "",
-          mobileNo: "",
-          password: "",
-          confirmPassword: "",
-        });
-      } else {
-        toast.error("Error adding user", {
-          position: "top-right",
-          duration: 3000,
-        });
-      }
-    } catch (error) {
-      console.log("AddUser service :: handleAddUser :: error : ", error);
-      toast.error(error.response?.data?.message, {
-        position: "top-right",
-        duration: 3000,
-      });
-      return;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateInputs(newUserData)) {
+      handleAddUser({ ...newUserData, role: userType });
+      setShowAddUser(false);
     }
   };
 
-  const handleCancelAdd = () => {
-    setShowAddUser(false);
-    setNewUser({
-      fullName: "",
-      role: "Approver",
-      email: "",
-      mobileNo: "",
-      password: "",
-      confirmPassword: "",
-    });
-  };
+  if (!showAddUser) return null;
 
   return (
-    showAddUser && (
-      <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-        <div className="bg-white p-8 rounded-lg w-96">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Add New User
+    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">
+            Add {userType === "Assistant" ? "Assistant" : "Approver"}
           </h2>
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full p-2 border rounded mb-4 text-black bg-white"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-
-          <input
-            type="text"
-            placeholder="Full Name"
-            className="w-full p-2 border rounded mb-4 text-black bg-white"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-          />
-
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-2 border text-black rounded mb-4 bg-white"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Mobile No"
-            className="w-full p-2 border text-black rounded mb-4 bg-white"
-            value={mobileNo}
-            onChange={(e) => setMobileNo(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-2 border text-black rounded mb-4 bg-white"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="w-full p-2 border text-black rounded mb-4 bg-white"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="w-full p-2 border rounded mb-4 text-black bg-white"
-          >
-            <option value={Role.APPROVER}>Approver</option>
-            <option value={Role.ASSISTANT}>Assistant</option>
-          </select>
-          <div className="flex justify-end gap-4">
+          <button onClick={() => setShowAddUser(false)} className="text-gray-600 hover:text-gray-800">
+            <FaTimes />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700">Username</label>
+            <input
+              type="text"
+              name="username"
+              value={newUserData.username}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Full Name</label>
+            <input
+              type="text"
+              name="fullName"
+              value={newUserData.fullName}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={newUserData.email}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Mobile Number</label>
+            <input
+              type="text"
+              name="mobileNo"
+              value={newUserData.mobileNo}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={newUserData.password}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={newUserData.confirmPassword}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+              required
+            />
+          </div>
+          <div className="flex justify-end">
             <button
-              className="text-gray-500 hover:text-gray-700"
-              onClick={handleCancelAdd}
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
-              Cancel
-            </button>
-            <button
-              className="bg-blue-600 text-white p-2 rounded"
-              onClick={handleAddUser}
-            >
-              Add
+              Add {userType === "Assistant" ? "Assistant" : "Approver"}
             </button>
           </div>
-        </div>
+        </form>
       </div>
-    )
+    </div>
   );
 };
 
