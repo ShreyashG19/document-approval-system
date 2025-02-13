@@ -21,7 +21,7 @@ import "loaders.css/loaders.min.css";
 import { FaPlus } from "react-icons/fa";
 import { IoMdEye } from "react-icons/io";
 import { AiOutlineClose } from "react-icons/ai";
-
+import { getStatusColor } from "../../utils/statusColors";
 const AdminDashboard = () => {
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
@@ -62,20 +62,7 @@ const AdminDashboard = () => {
     status: "",
   });
   // Add this helper function near your other utility functions
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case "approved":
-        return "text-green-700 bg-green-100 border border-green-500 px-2 py-1 rounded-md font-semibold";
-      case "rejected":
-        return "text-red-700 bg-red-100 border border-red-500 px-2 py-1 rounded-md font-semibold";
-      case "correction":
-        return "text-yellow-700 bg-yellow-100 border border-yellow-500 px-2 py-1 rounded-md font-semibold";
-      case "pending":
-        return "text-blue-700 bg-blue-100 border border-blue-500 px-2 py-1 rounded-md font-semibold";
-      default:
-        return "text-gray-700 bg-gray-100 border border-gray-400 px-2 py-1 rounded-md font-medium";
-    }
-  };
+  
   // Fetch Documents
   const fetchDocuments = async () => {
     try {
@@ -283,7 +270,7 @@ const AdminDashboard = () => {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  className="p-2 border bg-white text-gray-400 border-gray-300 rounded-md appearance-none pointer-events-none"
                   disabled={loading}
                 />
                 <svg
@@ -310,7 +297,7 @@ const AdminDashboard = () => {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none"
+                  className="p-2 border bg-white text-gray-400 border-gray-300 rounded-md appearance-none pointer-events-none"
                   min={startDate}
                   disabled={loading}
                 />

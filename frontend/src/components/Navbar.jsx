@@ -20,6 +20,7 @@ const Navbar = () => {
     fetchNotifications();
   }, []);
 
+  console.log(loggedInUser)
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
@@ -94,7 +95,7 @@ const Navbar = () => {
         <h1 className="text-lg font-semibold tracking-wider">Loading...</h1>
       ) : (
         <h1 className="text-lg font-semibold tracking-wider">
-          {`${loggedInUser.role}'s Dashboard`.toUpperCase()}
+          {`${loggedInUser.username}'s Dashboard`.toUpperCase()}
         </h1>
       )}
 
