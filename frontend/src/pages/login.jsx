@@ -173,9 +173,9 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  // const togglePasswordVisibility = () => {
+  // 'const togglePasswordVisibility = () => {
   //   setShowPassword(!showPassword);
-  // };
+  // };'
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
