@@ -26,7 +26,7 @@ const ForgotPassword = () => {
         throw new Error(data.message);
       }
       setTempUser({ ...tempUser, email });
-      toast.success("OTP sent successfully!", {
+      toast.success("OTP sent successfully to your email!", {
         position: "top-center",
         duration: 2000,
       });
