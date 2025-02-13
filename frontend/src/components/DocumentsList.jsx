@@ -198,11 +198,17 @@ const DocumentsList = ({
                           {doc.department?.departmentName || "Unassigned"}
                         </p>
                         <p className="text-sm text-gray-600">
-                          Created by: {doc.createdBy?.fullName || "Unknown"}
+                          Date:{" "}
+                          {doc.createdDate
+                            ? new Date(doc.createdDate).toLocaleDateString()
+                            : "Not available"}
                         </p>
-                        <span className="text-xs text-gray-400">
-                          {new Date(doc.createdDate).toLocaleDateString()}
-                        </span>
+                        <p className="text-sm text-gray-600">
+                          Time:{" "}
+                          {doc.createdDate
+                            ? new Date(doc.createdDate).toLocaleTimeString()
+                            : "Not available"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

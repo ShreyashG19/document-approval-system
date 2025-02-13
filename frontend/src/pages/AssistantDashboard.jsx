@@ -18,11 +18,10 @@ import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
-
  
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
-
+  const [username, setUsername] = useState("John Doe"); // Replace with actual username fetching logic
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,8 +154,7 @@ const AssistantDashboard = () => {
     setFilteredData(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
-   
-  
+ 
 //modular 
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
@@ -208,7 +206,6 @@ const AssistantDashboard = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
       <Toaster />
-
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
         <div className="flex flex-wrap gap-4 mb-6 border-b">
@@ -228,7 +225,6 @@ const AssistantDashboard = () => {
           ))}
         </div>
 
-        {/* Search Bar */}
         <div className="flex justify-start items-start md:flex-row gap-4">
           <div className="relative w-full max-w-xs mb-6">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
@@ -240,6 +236,15 @@ const AssistantDashboard = () => {
               className="w-full pl-10 pr-3 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               disabled={isLoading}
             />
+          </div>
+          <div>
+            <button
+              onClick={handleRefresh}
+              className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
+              disabled={isLoading}
+            >
+              <IoMdRefresh className="h-6 w-5"/>
+            </button>
           </div>
         </div>
 
@@ -278,7 +283,7 @@ const AssistantDashboard = () => {
                   disabled={isLoading}
                 />
                 <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
+                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -295,6 +300,7 @@ const AssistantDashboard = () => {
               </div>
 
               {/* End Date Picker */}
+              <label className="block text-sm font-medium">-- To --</label>
               <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.endDateInput = input)}
@@ -306,7 +312,7 @@ const AssistantDashboard = () => {
                   disabled={isLoading}
                 />
                 <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
+                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -323,19 +329,11 @@ const AssistantDashboard = () => {
               </div>
 
               <button
-                onClick={handleRefresh}
-                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-                disabled={isLoading}
-              >
-                <IoMdRefresh className="h-5 w-5" />
-              </button>
-
-              <button
                 onClick={resetFilters}
                 className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
                 disabled={isLoading}
               >
-                Reset Filters
+                Reset
               </button>
             </div>
           </div>
@@ -383,7 +381,7 @@ const AssistantDashboard = () => {
         </div>
       </main>
 
-      {/* New Document Dialog */}
+       {/* New Document Dialog */}
       {/* PDF Preview Dialog */}
       <Dialog
         open={viewPdfDialogOpen}
@@ -413,12 +411,13 @@ const AssistantDashboard = () => {
                 width="100%"
                 height="100%"
               >
-                <p>
+               <p>
                   Your browser does not support PDFs.{" "}
                   <a href={currentPdfUrl}>Download the PDF</a>.
                 </p>
               </object>
             </div>
+
 
             {/* Details Panel - Right Side */}
             <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
@@ -484,7 +483,7 @@ const AssistantDashboard = () => {
         open={newDocDialogOpen}
         onClose={() => setNewDocDialogOpen(false)}
       >
-        <DialogTitle>Prepare New Document</DialogTitle>
+        <DialogTitle>Upload Document</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
