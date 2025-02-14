@@ -4,7 +4,6 @@ const uuidv4 = require("uuid").v4;
 const { hashPassword, verifyPassword } = require("../utils/hashPassword");
 const { Role } = require("../utils/enums");
 const crypto = require("crypto");
-const UserOTPVerification = require("../models/userotp.model");
 const { NotificationService } = require("../utils/NotificationService");
 const nodemailer = require("nodemailer");
 const asyncHandler = require("../utils/asyncHandler");

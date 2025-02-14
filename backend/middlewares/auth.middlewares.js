@@ -1,6 +1,8 @@
 const Joi = require("joi");
 const User = require("../models/user.model");
 const asyncHandler = require("../utils/asyncHandler");
+const createError = require("../utils/createError");
+const { Role } = require("../utils/enums");
 
 const registerDetailsSchema = Joi.object({
     username: Joi.string()
@@ -56,21 +58,23 @@ const registerDetailsSchema = Joi.object({
     mobileNo: Joi.string()
         .pattern(/^[0-9]{10}$/)
         .messages({
-            "string.pattern.base": "Mobile number must be exactly 10 digits",
+            "string.pattern.base": "Mobile number must be valid 10 digits",
             "string.empty": "Mobile number is required",
         })
         .required(),
-    otp: Joi.string()
-        .pattern(/^\d{6,8}$/)
-        .optional(),
+    role: Joi.string()
+        .valid(Role.ASSISTANT, Role.APPROVER)
+        .messages({
+            "any.only": `Role must be one of the assistant or approver`,
+            "string.empty": "Role is required",
+        })
+        .required(),
 });
 
 const registerDetailsValidator = (req, res, next) => {
     const { error } = registerDetailsSchema.validate(req.body);
     if (error) {
-        const err = new Error(error.details[0].message);
-        err.statusCode = 400;
-        throw err;
+        throw createError(400, error.details[0].message);
     }
     req.body.username = req.body.username.trim();
     req.body.email = req.body.email.toLowerCase().trim();
@@ -80,10 +84,13 @@ const registerDetailsValidator = (req, res, next) => {
 };
 
 const userExistsValidator = asyncHandler(async (req, res, next) => {
-    const { username, email, mobileNo } = req.body;
+    const { username, email, mobileNo, role } = req.body;
+
+    // Check if user already exists with duplicate credentials
     const existingUser = await User.findOne({
         $or: [{ username }, { email }, { mobileNo }],
     });
+
     if (existingUser) {
         let errorMessage;
         if (existingUser.username === username) {
@@ -93,19 +100,20 @@ const userExistsValidator = asyncHandler(async (req, res, next) => {
         } else {
             errorMessage = `The mobile number is already registered`;
         }
-        const error = new Error(errorMessage);
-        error.statusCode = 400;
-        error.key =
-            existingUser.username === username
-                ? "username"
-                : existingUser.email === email
-                ? "email"
-                : "mobileNo";
-        throw error;
+        throw createError(400, errorMessage);
+    }
+
+    // Check if an approver already exists
+    if (role === Role.APPROVER) {
+        const existingApprover = await User.findOne({ role: Role.APPROVER });
+        if (existingApprover) {
+            throw createError(400, "Max approvers limit reached");
+        }
     }
     next();
 });
 
+//generic validators
 const emailValidator = (req, res, next) => {
     const { email } = req.body;
     const emailSchema = Joi.string().email().required();
@@ -145,6 +153,7 @@ const usernameValidator = (req, res, next) => {
     }
     next();
 };
+
 module.exports = {
     registerDetailsValidator,
     userExistsValidator,

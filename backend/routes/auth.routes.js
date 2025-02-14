@@ -3,24 +3,16 @@ const router = express.Router();
 const {
     registerDetailsValidator,
     userExistsValidator,
-    emailValidator,
-    mobileNoValidator,
 } = require("../middlewares/auth.middlewares");
-const {
-    sendOTPEmail,
-    verifyAndRegister,
-} = require("../controllers/auth.controllers");
-const { otpValidator } = require("../middlewares/otp.middlwares");
+const { register } = require("../controllers/auth.controllers");
 
-//todo: change the route to /register or something, suppose if i need to change password and get otp
-router.post("/send-otp", emailValidator, mobileNoValidator, sendOTPEmail);
-
+//todo: allow for only admin
 router.post(
-    "/verify-and-register",
+    "/register",
     registerDetailsValidator,
-    otpValidator,
     userExistsValidator,
-    verifyAndRegister
+    register
 );
+
 
 module.exports = router;

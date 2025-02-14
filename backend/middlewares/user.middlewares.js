@@ -1,7 +1,6 @@
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
-const UserOTPVerification = require("../models/userotp.model");
 const { verifyPassword } = require("../utils/hashPassword");
 const asyncHandler = require("../utils/asyncHandler");
 const config = require("../config/appConfig");
