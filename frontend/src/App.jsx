@@ -156,11 +156,9 @@ const App = () => {
             <Route
               path="/admin/dashboard"
               element={
-                <AdminRestrictedRoute>
-                  <MainLayout>
+                 
                     <AdminDashboard />
-                  </MainLayout>
-                </AdminRestrictedRoute>
+                 
               }
             />
             <Route

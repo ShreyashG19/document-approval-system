@@ -18,6 +18,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { setTempUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [role, setRole] = useState("assistant"); // Default role
 
   const validateForm = () => {
     const newErrors = {};
@@ -43,8 +44,7 @@ const Register = () => {
     } else if (password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long";
     }
-    
-    
+
     if (password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
@@ -70,17 +70,18 @@ const Register = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const apiUrl = import.meta.env.VITE_API_URL + "/user/signup";
+    const apiUrl = import.meta.env.VITE_API_URL + "/auth/register";
     const toastId = toast.loading("Signing up...", {
       position: "bottom-right",
     });
 
     const formData = {
-      username,
-      password,
-      email,
-      fullName,
-      mobileNo: `+91${mobileNo}`,
+      username:username,
+      password:password,
+      email:email,
+      fullName:fullName,
+      mobileNo: mobileNo,
+      role: role,
     };
 
     try {
@@ -116,9 +117,10 @@ const Register = () => {
         username,
         fullName,
         email,
+        role,
         mobileNo: `+91${mobileNo}`,
       });
-      navigate("/otp/verify");
+      navigate("/admin/dashboard");
     } catch (error) {
       console.error("Error during signup:", error);
       toast.dismiss(toastId);
@@ -136,7 +138,7 @@ const Register = () => {
         <div>
           {/* Title */}
           <h2 className="text-center text-xl font-semibold text-gray-800 mb-6">
-            Create an Account
+            Create an User
           </h2>
 
           {/* Form */}
@@ -260,29 +262,33 @@ const Register = () => {
               </span>
               {touched.confirmPassword && errors.confirmPassword && (
                 <p className="text-red-500 text-sm flex items-center">
-                  <FaExclamationCircle className="mr-1" /> {errors.confirmPassword}
+                  <FaExclamationCircle className="mr-1" />{" "}
+                  {errors.confirmPassword}
                 </p>
               )}
             </div>
+            
+            <div className="mb-4 mt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Role <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-700 focus:border-blue-500 focus:outline-none"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="approver">Approver</option>
+                <option value="assistant">Assistant</option>
+              </select>
+            </div>
 
-            <button className="w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition duration-200">
-              Register as Assistant
+            <button className="w-full px-4 py-2 font-semibold bg-blue-500 text-white  rounded-md hover:bg-blue-600 transition duration-200">
+              Create  User    
             </button>
           </form>
 
-
           {/* Footer */}
-          <div className="text-center mt-6">
-            <span className="text-sm text-gray-600">
-              Already have an account?{" "}
-            </span>
-            <RouterLink
-              to="/"
-              className="text-sm text-blue-500 hover:underline"
-            >
-              Login
-            </RouterLink>
-          </div>
+           
         </div>
       </div>
     </div>
