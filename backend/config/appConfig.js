@@ -9,16 +9,25 @@ const config = {
     baseUploadDir: process.env.BASE_UPLOAD_DIR,
 };
 
-if (
-    !config.mongodbUri ||
-    !config.jwtSecret ||
-    !config.authEmail ||
-    !config.authPass ||
-    !config.baseUploadDir
-) {
-    throw new Error(
-        "One or more required environment variables are missing. Check your .env file."
+// List of required environment variables
+const requiredEnvVars = [
+    "MONGODB_URI",
+    "JWT_SECRET",
+    "AUTH_EMAIL",
+    "AUTH_PASS",
+    "BASE_UPLOAD_DIR",
+];
+
+// Check for missing environment variables
+const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+    console.error(
+        `ERROR: The following required environment variables are missing: ${missingEnvVars.join(
+            ", "
+        )}`
     );
+    process.exit(1); // Exit with a failure code
 }
 
 module.exports = config;

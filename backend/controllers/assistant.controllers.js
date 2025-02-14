@@ -1,9 +1,9 @@
 const User = require("../models/user.model");
-
+const config = require("../config/appConfig");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const { hashPassword, verifyPassword } = require("../utils/hashPassword");
-const { transporter, MailOptions } = require("../utils/sendemail");
+const { transporter, MailOptions } = require("../utils/sendEmail");
 const asyncHandler = require("../utils/asyncHandler");
 const { Role } = require("../utils/enums");
 
@@ -62,7 +62,7 @@ const createAssistant = asyncHandler(async (req, res, next) => {
     await approver.save();
     newUser.save().then(async () => {
         const mailOptions = new MailOptions(
-            process.env.AUTH_EMAIL,
+            config.authEmail,
             email,
             "Your account credentials",
             `<b>You are now an assistant colleague for ${seniorAssistant.fullName}</b><p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
@@ -153,7 +153,7 @@ const createApprover = asyncHandler(async (req, res, next) => {
     await seniorAssistant.save();
 
     const mailOptions = new MailOptions(
-        process.env.AUTH_EMAIL,
+        config.authEmail,
         email,
         "Your account credentials",
         `<b>You are now an approver for ${seniorAssistant.fullName}</b><p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
