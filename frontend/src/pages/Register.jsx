@@ -138,7 +138,7 @@ const Register = () => {
         <div>
           {/* Title */}
           <h2 className="text-center text-xl font-semibold text-gray-800 mb-6">
-            Create an User
+            Create User
           </h2>
 
           {/* Form */}
@@ -283,7 +283,7 @@ const Register = () => {
             </div>
 
             <button className="w-full px-4 py-2 font-semibold bg-blue-500 text-white  rounded-md hover:bg-blue-600 transition duration-200">
-              Create  User    
+              Create      
             </button>
           </form>
 
