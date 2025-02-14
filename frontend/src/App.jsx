@@ -39,6 +39,7 @@ import {
   useNotifications,
 } from "./contexts/NotificationContext";
 import DocumentsListHistory from "./pages/DocumentsListHistory.jsx";
+import UserAdmin from "./pages/UserAdmin.jsx";
 
 const App = () => {
   const { fetchNotifications, setUnreadCount } = useNotifications();
@@ -89,6 +90,14 @@ const App = () => {
                     <ApproverDashboard />
                   </MainLayout>
                 </ApproverRestrictedRoute>
+              }
+            />
+            <Route
+              path="/admin/user"
+              element={
+                <MainLayout>
+                  <UserAdmin />
+                </MainLayout>
               }
             />
             <Route
@@ -182,6 +191,7 @@ const App = () => {
               }
             />
             <Route path="/support" element={<Support />} />
+            <Route path="/admin/user" element={<UserAdmin />} />
           </Routes>
         </NotificationProvider>
       </UsersProvider>
