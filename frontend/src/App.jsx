@@ -156,9 +156,11 @@ const App = () => {
             <Route
               path="/admin/dashboard"
               element={
-                 
+               // <AdminRestrictedRoute>
+                  <MainLayout>
                     <AdminDashboard />
-                 
+                  </MainLayout>
+               // </AdminRestrictedRoute>
               }
             />
             <Route
@@ -179,7 +181,9 @@ const App = () => {
                 </MainLayout>
               }
             />
+
             <Route path="/support" element={<Support />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
           </Routes>
         </NotificationProvider>
       </UsersProvider>

@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { FaSearch, FaBars } from "react-icons/fa";
-import Navbar from "../components/Navbar";
-import { HiDocumentPlus } from "react-icons/hi2";
+import { useState, useEffect } from "react";
+import { FaSearch } from "react-icons/fa";
 
 import {
   Dialog,
@@ -11,18 +9,19 @@ import {
   Button,
   TextField,
 } from "@mui/material";
+import { AiOutlineClose } from "react-icons/ai";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 import CryptoJS from "crypto-js";
-import DocumentsListHistory from "../pages/DocumentsListHistory";
+import DocumentsList from "../components/DocumentsList";
 import { IoIosAdd, IoMdRefresh } from "react-icons/io";
-import Loader from "react-loaders";
-import "loaders.css/loaders.min.css";
-import { FaPlus } from "react-icons/fa";
-import { IoMdEye } from "react-icons/io";
-import { AiOutlineClose } from "react-icons/ai";
+import forge from "node-forge";
+import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
+ 
 const AdminDashboard = () => {
+  const [cryptoService] = useState(new CryptoService());
+  const [username, setUsername] = useState("John Doe"); // Replace with actual username fetching logic
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +30,7 @@ const AdminDashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [encKey, setEncKey] = useState(null);
 
   // Dialog States
   const [openDialog, setOpenDialog] = useState(false);
@@ -51,7 +51,7 @@ const AdminDashboard = () => {
   const [newDocDepartment, setNewDocDepartment] = useState("");
   const [newDocFile, setNewDocFile] = useState(null);
   const [newDocDesc, setNewDocDesc] = useState("");
-  const [loading, setLoading] = useState(false);
+
   const [currentDocDetails, setCurrentDocDetails] = useState({
     description: "",
     remarks: "",
@@ -61,8 +61,6 @@ const AdminDashboard = () => {
     createdDate: "",
     status: "",
   });
-  // Add this helper function near your other utility functions
-  
   // Fetch Documents
   const fetchDocuments = async () => {
     try {
@@ -98,47 +96,51 @@ const AdminDashboard = () => {
       setIsLoading(false);
     }
   };
-
   const handleRefresh = async () => {
-    setLoading(true);
+    setIsLoading(true);
     await fetchDocuments();
-    setLoading(false);
+    setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [selectedTab]);
+   
 
-  // Fetch Departments
-  const fetchDepartments = async () => {
+  const generateKeysAndRequestEncKey = async () => {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
-        { withCredentials: true }
+      await cryptoService.generateKeysAndRequestEncKey(
+        import.meta.env.VITE_API_URL
       );
-      if (response.data && response.data.data) {
-        // Add console.log to debug the response
-        console.log("API Response:", response.data);
-        setDepartments(response.data.data);
-      }
+      const key = cryptoService.getEncKey();
+      setEncKey(key);
+      console.log("Successfully received and decrypted encryption key");
     } catch (error) {
-      console.error("Error fetching departments:", error);
-      toast.error("Failed to fetch departments");
+      console.error("Error in key exchange:", error);
+      toast.error("Failed to establish secure connection");
     }
   };
+  //fetch documents on tab change
   useEffect(() => {
+    const initialize = async () => {
+      await generateKeysAndRequestEncKey();
+      fetchDocuments();
+    };
+    initialize();
+  }, [selectedTab]);
+  // Fetch Departments
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+          { withCredentials: true }
+        );
+        console.log("departments : ", response.data.data);
+        setDepartments(response.data.data);
+      } catch (error) {
+        console.error("Error fetching departments:", error);
+      }
+    };
     fetchDepartments();
   }, []);
-
-  const resetFilters = () => {
-    // toast.loading("Resetting filters...");
-    setSearchQuery("");
-    setStartDate("");
-    setEndDate("");
-    setSelectedCategory("");
-    toast.success("Filters reset successfully");
-    // toast.dismiss();
-  };
 
   // Filter Documents
   useEffect(() => {
@@ -152,33 +154,18 @@ const AdminDashboard = () => {
     setFilteredData(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
-  // Handle Document Upload
+ 
+//modular 
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
-    setLoading(true);
-
-    // Validate all fields
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
       toast.error("Please fill all required fields");
-      setLoading(false);
-      return;
-    }
-
-    // Validate file type
-    if (!newDocFile.type.includes("pdf")) {
-      toast.error("Please upload only PDF files");
-      setLoading(false);
       return;
     }
 
     try {
-      // Encrypt the file
-      const arrayBuffer = await newDocFile.arrayBuffer();
-      const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-      const encrypted = CryptoJS.AES.encrypt(wordArray, "mykey");
-      const encryptedContent = encrypted.toString();
+      const encryptedContent = await cryptoService.encryptFile(newDocFile);
 
-      // Prepare form data
       const formData = new FormData();
       const blob = new Blob([encryptedContent], { type: "text/plain" });
       formData.append("pdfFile", new File([blob], `${newDocFile.name}.enc`));
@@ -186,8 +173,7 @@ const AdminDashboard = () => {
       formData.append("title", newDocTitle);
       formData.append("description", newDocDesc || "");
 
-      // Upload the file
-      const uploadUrl = import.meta.env.VITE_API_URL + "/file/upload-pdf";
+      const uploadUrl = `${import.meta.env.VITE_API_URL}/file/upload-pdf`;
       const response = await axios.post(uploadUrl, formData, {
         withCredentials: true,
       });
@@ -195,47 +181,70 @@ const AdminDashboard = () => {
       if (response.data) {
         toast.dismiss(toastId);
         toast.success("Document uploaded successfully");
-
-        // Reset form fields
         setNewDocFile(null);
         setNewDocDepartment("");
         setNewDocTitle("");
         setNewDocDesc("");
-
-        // Refresh the document list
         fetchDocuments();
-
-        // Close the dialog
         setNewDocDialogOpen(false);
       }
     } catch (error) {
       toast.dismiss(toastId);
       console.error("Upload error:", error);
       toast.error(error.response?.data?.message || "Error uploading document");
-    } finally {
-      setLoading(false);
     }
   };
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setStartDate("");
+    setEndDate("");
+    setSelectedCategory("");
+    toast.success("Filters reset successfully");
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
-      {/*    role="Personal Assistant - Approval Dashboard" /> */}
       <Toaster />
-
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
+        <div className="flex flex-wrap gap-4 mb-6 border-b">
+          {["PENDING", "APPROVED", "REJECTED", "CORRECTION"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setSelectedTab(tab)}
+              className={`px-4 py-2 ${
+                selectedTab === tab
+                  ? "border-b-2 border-blue-500 text-blue-500"
+                  : "text-gray-600 hover:text-blue-500"
+              }`}
+              disabled={isLoading}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
 
-        {/* Search Bar */}
-        <div className="flex  justify-start items-start md:flex-row gap-4">
-          <div className="relative w-full left-10 max-w-xs mx-auto mb-6">
+        <div className="flex justify-start items-start md:flex-row gap-4">
+          <div className="relative w-full max-w-xs mb-6">
             <FaSearch className="absolute top-3 left-3 text-gray-400" />
             <input
               type="text"
               placeholder="Search documents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              disabled={loading}
+              className="w-full pl-10 pr-3 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              disabled={isLoading}
             />
+          </div>
+          <div>
+            <button
+              onClick={handleRefresh}
+              className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
+              disabled={isLoading}
+            >
+              <IoMdRefresh className="h-6 w-5"/>
+            </button>
           </div>
         </div>
 
@@ -249,7 +258,7 @@ const AdminDashboard = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
-              disabled={loading}
+              disabled={isLoading}
             >
               <option value="">All</option>
               {departments?.map((department, idx) => (
@@ -261,20 +270,20 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex-grow">
-            <label className="block text-sm font-medium  ">Date Range</label>
-            <div className="flex flex-col md:flex-row gap-4">
+            <label className="block text-sm font-medium">Date Range</label>
+            <div className="flex flex-col md:flex-row gap-4 items-center">
               {/* Start Date Picker */}
-              <div className="relative">
+              <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.startDateInput = input)}
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 border bg-white text-gray-400 border-gray-300 rounded-md appearance-none pointer-events-none"
-                  disabled={loading}
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
+                  disabled={isLoading}
                 />
                 <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black cursor-pointer"
+                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -291,18 +300,19 @@ const AdminDashboard = () => {
               </div>
 
               {/* End Date Picker */}
-              <div className="relative">
+              <label className="block text-sm font-medium">-- To --</label>
+              <div className="relative flex-grow md:flex-grow-0 md:w-48">
                 <input
                   ref={(input) => (window.endDateInput = input)}
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 border bg-white text-gray-400 border-gray-300 rounded-md appearance-none pointer-events-none"
+                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
                   min={startDate}
-                  disabled={loading}
+                  disabled={isLoading}
                 />
                 <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-black  cursor-pointer"
+                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -319,49 +329,59 @@ const AdminDashboard = () => {
               </div>
 
               <button
-                onClick={handleRefresh}
-                className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-                disabled={loading}
-              >
-                <IoMdRefresh className="h-5 w-5" />
-              </button>
-
-              <button
                 onClick={resetFilters}
                 className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
                 disabled={isLoading}
               >
-                Reset Filters
+                Reset
               </button>
             </div>
           </div>
         </div>
 
-        {/* Document List */}
-        {isLoading || loading ? (
-          <div className="flex justify-center items-center">
-            <Loader type="ball-pulse" active />
-          </div>
-        ) : (
-          <DocumentsListHistory
-            status={selectedTab.toLowerCase()}
-            department={selectedCategory}
-            startDate={startDate}
-            endDate={endDate}
-            searchQuery={searchQuery}
-            handleTitleClick={(url, details) => {
-              setCurrentPdfUrl(url);
-              setCurrentDocDetails(details);
-              setViewPdfDialogOpen(true);
-            }}
-          />
-        )}
+        <div className="space-y-4">
+          {isLoading ? (
+            // Skeleton loading state
+            Array(3)
+              .fill(0)
+              .map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white p-4 rounded-lg shadow animate-pulse w-full max-w-4xl"
+                >
+                  <div className="flex justify-between items-center w-full">
+                    <div className="w-1/2 h-5 bg-gray-200 rounded"></div>
+                    <div className="w-32 h-8 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    <div className="w-full h-4 bg-gray-200 rounded"></div>
+                    <div className="w-3/4 h-4 bg-gray-200 rounded"></div>
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="w-36 h-4 bg-gray-200 rounded"></div>
+                      <div className="w-24 h-4 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+          ) : (
+            <DocumentsList
+              status={selectedTab.toLowerCase()}
+              department={selectedCategory}
+              startDate={startDate}
+              endDate={endDate}
+              searchQuery={searchQuery}
+              handleTitleClick={(url, details) => {
+                setCurrentPdfUrl(url);
+                setCurrentDocDetails(details);
+                setViewPdfDialogOpen(true);
+              }}
+              encKey={encKey}
+            />
+          )}
+        </div>
       </main>
 
-      {/* New Document Dialog */}
-
-      {/* Add Document Button */}
-
+       {/* New Document Dialog */}
       {/* PDF Preview Dialog */}
       <Dialog
         open={viewPdfDialogOpen}
@@ -375,10 +395,10 @@ const AdminDashboard = () => {
             <span className={getStatusColor(currentDocDetails.status)}>
               {currentDocDetails.status?.toUpperCase() || "UNKNOWN"}
             </span>
-            <button onClick={() => setViewPdfDialogOpen(false)}>
 
-            <AiOutlineClose  />
-          </button>
+            <button onClick={() => setViewPdfDialogOpen(false)}>
+              <AiOutlineClose />
+            </button>
           </div>
         </DialogTitle>
         <DialogContent>
@@ -391,12 +411,13 @@ const AdminDashboard = () => {
                 width="100%"
                 height="100%"
               >
-                <p>
+               <p>
                   Your browser does not support PDFs.{" "}
                   <a href={currentPdfUrl}>Download the PDF</a>.
                 </p>
               </object>
             </div>
+
 
             {/* Details Panel - Right Side */}
             <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
@@ -446,7 +467,79 @@ const AdminDashboard = () => {
             </div>
           </div>
         </DialogContent>
+        <DialogActions></DialogActions>
+      </Dialog>
+      {/* Add Document Button */}
+      <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
+        <IoIosAdd
+          className="text-4xl"
+          onClick={() => setNewDocDialogOpen(true)}
+          disabled={isLoading}
+        />
+      </div>
+
+      {/* PDF Preview Dialog */}
+      <Dialog
+        open={newDocDialogOpen}
+        onClose={() => setNewDocDialogOpen(false)}
+      >
+        <DialogTitle>Upload Document</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Document Title"
+            type="text"
+            fullWidth
+            value={newDocTitle}
+            onChange={(e) => setNewDocTitle(e.target.value)}
+            disabled={isLoading}
+          />
+          <TextField
+            select
+            margin="dense"
+            fullWidth
+            value={newDocDepartment}
+            onChange={(e) => setNewDocDepartment(e.target.value)}
+            SelectProps={{ native: true }}
+            disabled={isLoading}
+          >
+            <option value="">Select Department</option>
+            {departments?.map((department, idx) => (
+              <option key={idx} value={department}>
+                {department}
+              </option>
+            ))}
+          </TextField>
+
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setNewDocFile(e.target.files[0])}
+            className="my-4"
+            disabled={isLoading}
+          />
+          <TextField
+            margin="dense"
+            label="Description"
+            type="text"
+            fullWidth
+            multiline
+            rows={4}
+            value={newDocDesc}
+            onChange={(e) => setNewDocDesc(e.target.value)}
+            disabled={isLoading}
+          />
+        </DialogContent>
         <DialogActions>
+          <Button
+            onClick={() => setNewDocDialogOpen(false)}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleDocumentUpload} disabled={isLoading}>
+            Upload
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

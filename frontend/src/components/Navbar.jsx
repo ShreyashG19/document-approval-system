@@ -145,11 +145,15 @@ const Navbar = () => {
             <>
               <MenuItem onClick={navigateHistory}>History</MenuItem>
               {loggedInUser?.role === Role.SENIOR_ASSISTANT && (
-                <MenuItem onClick={navigateManageUsers}>Manage Users</MenuItem>
+                <MenuItem onClick={navigateManageUsers}>Create User</MenuItem>
               )}
             </>
           )}
+        
+          <MenuItem onClick={navigateHome}>Update User</MenuItem>
+          <MenuItem onClick={navigateHome}>Show Users</MenuItem>
           <MenuItem onClick={handleLogout}>Logout</MenuItem>
+
         </Menu>
       </div>
     </div>
