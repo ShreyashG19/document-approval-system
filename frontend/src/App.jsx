@@ -104,11 +104,11 @@ const App = () => {
             <Route
               path="/assistant/dashboard"
               element={
-                <AssistantRestrictedRoute>
+                // <AssistantRestrictedRoute>
                   <MainLayout>
                     <AssistantDashboard />
                   </MainLayout>
-                </AssistantRestrictedRoute>
+                // </AssistantRestrictedRoute>
               }
             />
             <Route
@@ -156,11 +156,11 @@ const App = () => {
             <Route
               path="/admin/dashboard"
               element={
-                <AdminRestrictedRoute>
+               // <AdminRestrictedRoute>
                   <MainLayout>
                     <AdminDashboard />
                   </MainLayout>
-                </AdminRestrictedRoute>
+               // </AdminRestrictedRoute>
               }
             />
             <Route
@@ -181,7 +181,9 @@ const App = () => {
                 </MainLayout>
               }
             />
+
             <Route path="/support" element={<Support />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
           </Routes>
         </NotificationProvider>
       </UsersProvider>

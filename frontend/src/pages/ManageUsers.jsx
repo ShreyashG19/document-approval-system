@@ -58,12 +58,7 @@ const ManageUsers = () => {
       <div className="flex items-center justify-center flex-grow p-4">
         <div className="w-full max-w-3xl bg-white shadow-lg border border-gray-200 rounded-lg p-8">
           <div className="flex gap-4 mb-6 justify-end">
-            <button
-              onClick={handleOpenAddUser}
-              className="text-white bg-blue-600 hover:bg-blue-700 p-2 rounded-lg flex items-center gap-2"
-            >
-              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Create Employer Credentials</>}
-            </button>
+        
           </div>
 
           {/* Approvers */}
