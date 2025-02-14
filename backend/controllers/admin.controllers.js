@@ -1,8 +1,9 @@
 const User = require("../models/user.model");
 const asyncHandler = require("../utils/asyncHandler");
+const config = require("../config/appConfig");
 const { Role } = require("../utils/enums");
 const { hashPassword } = require("../utils/hashPassword");
-const { transporter, MailOptions } = require("../utils/sendemail");
+const { transporter, MailOptions } = require("../utils/sendEmail");
 const getUsersByRole = asyncHandler(async (req, res, next) => {
     const { role } = req.query;
     role.trim().toLowerCase();
@@ -139,7 +140,7 @@ const createApprover = asyncHandler(async (req, res, next) => {
     //send mail
     try {
         const mailOptions = new MailOptions(
-            process.env.AUTH_EMAIL,
+            config.authEmail,
             email,
             "Your account credentials",
             `<b>You are now an approver for ${seniorAssistant.fullName}</b><p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
@@ -253,7 +254,7 @@ const createSrAssistant = asyncHandler(async (req, res, next) => {
 
     try {
         const mailOptions = new MailOptions(
-            process.env.AUTH_EMAIL,
+            config.authEmail,
             email,
             "Your account credentials",
             `<b>You are now an Senior Assistant for ${assignedApprover.fullName}</b><p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`

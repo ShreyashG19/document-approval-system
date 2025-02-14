@@ -16,7 +16,6 @@ import { useNotifications } from "../contexts/NotificationContext";
 import { Role, FileStatus } from "../../utils/enums";
 
 // Add this helper function at the top of the file
-
 const formatDateTime = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleString("en-US", {
@@ -33,12 +32,12 @@ const Notifications = () => {
   const { loggedInUser, setLoggedInUser, loading, logout } = useAuth();
   const navigate = useNavigate();
 
-  const navigateback = () => {
+ const navigateback = () => {
     {
       loggedInUser.role === Role.APPROVER
-        ? navigate("/approver/dashboard")
-        : navigate("/assistant/dashboard");
-    }
+        ?  navigate("/approver/dashboard")
+        :loggedInUser.role === Role.SENIOR_ASSISTANT
+        ? navigate("/assistant/dashboard"):navigate ("/admin/dashboard");}
   };
 
   const getNotificationColor = (type) => {

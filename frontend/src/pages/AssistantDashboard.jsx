@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect ,useCallback } from "react";
 import { FaSearch } from "react-icons/fa";
 
 import {
@@ -18,7 +18,7 @@ import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
- 
+
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
   const [username, setUsername] = useState("John Doe"); // Replace with actual username fetching logic
@@ -61,37 +61,34 @@ const AssistantDashboard = () => {
     createdDate: "",
     status: "",
   });
+
+  const [documentsCache, setDocumentsCache] = useState({});
+
   // Fetch Documents
   const fetchDocuments = async () => {
+    if (documentsCache[selectedTab]) {
+      setDocuments(documentsCache[selectedTab]); // Load from cache
+      setFilteredData(documentsCache[selectedTab]);
+      return;
+    }
+
     try {
       setIsLoading(true);
-      setError(null);
-      setDocuments([]);
-      const apiUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/get-documents?status=${selectedTab.toLowerCase()}`;
-      console.log("apiUrl", apiUrl);
-
-      const response = await axios.get(apiUrl, {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
-
-      console.log("fetched data", response.data);
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_API_URL
+        }/file/get-documents?status=${selectedTab.toLowerCase()}`,
+        { withCredentials: true }
+      );
       setDocuments(response.data.documents);
       setFilteredData(response.data.documents);
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to fetch documents";
-      setError(errorMessage);
-      console.error("Error fetching documents:", err);
-      setDocuments([]);
-      setFilteredData([]);
+
+      setDocumentsCache((prevCache) => ({
+        ...prevCache,
+        [selectedTab]: response.data.documents,
+      }));
+    } catch (error) {
+      setError("Failed to fetch documents");
     } finally {
       setIsLoading(false);
     }
@@ -101,8 +98,6 @@ const AssistantDashboard = () => {
     await fetchDocuments();
     setIsLoading(false);
   };
-
-   
 
   const generateKeysAndRequestEncKey = async () => {
     try {
@@ -154,8 +149,7 @@ const AssistantDashboard = () => {
     setFilteredData(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
- 
-//modular 
+  //modular
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
@@ -243,7 +237,7 @@ const AssistantDashboard = () => {
               className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
               disabled={isLoading}
             >
-              <IoMdRefresh className="h-6 w-5"/>
+              <IoMdRefresh className="h-6 w-5" />
             </button>
           </div>
         </div>
@@ -381,7 +375,7 @@ const AssistantDashboard = () => {
         </div>
       </main>
 
-       {/* New Document Dialog */}
+      {/* New Document Dialog */}
       {/* PDF Preview Dialog */}
       <Dialog
         open={viewPdfDialogOpen}
@@ -411,13 +405,12 @@ const AssistantDashboard = () => {
                 width="100%"
                 height="100%"
               >
-               <p>
+                <p>
                   Your browser does not support PDFs.{" "}
                   <a href={currentPdfUrl}>Download the PDF</a>.
                 </p>
               </object>
             </div>
-
 
             {/* Details Panel - Right Side */}
             <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">

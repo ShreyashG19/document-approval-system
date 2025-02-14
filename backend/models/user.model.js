@@ -27,35 +27,10 @@ const UserSchema = new mongoose.Schema({
     encKey: {
         type: String,
     },
-    assignedApprover: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-    },
-    pastAssignedApprovers: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "User",
-    },
-    assistants: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "User",
-    },
-    createdAssistants: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "User",
-    },
-    pastCreatedAssistants: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "User",
-    },
+
     role: {
         type: String,
-        enum: [
-            Role.SENIOR_ASSISTANT,
-            Role.ASSISTANT,
-            Role.APPROVER,
-            Role.ADMIN,
-        ],
-        default: Role.SENIOR_ASSISTANT,
+        enum: [Role.ASSISTANT, Role.APPROVER, Role.ADMIN],
         required: true,
     },
     deviceTokens: {
@@ -69,10 +44,6 @@ const UserSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true,
-    },
-    isVerified: {
-        type: Boolean,
-        default: false,
     },
 });
 

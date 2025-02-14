@@ -4,8 +4,10 @@ const cookieParser = require("cookie-parser");
 const bodyparser = require("body-parser");
 require("dotenv").config();
 const errorHandler = require("./utils/errorHandler");
+const config = require("./config/appConfig");
 const path = require("path");
 
+const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const assistantRoutes = require("./routes/assistant.routes");
 const adminRoutes = require("./routes/admin.routes");
@@ -24,10 +26,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-
 const connectDB = require("./db/connection");
 
-connectDB(process.env.MONGODB_URI)
+connectDB(config.mongodbUri)
     .then(() => {
         console.log("MongoDB connection successfull!");
     })
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
     res.send("welcome to document approval system");
 });
 
+app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/assistant", assistantRoutes);
 app.use("/admin", adminRoutes);
@@ -49,7 +51,7 @@ app.use("/department", departmentRoutes);
 app.use("/notification", notificationRoutes);
 
 app.use(errorHandler);
-const PORT = process.env.PORT || 3000;
+const PORT = config.port || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });

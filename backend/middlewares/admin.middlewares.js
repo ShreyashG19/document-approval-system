@@ -38,7 +38,7 @@ const createSrAssistantValidatorSchema = Joi.object({
     mobileNo: Joi.number().min(10).required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(2).required(),
-    role: Joi.string().valid(Role.SENIOR_ASSISTANT).required(),
+    role: Joi.string().valid(Role.ASSISTANT).required(),
     approverUsername: Joi.string().min(2).required(),
 });
 

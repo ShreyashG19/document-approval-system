@@ -1,5 +1,4 @@
 const Role = {
-    SENIOR_ASSISTANT: "senior assistant",
     ASSISTANT: "assistant",
     APPROVER: "approver",
     ADMIN: "admin",

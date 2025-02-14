@@ -1,10 +1,9 @@
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
-const UserOTPVerification = require("../models/userotp.model");
 const { verifyPassword } = require("../utils/hashPassword");
 const asyncHandler = require("../utils/asyncHandler");
+const config = require("../config/appConfig");
 const signUpDetailsSchema = Joi.object({
     // TODO: change after
     username: Joi.string().min(2),
@@ -51,7 +50,7 @@ const verifyToken = asyncHandler(async (req, res, next) => {
         return next(error);
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwtSecret);
     if (!decoded) {
         const error = new Error("Invalid token");
         error.statusCode = 401;
@@ -97,7 +96,7 @@ const verifySpToken = asyncHandler(async (req, res, next) => {
         });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwtSecret);
     if (decoded.usage !== "OTP") {
         return res.status(401).json({
             status: false,
