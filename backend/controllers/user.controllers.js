@@ -4,11 +4,11 @@ const uuidv4 = require("uuid").v4;
 const { hashPassword, verifyPassword } = require("../utils/hashPassword");
 const { Role } = require("../utils/enums");
 const crypto = require("crypto");
-const { NotificationService } = require("../utils/NotificationService");
-const nodemailer = require("nodemailer");
 const asyncHandler = require("../utils/asyncHandler");
+const { verifyOTP } = require("./otp.controllers");
 const config = require("../config/appConfig");
 const { transporter, MailOptions } = require("../utils/sendEmail");
+const createError = require("../utils/createError");
 
 const signIn = asyncHandler(async (req, res, next) => {
     let { username, password, deviceToken } = req.body;
@@ -232,46 +232,46 @@ const sendOTPVerificationEmail = asyncHandler(
     }
 );
 
-const verifyOTP = asyncHandler(async (req, res) => {
-    let { username, otp } = req.body;
-    username = username.trim().toLowerCase();
-    otp = otp.trim().toLowerCase();
-    if (!username || !otp)
-        return res.status(400).json({ message: "OTP is required" });
-    else {
-        const userOTPVerificationReacords = await UserOTPVerification.find({
-            username,
-        });
-        if (userOTPVerificationReacords.length <= 0)
-            return res.status(404).json({ message: "OTP not found" });
-        else {
-            const { expiresAt } = userOTPVerificationReacords[0];
-            const hashedOtp =
-                userOTPVerificationReacords[
-                    userOTPVerificationReacords.length - 1
-                ].otp;
+// const verifyOTP = asyncHandler(async (req, res) => {
+//     let { username, otp } = req.body;
+//     username = username.trim().toLowerCase();
+//     otp = otp.trim().toLowerCase();
+//     if (!username || !otp)
+//         return res.status(400).json({ message: "OTP is required" });
+//     else {
+//         const userOTPVerificationReacords = await UserOTPVerification.find({
+//             username,
+//         });
+//         if (userOTPVerificationReacords.length <= 0)
+//             return res.status(404).json({ message: "OTP not found" });
+//         else {
+//             const { expiresAt } = userOTPVerificationReacords[0];
+//             const hashedOtp =
+//                 userOTPVerificationReacords[
+//                     userOTPVerificationReacords.length - 1
+//                 ].otp;
 
-            if (expiresAt < Date.now()) {
-                await UserOTPVerification.deleteMany({ username });
-                return res.status(400).json({ message: "OTP expired" });
-            } else {
-                // const isValid = await bcrypt.compare(otp, hashedOtp);
-                const isValid = await verifyPassword(otp, hashedOtp);
-                console.log(otp);
-                if (!isValid)
-                    return res.status(400).json({ message: "OTP invalid" });
-                else {
-                    await User.updateOne({ username }, { isVerified: true });
-                    await UserOTPVerification.deleteMany({ username });
-                    return res.status(200).json({
-                        status: "VERIFIED",
-                        message: "OTP verified",
-                    });
-                }
-            }
-        }
-    }
-});
+//             if (expiresAt < Date.now()) {
+//                 await UserOTPVerification.deleteMany({ username });
+//                 return res.status(400).json({ message: "OTP expired" });
+//             } else {
+//                 // const isValid = await bcrypt.compare(otp, hashedOtp);
+//                 const isValid = await verifyPassword(otp, hashedOtp);
+//                 console.log(otp);
+//                 if (!isValid)
+//                     return res.status(400).json({ message: "OTP invalid" });
+//                 else {
+//                     await User.updateOne({ username }, { isVerified: true });
+//                     await UserOTPVerification.deleteMany({ username });
+//                     return res.status(200).json({
+//                         status: "VERIFIED",
+//                         message: "OTP verified",
+//                     });
+//                 }
+//             }
+//         }
+//     }
+// });
 
 const verifySpOTP = asyncHandler(async (req, res) => {
     let { otp, email } = req.body;
@@ -374,30 +374,6 @@ const sendPasswordResetOTP = asyncHandler(async (req, res) => {
         },
     });
 });
-const resetPassword = asyncHandler(async (req, res) => {
-    let username;
-    const { newPassword } = req.body;
-
-    // if (req.usage === "OTP") {
-    //     username = req.username;
-    // } else {
-    //     username = req.body.username;
-    // }
-    username = req.user.username;
-    if (!newPassword || !username) {
-        return res.status(400).json({
-            status: "FAILED",
-            message: `Please provide ${username ? "new password" : "username"}`,
-        });
-    }
-    // const hash = await bcrypt.hash(newPassword, 10);
-    const hash = await hashPassword(newPassword);
-    await User.updateOne({ username }, { password: hash, validJtis: [] }); //revoke all jtis if password is changed
-    return res.status(200).json({
-        status: "SUCCESS",
-        message: "Password updated successfully",
-    });
-});
 
 const updateProfile = asyncHandler(async (req, res, next) => {
     const { fullName, mobileNo } = req.body;
@@ -494,15 +470,32 @@ const sendCredentials = asyncHandler(async (req, res) => {
         message: "Credentials sent successfully",
     });
 });
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    const isValid = await verifyOTP(email, null, otp);
+    if (!isValid) {
+        return createError(400, "Invalid OTP");
+    }
+    const user = await User.findOne({ email });
+    const hashedPassword = await hashPassword(newPassword);
+    user.password = hashedPassword;
+    await user.save();
+    //todo: is there need to terminate all sessions?
+    return res.status(200).json({
+        status: true,
+        message: "Password updated successfully",
+    });
+});
+
 module.exports = {
     signIn,
     signUp,
     signOut,
-    verifyOTP,
+    // verifyOTP,
     resendOTPAndVerify,
     checkAuthStatus,
     sendPasswordResetOTP,
-    resetPassword,
     verifySpOTP,
     updateProfile,
     changeUserStatus,
@@ -510,4 +503,5 @@ module.exports = {
     signOutAll,
     //v2
     sendCredentials,
+    resetPassword,
 };

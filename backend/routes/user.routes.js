@@ -4,7 +4,7 @@ const {
     signUp,
     signOut,
     signOutAll,
-    verifyOTP,
+    // verifyOTP,
     resendOTPAndVerify,
     checkAuthStatus,
     sendPasswordResetOTP,
@@ -23,6 +23,7 @@ const {
     verifySpToken,
     verifyEmailExists,
     verifyOldPassword,
+    resetPasswordValidator,
 } = require("../middlewares/user.middlewares");
 const {
     verifySession,
@@ -40,7 +41,7 @@ router.post("/signout", verifyToken, signOut);
 router.post("/signout-all", verifyToken, signOutAll);
 router.get("/status", verifyToken, checkAuthStatus);
 
-router.post("/verify-otp", verifyOTP);
+// router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTPAndVerify);
 
 router.post(
@@ -49,7 +50,7 @@ router.post(
     sendPasswordResetOTP
 );
 router.post("/verify-sp-otp", verifySpOTP);
-router.post("/reset-password", verifySpToken, resetPassword);
+// router.post("/reset-password", verifySpToken, resetPassword);
 router.post("/change-password", verifyToken, verifyOldPassword, resetPassword);
 router.post("/update-profile", verifyToken, updateProfile);
 
@@ -78,4 +79,7 @@ router.post(
     usernameValidator,
     sendCredentials
 );
+
+router.post("/reset-password", resetPasswordValidator, resetPassword);
+
 module.exports = router;

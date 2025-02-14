@@ -4,6 +4,11 @@ const User = require("../models/user.model");
 const { verifyPassword } = require("../utils/hashPassword");
 const asyncHandler = require("../utils/asyncHandler");
 const config = require("../config/appConfig");
+const {
+    emailSchema,
+    otpSchema,
+    passwordSchema,
+} = require("../utils/validationSchemas");
 const signUpDetailsSchema = Joi.object({
     // TODO: change after
     username: Joi.string().min(2),
@@ -115,9 +120,11 @@ const verifySpToken = asyncHandler(async (req, res, next) => {
     next();
 });
 
+//new
 const resetPasswordSchema = Joi.object({
-    username: Joi.string().min(2),
-    newPassword: Joi.string().min(2),
+    email: emailSchema.required(),
+    otp: otpSchema.required(),
+    newPassword: passwordSchema.required(),
 });
 
 const resetPasswordValidator = (req, res, next) => {
@@ -180,4 +187,5 @@ module.exports = {
     verifyEmailExists,
     verifyOldPassword,
     authorizeRoles,
+    resetPasswordValidator,
 };

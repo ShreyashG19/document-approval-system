@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const {Role} = require("./enums");
+const { Role } = require("./enums");
 
 const usernameSchema = Joi.string()
     .pattern(/^[A-Za-z0-9_]{5,10}$/)
@@ -49,7 +49,7 @@ const passwordSchema = Joi.string()
     });
 
 const mobileNoSchema = Joi.string()
-    .pattern(/^[0-9]{10}$/)
+    .pattern(/^[6-9]\d{9}$/)
     .messages({
         "string.pattern.base": "Mobile number must be valid 10 digits",
         "string.empty": "Mobile number is required",
@@ -60,6 +60,13 @@ const roleSchema = Joi.string().valid(Role.ASSISTANT, Role.APPROVER).messages({
     "string.empty": "Role is required",
 });
 
+const otpSchema = Joi.string()
+    .pattern(/^\d{6,8}$/)
+    .messages({
+        "string.pattern.base": "OTP must be 6 to 8 digits",
+        "string.empty": "OTP is required",
+    });
+
 module.exports = {
     usernameSchema,
     fullNameSchema,
@@ -67,4 +74,5 @@ module.exports = {
     passwordSchema,
     mobileNoSchema,
     roleSchema,
+    otpSchema,
 };
