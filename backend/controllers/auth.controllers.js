@@ -74,4 +74,28 @@ const login = asyncHandler(async (req, res) => {
         },
     });
 });
-module.exports = { register, login };
+
+const logout = asyncHandler(async (req, res) => {
+    const user = await User.findOne({ username: req.session.user });
+    if (!user) {
+        return createError(400, "User not found");
+    }
+    req.session.destroy(async (err) => {
+        if (err) {
+            console.error("Error destroying session:", err);
+            throw err;
+        }
+
+        // Remove session ID from user in database
+        user.sessionID = null;
+        user.deviceToken = null;
+        await user.save();
+
+        res.clearCookie("connect.sid");
+        return res.status(200).json({
+            status: true,
+            message: "Logged out successfully",
+        });
+    });
+});
+module.exports = { register, login, logout };

@@ -189,7 +189,7 @@ const usernameValidator = (req, res, next) => {
     next();
 };
 
-const checkLoggedIn = asyncHandler(async (req, res, next) => {
+const verifySession = asyncHandler(async (req, res, next) => {
     if (req.session.user) {
         next();
     } else {
@@ -207,6 +207,15 @@ const checkIsAdmin = asyncHandler(async (req, res, next) => {
     }
 });
 
+const authorizeRoles = (roles) => (req, res, next) => {
+    if (!roles.includes(req.session.role)) {
+        const error = new Error("Access Denied!");
+        error.statusCode = 401;
+        return next(error);
+    }
+    next();
+};
+
 module.exports = {
     registerDetailsValidator,
     loginDetailsValidator,
@@ -214,6 +223,7 @@ module.exports = {
     emailValidator,
     mobileNoValidator,
     usernameValidator,
-    checkLoggedIn,
+    verifySession,
     checkIsAdmin,
+    authorizeRoles,
 };

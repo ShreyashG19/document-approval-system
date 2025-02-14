@@ -4,20 +4,22 @@ const {
     registerDetailsValidator,
     userExistsValidator,
     loginDetailsValidator,
-    checkLoggedIn,
-    checkIsAdmin,
+    verifySession,
+    authorizeRoles,
 } = require("../middlewares/auth.middlewares");
-const { register, login } = require("../controllers/auth.controllers");
+const { register, login, logout } = require("../controllers/auth.controllers");
+const { Role } = require("../utils/enums");
 
 //todo: allow for only admin
 router.post(
     "/register",
-    checkLoggedIn,
-    checkIsAdmin,
+    verifySession,
+    authorizeRoles([Role.ADMIN]),
     registerDetailsValidator,
     userExistsValidator,
     register
 );
 
 router.post("/login", loginDetailsValidator, login);
+router.post("/logout", verifySession, logout);
 module.exports = router;
