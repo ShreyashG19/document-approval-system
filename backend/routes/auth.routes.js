@@ -10,7 +10,6 @@ const {
 const { register, login, logout } = require("../controllers/auth.controllers");
 const { Role } = require("../utils/enums");
 
-//todo: allow for only admin
 router.post(
     "/register",
     verifySession,

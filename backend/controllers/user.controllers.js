@@ -8,16 +8,8 @@ const { NotificationService } = require("../utils/NotificationService");
 const nodemailer = require("nodemailer");
 const asyncHandler = require("../utils/asyncHandler");
 const config = require("../config/appConfig");
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-        user: config.authEmail,
-        pass: config.authPass,
-    },
-});
+const { transporter, MailOptions } = require("../utils/sendEmail");
+
 const signIn = asyncHandler(async (req, res, next) => {
     let { username, password, deviceToken } = req.body;
     username = username.trim().toLowerCase();
@@ -486,6 +478,22 @@ const getAssistants = asyncHandler(async (req, res, next) => {
         assistants: user.assistants || [],
     });
 });
+
+//v2
+const sendCredentials = asyncHandler(async (req, res) => {
+    const { username, email, password } = req.body;
+    const mailOptions = new MailOptions(
+        config.authEmail,
+        email,
+        "Your account credentials",
+        `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
+    );
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({
+        status: true,
+        message: "Credentials sent successfully",
+    });
+});
 module.exports = {
     signIn,
     signUp,
@@ -500,4 +508,6 @@ module.exports = {
     changeUserStatus,
     getAssistants,
     signOutAll,
+    //v2
+    sendCredentials,
 };

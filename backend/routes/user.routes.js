@@ -13,6 +13,8 @@ const {
     updateProfile,
     changeUserStatus,
     getAssistants,
+    //v2
+    sendCredentials,
 } = require("../controllers/user.controllers");
 const {
     signUpDetailsValidator,
@@ -21,8 +23,14 @@ const {
     verifySpToken,
     verifyEmailExists,
     verifyOldPassword,
-    authorizeRoles,
 } = require("../middlewares/user.middlewares");
+const {
+    verifySession,
+    authorizeRoles,
+    emailValidator,
+    passwordValidator,
+    usernameValidator,
+} = require("../middlewares/auth.middlewares");
 const { Role } = require("../utils/enums");
 const router = express.Router();
 
@@ -58,5 +66,16 @@ router.get(
     verifyToken,
     authorizeRoles([Role.APPROVER]),
     getAssistants
+);
+
+//v2
+router.post(
+    "/send-credentials",
+    verifySession,
+    authorizeRoles([Role.ADMIN]),
+    emailValidator,
+    passwordValidator,
+    usernameValidator,
+    sendCredentials
 );
 module.exports = router;
