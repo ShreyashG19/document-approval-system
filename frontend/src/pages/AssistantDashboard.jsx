@@ -18,7 +18,6 @@ import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
-import debounce from "lodash.debounce";
 
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
