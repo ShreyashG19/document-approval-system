@@ -7,6 +7,7 @@ const config = {
     authEmail: process.env.AUTH_EMAIL,
     authPass: process.env.AUTH_PASS,
     baseUploadDir: process.env.BASE_UPLOAD_DIR,
+    sessionSecret: process.env.SESSION_SECRET,
 };
 
 // List of required environment variables
@@ -16,6 +17,7 @@ const requiredEnvVars = [
     "AUTH_EMAIL",
     "AUTH_PASS",
     "BASE_UPLOAD_DIR",
+    "SESSION_SECRET",
 ];
 
 // Check for missing environment variables

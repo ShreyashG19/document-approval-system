@@ -83,6 +83,41 @@ const registerDetailsValidator = (req, res, next) => {
     next();
 };
 
+const loginDetailsSchema = Joi.object({
+    username: Joi.string()
+        .pattern(/^[A-Za-z0-9_]{5,10}$/)
+        .messages({
+            "string.pattern.base":
+                "Username must be atleast 5 characters long, and can contain only letters, numbers, and underscores",
+            "string.empty": "Username is required",
+            "string.min": "Username must be at least 5 characters long",
+            "string.max": "Username must not exceed 30 characters",
+        })
+        .required(),
+    password: Joi.string()
+        .min(8)
+        .max(30)
+        .pattern(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+        )
+        .messages({
+            "string.empty": "Password is required",
+            "string.min": "Password must be at least 8 characters long",
+            "string.max": "Password must not exceed 30 characters",
+            "string.pattern.base":
+                "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
+        })
+        .required(),
+    deviceToken: Joi.string(),
+});
+const loginDetailsValidator = (req, res, next) => {
+    const { error } = loginDetailsSchema.validate(req.body);
+    if (error) {
+        throw createError(400, error.details[0].message);
+    }
+    next();
+};
+
 const userExistsValidator = asyncHandler(async (req, res, next) => {
     const { username, email, mobileNo, role } = req.body;
 
@@ -154,10 +189,31 @@ const usernameValidator = (req, res, next) => {
     next();
 };
 
+const checkLoggedIn = asyncHandler(async (req, res, next) => {
+    if (req.session.user) {
+        next();
+    } else {
+        throw createError(401, "User not logged in");
+    }
+});
+
+const checkIsAdmin = asyncHandler(async (req, res, next) => {
+    if (req.session.user) {
+        if (req.session.role !== Role.ADMIN)
+            throw createError(401, "Access Denied");
+        next();
+    } else {
+        throw createError(401, "User not logged in");
+    }
+});
+
 module.exports = {
     registerDetailsValidator,
+    loginDetailsValidator,
     userExistsValidator,
     emailValidator,
     mobileNoValidator,
     usernameValidator,
+    checkLoggedIn,
+    checkIsAdmin,
 };

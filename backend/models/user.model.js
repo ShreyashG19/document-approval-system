@@ -33,13 +33,11 @@ const UserSchema = new mongoose.Schema({
         enum: [Role.ASSISTANT, Role.APPROVER, Role.ADMIN],
         required: true,
     },
-    deviceTokens: {
-        type: [String],
-        default: [],
+    deviceToken: {
+        type: String,
     },
-    validJtis: {
-        type: [String],
-        default: [],
+    sessionID: {
+        type: String,
     },
     isActive: {
         type: Boolean,

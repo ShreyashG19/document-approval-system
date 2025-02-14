@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const bodyparser = require("body-parser");
 require("dotenv").config();
 const errorHandler = require("./utils/errorHandler");
@@ -20,6 +22,18 @@ const corsOptions = {
     credentials: true,
 };
 
+app.use(
+    session({
+        secret: config.sessionSecret,
+        resave: true,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: config.mongodbUri,
+            collectionName: "sessions",
+        }),
+        cookie: { secure: false }, // Set `true` for HTTPS
+    })
+);
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
