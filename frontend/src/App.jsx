@@ -104,11 +104,11 @@ const App = () => {
             <Route
               path="/assistant/dashboard"
               element={
-                <AssistantRestrictedRoute>
+                // <AssistantRestrictedRoute>
                   <MainLayout>
                     <AssistantDashboard />
                   </MainLayout>
-                </AssistantRestrictedRoute>
+                // </AssistantRestrictedRoute>
               }
             />
             <Route
