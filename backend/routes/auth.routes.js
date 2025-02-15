@@ -2,12 +2,20 @@ const express = require("express");
 const router = express.Router();
 const {
     registerDetailsValidator,
-    userExistsValidator,
+    ensureUniqueUser,
+    ensureEmailExists,
     loginDetailsValidator,
     verifySession,
     authorizeRoles,
+    emailValidator,
 } = require("../middlewares/auth.middlewares");
-const { register, login, logout } = require("../controllers/auth.controllers");
+const {
+    register,
+    login,
+    logout,
+    getSession,
+} = require("../controllers/auth.controllers");
+const { sendOTPEmail } = require("../controllers/otp.controllers");
 const { Role } = require("../utils/enums");
 
 router.post(
@@ -15,10 +23,14 @@ router.post(
     verifySession,
     authorizeRoles([Role.ADMIN]),
     registerDetailsValidator,
-    userExistsValidator,
+    ensureUniqueUser,
     register
 );
 
 router.post("/login", loginDetailsValidator, login);
 router.post("/logout", verifySession, logout);
+
+// router.post("/send-otp", emailValidator, ensureEmailExists, sendOTPEmail);
+
+router.get("/get-session", verifySession, getSession);
 module.exports = router;

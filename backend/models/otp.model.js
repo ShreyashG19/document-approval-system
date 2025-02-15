@@ -9,10 +9,6 @@ const OTPSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    mobileNo: {
-        type: Number,
-        required: true,
-    },
     createdAt: {
         type: Date,
         default: Date.now,

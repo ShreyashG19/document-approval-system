@@ -12,17 +12,16 @@ const {
     passwordSchema,
 } = require("../utils/validationSchemas");
 
-const registerDetailsSchema = Joi.object({
-    username: usernameSchema.required(),
-    email: emailSchema.required(),
-    password: passwordSchema.required(),
-    fullName: fullNameSchema.required(),
-    mobileNo: mobileNoSchema.required(),
-    role: roleSchema.required(),
-});
-
 const registerDetailsValidator = (req, res, next) => {
-    const { error } = registerDetailsSchema.validate(req.body);
+    const schema = Joi.object({
+        username: usernameSchema.required(),
+        email: emailSchema.required(),
+        password: passwordSchema.required(),
+        fullName: fullNameSchema.required(),
+        mobileNo: mobileNoSchema.required(),
+        role: roleSchema.required(),
+    });
+    const { error } = schema.validate(req.body);
     if (error) {
         throw createError(400, error.details[0].message);
     }
@@ -33,20 +32,20 @@ const registerDetailsValidator = (req, res, next) => {
     next();
 };
 
-const loginDetailsSchema = Joi.object({
-    username: usernameSchema.required(),
-    password: passwordSchema.required(),
-    deviceToken: Joi.string().required(),
-});
 const loginDetailsValidator = (req, res, next) => {
-    const { error } = loginDetailsSchema.validate(req.body);
+    const schema = Joi.object({
+        username: usernameSchema.required(),
+        password: passwordSchema.required(),
+        deviceToken: Joi.string().required(),
+    });
+    const { error } = schema.validate(req.body);
     if (error) {
         throw createError(400, error.details[0].message);
     }
     next();
 };
 
-const userExistsValidator = asyncHandler(async (req, res, next) => {
+const ensureUniqueUser = asyncHandler(async (req, res, next) => {
     const { username, email, mobileNo, role } = req.body;
 
     // Check if user already exists with duplicate credentials
@@ -76,14 +75,20 @@ const userExistsValidator = asyncHandler(async (req, res, next) => {
     next();
 });
 
+const ensureEmailExists = asyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+        throw createError(400, "Email not registered");
+    }
+    next();
+});
 //generic validators
 const emailValidator = (req, res, next) => {
     const { email } = req.body;
     const { error } = emailSchema.required().validate(email);
     if (error) {
-        const err = new Error("Invalid email");
-        err.statusCode = 400;
-        throw err;
+        throw createError(400, "Invalid email");
     }
     next();
 };
@@ -91,9 +96,7 @@ const mobileNoValidator = (req, res, next) => {
     const { mobileNo } = req.body;
     const { error } = mobileNoSchema.required().validate(mobileNo);
     if (error) {
-        const err = new Error("Invalid mobile number");
-        err.statusCode = 400;
-        throw err;
+        throw createError(400, "Invalid mobile number");
     }
     next();
 };
@@ -101,11 +104,10 @@ const usernameValidator = (req, res, next) => {
     const { username } = req.body;
     const { error } = usernameSchema.required().validate(username);
     if (error) {
-        const err = new Error(
+        throw createError(
+            400,
             "Username must be atleast 5 characters long, and can contain only letters, numbers, and underscores"
         );
-        err.statusCode = 400;
-        throw err;
     }
     next();
 };
@@ -115,9 +117,7 @@ const passwordValidator = (req, res, next) => {
     const { password } = req.body;
     const { error } = passwordSchema.required().validate(password);
     if (error) {
-        const err = new Error(error.details[0].message);
-        err.statusCode = 400;
-        throw err;
+        throw createError(400, error.details[0].message);
     }
     next();
 };
@@ -132,9 +132,7 @@ const verifySession = asyncHandler(async (req, res, next) => {
 
 const authorizeRoles = (roles) => (req, res, next) => {
     if (!roles.includes(req.session.role)) {
-        const error = new Error("Access Denied!");
-        error.statusCode = 401;
-        return next(error);
+        throw createError(401, "Access Denied!");
     }
     next();
 };
@@ -142,7 +140,8 @@ const authorizeRoles = (roles) => (req, res, next) => {
 module.exports = {
     registerDetailsValidator,
     loginDetailsValidator,
-    userExistsValidator,
+    ensureUniqueUser,
+    ensureEmailExists,
     emailValidator,
     passwordValidator,
     mobileNoValidator,
