@@ -510,6 +510,19 @@ const setUserStatus = asyncHandler(async (req, res, next) => {
     });
 });
 
+const getUsers = asyncHandler(async (req, res) => {
+    const users = await User.find({ role: { $ne: Role.ADMIN } }).select(
+        "username fullName email mobileNo role isActive"
+    );
+    if (!users.length) {
+        throw createError(404, "No users found");
+    }
+    return res.status(200).json({
+        status: true,
+        message: "Users fetched successfully",
+        users,
+    });
+});
 module.exports = {
     signIn,
     signUp,
@@ -526,4 +539,5 @@ module.exports = {
     resetPassword,
     updateProfile,
     setUserStatus,
+    getUsers,
 };
