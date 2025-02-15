@@ -3,76 +3,25 @@ const User = require("../models/user.model");
 const asyncHandler = require("../utils/asyncHandler");
 const createError = require("../utils/createError");
 const { Role } = require("../utils/enums");
-
-const registerDetailsSchema = Joi.object({
-    username: Joi.string()
-        .pattern(/^[A-Za-z0-9_]{5,10}$/)
-        .messages({
-            "string.pattern.base":
-                "Username must be atleast 5 characters long, and can contain only letters, numbers, and underscores",
-            "string.empty": "Username is required",
-            "string.min": "Username must be at least 5 characters long",
-            "string.max": "Username must not exceed 30 characters",
-        })
-        .required(),
-    email: Joi.string()
-        .email()
-        .messages({
-            "string.email": "Please enter a valid email address",
-            "string.empty": "Email address is required",
-        })
-        .required(),
-    password: Joi.string()
-        .min(8)
-        .max(30)
-        .pattern(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-        )
-        .messages({
-            "string.empty": "Password is required",
-            "string.min": "Password must be at least 8 characters long",
-            "string.max": "Password must not exceed 30 characters",
-            "string.pattern.base":
-                "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
-        })
-        .required(),
-    fullName: Joi.string()
-        .pattern(/^[A-Za-z\s]{5,50}$/)
-        .custom((value, helpers) => {
-            const words = value.trim().split(/\s+/);
-            if (words.length < 2) {
-                return helpers.error("string.minWords");
-            }
-            return value;
-        })
-        .messages({
-            "string.pattern.base":
-                "Full name must contain only letters and spaces",
-            "string.minWords":
-                "Full name must include both first and last name",
-            "string.empty": "Full name is required",
-            "string.min": "Full name must be at least 5 characters long",
-            "string.max": "Full name must not exceed 50 characters",
-        })
-        .required(),
-    mobileNo: Joi.string()
-        .pattern(/^[0-9]{10}$/)
-        .messages({
-            "string.pattern.base": "Mobile number must be valid 10 digits",
-            "string.empty": "Mobile number is required",
-        })
-        .required(),
-    role: Joi.string()
-        .valid(Role.ASSISTANT, Role.APPROVER)
-        .messages({
-            "any.only": `Role must be one of the assistant or approver`,
-            "string.empty": "Role is required",
-        })
-        .required(),
-});
+const {
+    usernameSchema,
+    fullNameSchema,
+    emailSchema,
+    mobileNoSchema,
+    roleSchema,
+    passwordSchema,
+} = require("../utils/validationSchemas");
 
 const registerDetailsValidator = (req, res, next) => {
-    const { error } = registerDetailsSchema.validate(req.body);
+    const schema = Joi.object({
+        username: usernameSchema.required(),
+        email: emailSchema.required(),
+        password: passwordSchema.required(),
+        fullName: fullNameSchema.required(),
+        mobileNo: mobileNoSchema.required(),
+        role: roleSchema.required(),
+    });
+    const { error } = schema.validate(req.body);
     if (error) {
         throw createError(400, error.details[0].message);
     }
@@ -83,7 +32,20 @@ const registerDetailsValidator = (req, res, next) => {
     next();
 };
 
-const userExistsValidator = asyncHandler(async (req, res, next) => {
+const loginDetailsValidator = (req, res, next) => {
+    const schema = Joi.object({
+        username: usernameSchema.required(),
+        password: passwordSchema.required(),
+        deviceToken: Joi.string().required(),
+    });
+    const { error } = schema.validate(req.body);
+    if (error) {
+        throw createError(400, error.details[0].message);
+    }
+    next();
+};
+
+const ensureUniqueUser = asyncHandler(async (req, res, next) => {
     const { username, email, mobileNo, role } = req.body;
 
     // Check if user already exists with duplicate credentials
@@ -113,51 +75,77 @@ const userExistsValidator = asyncHandler(async (req, res, next) => {
     next();
 });
 
+const ensureEmailExists = asyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+        throw createError(400, "Email not registered");
+    }
+    next();
+});
 //generic validators
 const emailValidator = (req, res, next) => {
     const { email } = req.body;
-    const emailSchema = Joi.string().email().required();
-    const { error } = emailSchema.validate(email);
+    const { error } = emailSchema.required().validate(email);
     if (error) {
-        const err = new Error("Invalid email");
-        err.statusCode = 400;
-        throw err;
+        throw createError(400, "Invalid email");
     }
     next();
 };
 const mobileNoValidator = (req, res, next) => {
     const { mobileNo } = req.body;
-    const mobileNoSchema = Joi.string()
-        .pattern(/^[0-9]{10}$/)
-        .required();
-    const { error } = mobileNoSchema.validate(mobileNo);
+    const { error } = mobileNoSchema.required().validate(mobileNo);
     if (error) {
-        const err = new Error("Invalid mobile number");
-        err.statusCode = 400;
-        throw err;
+        throw createError(400, "Invalid mobile number");
     }
     next();
 };
 const usernameValidator = (req, res, next) => {
     const { username } = req.body;
-    const usernameSchema = Joi.string()
-        .pattern(/^[A-Za-z0-9_]{5,10}$/)
-        .required();
-    const { error } = usernameSchema.validate(username);
+    const { error } = usernameSchema.required().validate(username);
     if (error) {
-        const err = new Error(
+        throw createError(
+            400,
             "Username must be atleast 5 characters long, and can contain only letters, numbers, and underscores"
         );
-        err.statusCode = 400;
-        throw err;
+    }
+    next();
+};
+
+const passwordValidator = (req, res, next) => {
+    console.log("password :", typeof req.body.password);
+    const { password } = req.body;
+    const { error } = passwordSchema.required().validate(password);
+    if (error) {
+        throw createError(400, error.details[0].message);
+    }
+    next();
+};
+
+const verifySession = asyncHandler(async (req, res, next) => {
+    if (req.session.user) {
+        next();
+    } else {
+        throw createError(401, "User not logged in");
+    }
+});
+
+const authorizeRoles = (roles) => (req, res, next) => {
+    if (!roles.includes(req.session.role)) {
+        throw createError(401, "Access Denied!");
     }
     next();
 };
 
 module.exports = {
     registerDetailsValidator,
-    userExistsValidator,
+    loginDetailsValidator,
+    ensureUniqueUser,
+    ensureEmailExists,
     emailValidator,
+    passwordValidator,
     mobileNoValidator,
     usernameValidator,
+    verifySession,
+    authorizeRoles,
 };

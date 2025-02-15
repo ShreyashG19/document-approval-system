@@ -4,7 +4,7 @@ const {
     signUp,
     signOut,
     signOutAll,
-    verifyOTP,
+    // verifyOTP,
     resendOTPAndVerify,
     checkAuthStatus,
     sendPasswordResetOTP,
@@ -13,6 +13,8 @@ const {
     updateProfile,
     changeUserStatus,
     getAssistants,
+    //v2
+    sendCredentials,
 } = require("../controllers/user.controllers");
 const {
     signUpDetailsValidator,
@@ -21,8 +23,17 @@ const {
     verifySpToken,
     verifyEmailExists,
     verifyOldPassword,
-    authorizeRoles,
+    resetPasswordValidator,
+    //v2
+    updateProfileValidator,
 } = require("../middlewares/user.middlewares");
+const {
+    verifySession,
+    authorizeRoles,
+    emailValidator,
+    passwordValidator,
+    usernameValidator,
+} = require("../middlewares/auth.middlewares");
 const { Role } = require("../utils/enums");
 const router = express.Router();
 
@@ -32,7 +43,7 @@ router.post("/signout", verifyToken, signOut);
 router.post("/signout-all", verifyToken, signOutAll);
 router.get("/status", verifyToken, checkAuthStatus);
 
-router.post("/verify-otp", verifyOTP);
+// router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTPAndVerify);
 
 router.post(
@@ -41,9 +52,9 @@ router.post(
     sendPasswordResetOTP
 );
 router.post("/verify-sp-otp", verifySpOTP);
-router.post("/reset-password", verifySpToken, resetPassword);
+// router.post("/reset-password", verifySpToken, resetPassword);
 router.post("/change-password", verifyToken, verifyOldPassword, resetPassword);
-router.post("/update-profile", verifyToken, updateProfile);
+// router.post("/update-profile", verifyToken, updateProfile);
 
 //route for toggling user status
 router.post(
@@ -58,5 +69,26 @@ router.get(
     verifyToken,
     authorizeRoles([Role.APPROVER]),
     getAssistants
+);
+
+//v2
+router.post(
+    "/send-credentials",
+    verifySession,
+    authorizeRoles([Role.ADMIN]),
+    emailValidator,
+    passwordValidator,
+    usernameValidator,
+    sendCredentials
+);
+
+// router.post("/reset-password", resetPasswordValidator, resetPassword);
+
+router.post(
+    "/update-profile",
+    verifySession,
+    authorizeRoles([Role.ADMIN]),
+    updateProfileValidator,
+    updateProfile
 );
 module.exports = router;

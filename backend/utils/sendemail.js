@@ -19,8 +19,12 @@ class MailOptions {
         this.html = htmlBody;
     }
 }
+const sendEmail = async (mailOptions) => {
+    await transporter.sendMail(mailOptions);
+};
 
 module.exports = {
     transporter,
     MailOptions,
+    sendEmail,
 };

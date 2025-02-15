@@ -62,7 +62,7 @@ const Navbar = () => {
 
     try {
       const response = await fetch(
-        import.meta.env.VITE_API_URL + "/user/signout",
+        import.meta.env.VITE_API_URL + "/auth/logout",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
