@@ -26,6 +26,7 @@ import PrepareLetter from "./pages/PrepareLetter.jsx";
 import { toast, Toaster } from "react-hot-toast";
 import { FaBell } from "react-icons/fa";
 import MainLayout from "./components/MainLayout";
+import RegistrationSuccessful from "./pages/RegistrationSuccessful"; // Import RegistrationSuccessful component
 
 import {
   ApproverRestrictedRoute,
@@ -78,6 +79,7 @@ const App = () => {
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/otp/verify" element={<OTPUI />} />
+            <Route path="/registrationsuccessful" element={<RegistrationSuccessful />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/forgot-password-otp" element={<ForgotPassOTP />} />
             <Route path="/set-new-pass" element={<SetNewPassword />} />
@@ -104,11 +106,11 @@ const App = () => {
             <Route
               path="/assistant/dashboard"
               element={
-                <AssistantRestrictedRoute>
+                // <AssistantRestrictedRoute>
                   <MainLayout>
                     <AssistantDashboard />
                   </MainLayout>
-                </AssistantRestrictedRoute>
+                // </AssistantRestrictedRoute>
               }
             />
             <Route
@@ -156,11 +158,11 @@ const App = () => {
             <Route
               path="/admin/dashboard"
               element={
-                <AdminRestrictedRoute>
+               // <AdminRestrictedRoute>
                   <MainLayout>
                     <AdminDashboard />
                   </MainLayout>
-                </AdminRestrictedRoute>
+               // </AdminRestrictedRoute>
               }
             />
             <Route
@@ -181,7 +183,9 @@ const App = () => {
                 </MainLayout>
               }
             />
+
             <Route path="/support" element={<Support />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
           </Routes>
         </NotificationProvider>
       </UsersProvider>

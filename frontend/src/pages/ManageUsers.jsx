@@ -14,6 +14,7 @@ const ManageUsers = () => {
   const { loggedInUser } = useContext(AuthContext);
   const [showAddUser, setShowAddUser] = useState(false);
   const [loading, setLoading] = useState(false); // Add a loading state
+  const [userType, setUserType] = useState(""); // Add a state to track the type of user being added
   
   useEffect(() => {
     if (!loggedInUser) {
@@ -31,7 +32,7 @@ const ManageUsers = () => {
     setLoading(true); // Start loading
     try {
       // Your API call to add a new user
-      await axios.post("/api/add-user", newUserData);
+      await axios.post("/assistant/create-user", newUserData);
       toast.success("User added successfully!");
       refreshUsers(); // Refresh user list after adding the new user
     } catch (error) {
@@ -41,7 +42,8 @@ const ManageUsers = () => {
     }
   };
 
-  const handleOpenAddUser = () => {
+  const handleOpenAddUser = (type) => {
+    setUserType(type);
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -56,17 +58,12 @@ const ManageUsers = () => {
       <div className="flex items-center justify-center flex-grow p-4">
         <div className="w-full max-w-3xl bg-white shadow-lg border border-gray-200 rounded-lg p-8">
           <div className="flex gap-4 mb-6 justify-end">
-            <button
-              onClick={handleOpenAddUser}
-              className="text-white bg-blue-600 hover:bg-blue-700 p-2 rounded-lg flex items-center gap-2"
-            >
-              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Add New</>}
-            </button>
+        
           </div>
 
           {/* Approvers */}
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Manage Approvers
+            Manage Team
           </h3>
           {!approver ? (
             <p className="text-gray-600">No Approvers available</p>
@@ -95,9 +92,7 @@ const ManageUsers = () => {
           )}
 
           {/* Assistants */}
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 mt-8">
-            Manage Assistants
-          </h3>
+          
           {assistants.length === 0 ? (
             <p className="text-gray-600">No Assistants available</p>
           ) : (
@@ -125,6 +120,21 @@ const ManageUsers = () => {
               ))}
             </div>
           )}
+
+          <div className="flex gap-4 mt-8 justify-end">
+            <button
+              onClick={() => handleOpenAddUser("Assistant")}
+              className="text-white bg-blue-600 hover:bg-blue-700 p-2 rounded-lg flex items-center gap-2"
+            >
+              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Add Assistant</>}
+            </button>
+            <button
+              onClick={() => handleOpenAddUser("Approver")}
+              className="text-white bg-green-600 hover:bg-green-700 p-2 rounded-lg flex items-center gap-2"
+            >
+              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Add Approver</>}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -133,6 +143,7 @@ const ManageUsers = () => {
         showAddUser={showAddUser}
         setShowAddUser={setShowAddUser}
         handleAddUser={handleAddUser} // Pass the add user function to the modal
+        userType={userType} // Pass the user type to the modal
       />
 
       {/* Loader */}
