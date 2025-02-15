@@ -3,11 +3,15 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const { verifyPassword } = require("../utils/hashPassword");
 const asyncHandler = require("../utils/asyncHandler");
+const createError = require("../utils/createError");
 const config = require("../config/appConfig");
 const {
     emailSchema,
     otpSchema,
     passwordSchema,
+    usernameSchema,
+    fullNameSchema,
+    mobileNoSchema,
 } = require("../utils/validationSchemas");
 const signUpDetailsSchema = Joi.object({
     // TODO: change after
@@ -169,16 +173,29 @@ const verifyOldPassword = asyncHandler(async (req, res, next) => {
     }
     next();
 });
-
+//todo: remove later
 const authorizeRoles = (roles) => (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-        const error = new Error("Access Denied!");
-        error.statusCode = 401;
-        return next(error);
+    if (!roles.includes(req.session.role)) {
+        throw createError(401, "Access Denied!");
     }
     next();
 };
 
+//v2
+const updateProfileValidator = (req, res, next) => {
+    const updateProfileSchema = Joi.object({
+        username: usernameSchema.required(),
+        email: emailSchema,
+        fullName: fullNameSchema,
+        mobileNo: mobileNoSchema,
+        password: passwordSchema,
+    });
+    const { error } = updateProfileSchema.validate(req.body);
+    if (error) {
+        throw createError(400, error.details[0].message);
+    }
+    next();
+};
 module.exports = {
     signUpDetailsValidator,
     signiInDetailsValidator,
@@ -188,4 +205,6 @@ module.exports = {
     verifyOldPassword,
     authorizeRoles,
     resetPasswordValidator,
+    //v2
+    updateProfileValidator,
 };

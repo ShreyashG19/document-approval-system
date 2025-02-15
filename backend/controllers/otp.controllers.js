@@ -4,12 +4,9 @@ const { MailOptions, sendEmail } = require("../utils/sendEmail");
 const { generateOTP } = require("../utils/otpUtils");
 const config = require("../config/appConfig");
 const asyncHandler = require("../utils/asyncHandler");
-const verifyOTP = async (email, mobileNo, otp) => {
+const verifyOTP = async (email, otp) => {
     console.log("verifying otp");
-    const otpExists = await OTP.findOne({
-        email,
-        mobileNo,
-    })
+    const otpExists = await OTP.findOne({ email })
         .sort({ createdAt: -1 })
         .limit(1);
 

@@ -71,6 +71,8 @@ const login = asyncHandler(async (req, res) => {
             email: user.email,
             role: user.role,
             fullName: user.fullName,
+            mobileNo: user.mobileNo,
+            isActive: user.isActive,
         },
     });
 });
@@ -98,4 +100,23 @@ const logout = asyncHandler(async (req, res) => {
         });
     });
 });
-module.exports = { register, login, logout };
+
+const getSession = asyncHandler(async (req, res) => {
+    const user = await User.findOne({ username: req.session.user });
+    if (!user) {
+        return createError(400, "User not found");
+    }
+    return res.status(200).json({
+        status: true,
+        message: "User is logged in",
+        user: {
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            fullName: user.fullName,
+            mobileNo: user.mobileNo,
+            isActive: user.isActive,
+        },
+    });
+});
+module.exports = { register, login, logout, getSession };

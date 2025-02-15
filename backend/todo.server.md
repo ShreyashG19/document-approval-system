@@ -29,3 +29,17 @@ If Redis entry expires → Fetch from DB again.
 
 - if admin deactivates account of an approver, he can add new approver
 - after creation of new approver the old one cannot be re-activated, only one approver can be enabled at a time 
+
+
+- update profile, terminate session (admin)
+- get profile data for everyone
+- change user status (admin)
+- comment out send otp reset password
+- while updating user, only following fields can be updated
+    - fullName
+    - mobileNo
+    - email
+    - password
+
+## concerns
+1. sending credentials to user secure?

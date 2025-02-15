@@ -376,19 +376,54 @@ const sendPasswordResetOTP = asyncHandler(async (req, res) => {
 });
 
 const updateProfile = asyncHandler(async (req, res, next) => {
-    const { fullName, mobileNo } = req.body;
-    if (!fullName || !mobileNo) {
-        const error = new Error("Please provide fullName and mobileNo");
-        error.statusCode = 400;
-        return next(error);
+    const { username, email, fullName, mobileNo, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) {
+        throw createError(400, "User not found");
     }
-    await User.updateOne(
-        { username: req.user.username },
-        { fullName, mobileNo }
-    );
+    const updates = {};
+    if (fullName) updates.fullName = fullName;
+    if (mobileNo) {
+        const existingUser = await User.findOne({ mobileNo });
+        if (existingUser && existingUser.username !== username) {
+            throw createError(400, "Mobile number already in use.");
+        }
+        updates.mobileNo = mobileNo;
+    }
+    if (email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser && existingUser.username !== username) {
+            throw createError(400, "Email already in use.");
+        }
+        updates.email = email;
+    }
+    if (password) {
+        updates.password = await hashPassword(password);
+    }
+
+    // Update user in DB
+    await User.updateOne({ username }, { $set: updates });
+
+    // todo: is sending credentials to email needed?
+    //send email if password is updated
+    if (password) {
+        const mailOptions = new MailOptions(
+            config.authEmail,
+            email,
+            "Your account credentials",
+            `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
+        );
+        await transporter.sendMail(mailOptions);
+    }
     return res.status(200).json({
-        status: "SUCCESS",
-        message: "Profile updated successfully",
+        status: true,
+        message: "User details updated successfully",
+        user: {
+            username,
+            email,
+            fullName,
+            mobileNo,
+        },
     });
 });
 
@@ -473,7 +508,7 @@ const sendCredentials = asyncHandler(async (req, res) => {
 
 const resetPassword = asyncHandler(async (req, res) => {
     const { email, otp, newPassword } = req.body;
-    const isValid = await verifyOTP(email, null, otp);
+    const isValid = await verifyOTP(email, otp);
     if (!isValid) {
         return createError(400, "Invalid OTP");
     }

@@ -24,6 +24,8 @@ const {
     verifyEmailExists,
     verifyOldPassword,
     resetPasswordValidator,
+    //v2
+    updateProfileValidator,
 } = require("../middlewares/user.middlewares");
 const {
     verifySession,
@@ -52,7 +54,7 @@ router.post(
 router.post("/verify-sp-otp", verifySpOTP);
 // router.post("/reset-password", verifySpToken, resetPassword);
 router.post("/change-password", verifyToken, verifyOldPassword, resetPassword);
-router.post("/update-profile", verifyToken, updateProfile);
+// router.post("/update-profile", verifyToken, updateProfile);
 
 //route for toggling user status
 router.post(
@@ -80,6 +82,13 @@ router.post(
     sendCredentials
 );
 
-router.post("/reset-password", resetPasswordValidator, resetPassword);
+// router.post("/reset-password", resetPasswordValidator, resetPassword);
 
+router.post(
+    "/update-profile",
+    verifySession,
+    authorizeRoles([Role.ADMIN]),
+    updateProfileValidator,
+    updateProfile
+);
 module.exports = router;

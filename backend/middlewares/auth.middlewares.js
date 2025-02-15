@@ -12,17 +12,16 @@ const {
     passwordSchema,
 } = require("../utils/validationSchemas");
 
-const registerDetailsSchema = Joi.object({
-    username: usernameSchema.required(),
-    email: emailSchema.required(),
-    password: passwordSchema.required(),
-    fullName: fullNameSchema.required(),
-    mobileNo: mobileNoSchema.required(),
-    role: roleSchema.required(),
-});
-
 const registerDetailsValidator = (req, res, next) => {
-    const { error } = registerDetailsSchema.validate(req.body);
+    const schema = Joi.object({
+        username: usernameSchema.required(),
+        email: emailSchema.required(),
+        password: passwordSchema.required(),
+        fullName: fullNameSchema.required(),
+        mobileNo: mobileNoSchema.required(),
+        role: roleSchema.required(),
+    });
+    const { error } = schema.validate(req.body);
     if (error) {
         throw createError(400, error.details[0].message);
     }
@@ -33,13 +32,13 @@ const registerDetailsValidator = (req, res, next) => {
     next();
 };
 
-const loginDetailsSchema = Joi.object({
-    username: usernameSchema.required(),
-    password: passwordSchema.required(),
-    deviceToken: Joi.string().required(),
-});
 const loginDetailsValidator = (req, res, next) => {
-    const { error } = loginDetailsSchema.validate(req.body);
+    const schema = Joi.object({
+        username: usernameSchema.required(),
+        password: passwordSchema.required(),
+        deviceToken: Joi.string().required(),
+    });
+    const { error } = schema.validate(req.body);
     if (error) {
         throw createError(400, error.details[0].message);
     }
