@@ -6,8 +6,9 @@ const { Role } = require("../utils/enums");
 const crypto = require("crypto");
 const asyncHandler = require("../utils/asyncHandler");
 const { verifyOTP } = require("./otp.controllers");
+const { terminateUserSession } = require("../controllers/auth.controllers");
 const config = require("../config/appConfig");
-const { transporter, MailOptions } = require("../utils/sendEmail");
+const { transporter, MailOptions, sendEmail } = require("../utils/sendEmail");
 const createError = require("../utils/createError");
 
 const signIn = asyncHandler(async (req, res, next) => {
@@ -375,107 +376,6 @@ const sendPasswordResetOTP = asyncHandler(async (req, res) => {
     });
 });
 
-const updateProfile = asyncHandler(async (req, res, next) => {
-    const { username, email, fullName, mobileNo, password } = req.body;
-    const user = await User.findOne({ username });
-    if (!user) {
-        throw createError(400, "User not found");
-    }
-    const updates = {};
-    if (fullName) updates.fullName = fullName;
-    if (mobileNo) {
-        const existingUser = await User.findOne({ mobileNo });
-        if (existingUser && existingUser.username !== username) {
-            throw createError(400, "Mobile number already in use.");
-        }
-        updates.mobileNo = mobileNo;
-    }
-    if (email) {
-        const existingUser = await User.findOne({ email });
-        if (existingUser && existingUser.username !== username) {
-            throw createError(400, "Email already in use.");
-        }
-        updates.email = email;
-    }
-    if (password) {
-        updates.password = await hashPassword(password);
-    }
-
-    // Update user in DB
-    await User.updateOne({ username }, { $set: updates });
-
-    // todo: is sending credentials to email needed?
-    //send email if password is updated
-    if (password) {
-        const mailOptions = new MailOptions(
-            config.authEmail,
-            email,
-            "Your account credentials",
-            `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
-        );
-        await transporter.sendMail(mailOptions);
-    }
-    return res.status(200).json({
-        status: true,
-        message: "User details updated successfully",
-        user: {
-            username,
-            email,
-            fullName,
-            mobileNo,
-        },
-    });
-});
-
-const changeUserStatus = asyncHandler(async (req, res, next) => {
-    let { username, isActive } = req.body;
-
-    if (!username || typeof isActive !== "boolean") {
-        const error = new Error("username and isActive (boolean) are required");
-        error.statusCode = 400;
-        return next(error);
-    }
-
-    username = username.trim().toLowerCase();
-
-    const user = await User.findOne({ username });
-
-    if (!user) {
-        const error = new Error("User not found");
-        error.statusCode = 404;
-        return next(error);
-    }
-    if (user._id === req.user._id) {
-        const error = new Error("Access Denied!");
-        error.statusCode = 400;
-        return next(error);
-    }
-
-    if (req.user.role === Role.SENIOR_ASSISTANT) {
-        //check if assistant is created by senior assistant
-        if (!req.user.createdAssistants.includes(user._id)) {
-            const error = new Error("Access Denied!");
-            error.statusCode = 400;
-            return next(error);
-        }
-    }
-    //update if everything is ok
-    //set validJtis to empty array if isActive is false
-
-    await User.updateOne(
-        { username },
-        {
-            isActive,
-            validJtis: !isActive ? [] : user.validJtis, // Clears JTIs if user is deactivated
-        }
-    );
-
-    return res.status(200).json({
-        status: "SUCCESS",
-        message: `${username} is now ${isActive ? "activated" : "deactivated"}`,
-    });
-});
-
 const getAssistants = asyncHandler(async (req, res, next) => {
     const user = await User.findById(req.user._id)
         .populate({
@@ -523,6 +423,93 @@ const resetPassword = asyncHandler(async (req, res) => {
     });
 });
 
+const updateProfile = asyncHandler(async (req, res, next) => {
+    const { username, email, fullName, mobileNo, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) {
+        throw createError(400, "User not found");
+    }
+    const updates = {};
+    if (fullName) updates.fullName = fullName;
+    if (mobileNo) {
+        const existingUser = await User.findOne({ mobileNo });
+        if (existingUser && existingUser.username !== username) {
+            throw createError(400, "Mobile number already in use.");
+        }
+        updates.mobileNo = mobileNo;
+    }
+    if (email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser && existingUser.username !== username) {
+            throw createError(400, "Email already in use.");
+        }
+        updates.email = email;
+    }
+    if (password) {
+        updates.password = await hashPassword(password);
+    }
+
+    // Update user in DB
+    await User.updateOne({ username }, { $set: updates });
+
+    //terminate session
+    terminateUserSession(req, user.sessionID);
+    user.sessionID = null;
+    user.deviceToken = null;
+    await user.save();
+
+    // todo: is sending credentials to email needed?
+    //send email if password is updated
+    if (password) {
+        const mailOptions = new MailOptions(
+            config.authEmail,
+            email,
+            "Your account credentials",
+            `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
+        );
+        await sendEmail(mailOptions);
+    }
+    return res.status(200).json({
+        status: true,
+        message: "User details updated successfully",
+        user: {
+            username,
+            email,
+            fullName,
+            mobileNo,
+        },
+    });
+});
+
+const setUserStatus = asyncHandler(async (req, res, next) => {
+    let { username, isActive } = req.body;
+
+    if (typeof isActive !== "boolean")
+        throw createError(400, "isActive (boolean) is required");
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+        throw createError(404, "User not found");
+    }
+
+    if (user.role === Role.ADMIN) {
+        throw createError(400, "Access Denied!");
+    }
+
+    user.isActive = isActive;
+    if (!isActive) {
+        terminateUserSession(req, user.sessionID);
+        user.sessionID = null;
+        user.deviceToken = null;
+    }
+    await user.save();
+    return res.status(200).json({
+        status: true,
+        message: `${username} is now ${isActive ? "activated" : "deactivated"}`,
+    });
+});
+
 module.exports = {
     signIn,
     signUp,
@@ -532,11 +519,11 @@ module.exports = {
     checkAuthStatus,
     sendPasswordResetOTP,
     verifySpOTP,
-    updateProfile,
-    changeUserStatus,
     getAssistants,
     signOutAll,
     //v2
     sendCredentials,
     resetPassword,
+    updateProfile,
+    setUserStatus,
 };

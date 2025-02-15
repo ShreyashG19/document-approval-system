@@ -7,6 +7,7 @@ const bodyparser = require("body-parser");
 require("dotenv").config();
 const errorHandler = require("./utils/errorHandler");
 const config = require("./config/appConfig");
+const connectDB = require("./db/connection");
 const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
@@ -22,6 +23,15 @@ const corsOptions = {
     credentials: true,
 };
 
+connectDB(config.mongodbUri)
+    .then(() => {
+        console.log("MongoDB connection successfull!");
+    })
+    .catch((error) => {
+        console.log("server service :: connectDB :: error : ", error);
+        console.log("MongoDB connection failed!!!!!");
+    });
+
 app.use(
     session({
         secret: config.sessionSecret,
@@ -34,22 +44,12 @@ app.use(
         cookie: { secure: false }, // Set `true` for HTTPS
     })
 );
+
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
-const connectDB = require("./db/connection");
-
-connectDB(config.mongodbUri)
-    .then(() => {
-        console.log("MongoDB connection successfull!");
-    })
-    .catch((error) => {
-        console.log("server service :: connectDB :: error : ", error);
-        console.log("MongoDB connection failed!!!!!");
-    });
 
 app.get("/", (req, res) => {
     console.log("new connection");

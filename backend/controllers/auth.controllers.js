@@ -119,4 +119,10 @@ const getSession = asyncHandler(async (req, res) => {
         },
     });
 });
-module.exports = { register, login, logout, getSession };
+
+const terminateUserSession = async (req, sessionID) => {
+    req.sessionStore.destroy(sessionID, async (err) => {
+        if (err) console.log("Error destroying session:", err);
+    });
+};
+module.exports = { register, login, logout, getSession, terminateUserSession };

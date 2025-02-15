@@ -11,7 +11,7 @@ const {
     resetPassword,
     verifySpOTP,
     updateProfile,
-    changeUserStatus,
+    setUserStatus,
     getAssistants,
     //v2
     sendCredentials,
@@ -57,12 +57,12 @@ router.post("/change-password", verifyToken, verifyOldPassword, resetPassword);
 // router.post("/update-profile", verifyToken, updateProfile);
 
 //route for toggling user status
-router.post(
-    "/change-user-status",
-    verifyToken,
-    authorizeRoles([Role.SENIOR_ASSISTANT, Role.ADMIN]),
-    changeUserStatus
-);
+// router.post(
+//     "/change-user-status",
+//     verifyToken,
+//     authorizeRoles([Role.SENIOR_ASSISTANT, Role.ADMIN]),
+//     changeUserStatus
+// );
 
 router.get(
     "/get-assistants",
@@ -90,5 +90,13 @@ router.post(
     authorizeRoles([Role.ADMIN]),
     updateProfileValidator,
     updateProfile
+);
+
+router.post(
+    "/set-user-status",
+    verifySession,
+    authorizeRoles([Role.ADMIN]),
+    usernameValidator,
+    setUserStatus
 );
 module.exports = router;
