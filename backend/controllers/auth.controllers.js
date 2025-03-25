@@ -59,8 +59,8 @@ const login = asyncHandler(async (req, res) => {
     user.sessionID = req.sessionID;
     await user.save();
 
-    req.session.user = user.username; // Store user info in session
-    req.session.role = user.role;
+    req.session.username = user.username; // Store user info in session
+    req.session.user = user;
     console.log("role", req.session.role);
     console.log("user", req.session.user);
     return res.status(200).json({
@@ -78,7 +78,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-    const user = await User.findOne({ username: req.session.user });
+    const user = await User.findOne({ username: req.session.username });
     if (!user) {
         return createError(400, "User not found");
     }
@@ -102,7 +102,7 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 const getSession = asyncHandler(async (req, res) => {
-    const user = await User.findOne({ username: req.session.user });
+    const user = await User.findOne({ username: req.session.username });
     if (!user) {
         return createError(400, "User not found");
     }

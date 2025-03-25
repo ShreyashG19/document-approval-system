@@ -106,7 +106,7 @@ const usernameValidator = (req, res, next) => {
     if (error) {
         throw createError(
             400,
-            "Username must be atleast 5 characters long, and can contain only letters, numbers, and underscores"
+            "Username must be atleast 5 characters long, and can contain only letters, numbers, and underscores",
         );
     }
     next();
@@ -131,7 +131,7 @@ const verifySession = asyncHandler(async (req, res, next) => {
 });
 
 const authorizeRoles = (roles) => (req, res, next) => {
-    if (!roles.includes(req.session.role)) {
+    if (!roles.includes(req.session.user.role)) {
         throw createError(401, "Access Denied!");
     }
     next();
