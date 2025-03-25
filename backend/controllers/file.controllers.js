@@ -125,7 +125,7 @@ const fetchDocuments = async (query, sortOptions) => {
     return await File.find(query)
         .sort(sortOptions)
         .populate("department")
-        .populate("createdBy", "fullName username email role")
+        .populate("createdBy", "fullName username email role");
 };
 
 const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
@@ -304,13 +304,6 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
         error.status = 400;
         return next(error);
     }
-    // Populate and check authorization
-    await file.populate("assignedTo");
-    if (file.assignedTo.username !== req.user.username) {
-        const error = new Error("You are not authorized to update this file");
-        error.status = 403;
-        return next(error);
-    }
 
     // Update status and corresponding date
     file.status = status;
@@ -336,24 +329,30 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
     });
     await notification.save();
     await file.populate("createdBy");
-    const deviceTokens = file.createdBy?.deviceTokens || [];
+    const deviceToken = file.createdBy?.deviceToken;
 
-    for (const token of deviceTokens) {
-        if (token) {
-            await NotificationService.sendNotification(
-                token,
-                notification.title,
-                notification.body,
-            );
-        }
+    if (deviceToken) {
+        await NotificationService.sendNotification(
+            deviceToken,
+            notification.title,
+            notification.body,
+        );
     }
+    // for (const token of deviceTokens) {
+    //     if (token) {
+    //         await NotificationService.sendNotification(
+    //             token,
+    //             notification.title,
+    //             notification.body,
+    //         );
+    //     }
+    // }
     return res.status(200).json({
         status: true,
         message: `File ${status.toLowerCase()} successfully`,
         file: {
             fileName: file.fileUniqueName,
             createdBy: file.createdBy.fullName,
-            assignedTo: file.assignedTo.fullName,
             title: file.title,
             description: file.description,
             status: file.status,
@@ -415,7 +414,7 @@ const getOwnEncKey = asyncHandler(async (req, res, next) => {
         error.status = 400;
         return next(error);
     }
-    const { encKey } = req.user;
+    const { encKey } = req.session.user;
     const publicKey = forge.pki.publicKeyFromPem(clientPublicKey);
     // Encrypt the encKey using RSA-OAEP
     const encryptedEncKey = publicKey.encrypt(encKey, "RSA-OAEP", {
@@ -428,7 +427,10 @@ const getOwnEncKey = asyncHandler(async (req, res, next) => {
     });
 });
 const getEncKey = asyncHandler(async (req, res, next) => {
-    if (req.user.role === Role.APPROVER || req.user.role === Role.ADMIN) {
+    if (
+        req.session.user.role === Role.APPROVER ||
+        req.session.user.role === Role.ADMIN
+    ) {
         return getEncKeyByFileName(req, res, next);
     } else {
         return getOwnEncKey(req, res, next);
