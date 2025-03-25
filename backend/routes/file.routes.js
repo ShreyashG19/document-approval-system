@@ -12,75 +12,61 @@ const {
     requestCorrection,
     getEncKey,
 } = require("../controllers/file.controllers");
+
 const {
-    verifyToken,
+    verifySession,
     authorizeRoles,
-} = require("../middlewares/user.middlewares");
+} = require("../middlewares/auth.middlewares");
 
 router.post(
     "/upload-pdf",
     upload.single("pdfFile"),
-    verifyToken,
-    authorizeRoles([Role.SENIOR_ASSISTANT, Role.ASSISTANT]),
+    verifySession,
+    authorizeRoles([Role.ASSISTANT]),
     verifyFileAtrributes,
-    uploadPdf
+    uploadPdf,
 );
 
 router.get(
     "/download-pdf/:filename",
-    verifyToken,
-    authorizeRoles([
-        Role.ASSISTANT,
-        Role.SENIOR_ASSISTANT,
-        Role.APPROVER,
-        Role.ADMIN,
-    ]),
-    downloadPdf
+    verifySession,
+    authorizeRoles([Role.ASSISTANT, Role.APPROVER, Role.ADMIN]),
+    downloadPdf,
 );
 
 router.get(
     "/get-documents",
-    verifyToken,
-    authorizeRoles([
-        Role.ADMIN,
-        Role.APPROVER,
-        Role.SENIOR_ASSISTANT,
-        Role.ASSISTANT,
-    ]),
-    getDocumentsByQuery
+    verifySession,
+    authorizeRoles([Role.ADMIN, Role.APPROVER, Role.ASSISTANT]),
+    getDocumentsByQuery,
 );
 
 router.post(
     "/approve",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.APPROVER]),
-    approveDocument
+    approveDocument,
 );
 
 router.post(
     "/reject",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.APPROVER]),
-    rejectDocument
+    rejectDocument,
 );
 
 router.post(
     "/correction",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.APPROVER]),
-    requestCorrection
+    requestCorrection,
 );
 
 router.post(
     "/get-enc-key",
-    verifyToken,
-    authorizeRoles([
-        Role.SENIOR_ASSISTANT,
-        Role.ASSISTANT,
-        Role.APPROVER,
-        Role.ADMIN,
-    ]),
-    getEncKey
+    verifySession,
+    authorizeRoles([Role.ASSISTANT, Role.APPROVER, Role.ADMIN]),
+    getEncKey,
 );
 
 module.exports = router;

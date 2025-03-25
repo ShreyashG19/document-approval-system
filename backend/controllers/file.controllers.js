@@ -14,18 +14,22 @@ const User = require("../models/user.model");
 const uploadPdf = asyncHandler(async (req, res, next) => {
     //only take description if available
     console.log("req.user", req.user);
-    if (!req.user.assignedApprover) {
-        const error = new Error("No approver assigned");
+    const approver = await User.findOne({ role: Role.APPROVER });
+    if (!approver) {
+        const error = new Error("No approver found");
         error.statusCode = 403;
         return next(error);
     }
-    await req.user.populate("assignedApprover");
-    console.log("req.user.assignedApprover", req.user.assignedApprover);
-    if (!req.user.assignedApprover.isActive) {
+
+    if (!approver.isActive) {
         const error = new Error("Approver is not active");
         error.statusCode = 403;
         return next(error);
     }
+
+    // const currentUser = await User.findOne({ username: req.session.username });
+    const currentUser = req.session.user;
+
     const { department, title, description = null } = req.body;
     const file = req.file;
     const fileUniqueName = file.filename;
@@ -33,8 +37,8 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
     const newFile = await new File({
         fileUniqueName,
         filePath,
-        createdBy: req.user._id,
-        assignedTo: req.user.assignedApprover,
+        createdBy: currentUser._id,
+        // assignedTo: req.user.assignedApprover,
         department,
         title,
         description,
@@ -43,32 +47,38 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
 
     const populatedFile = await newFile.populate([
         { path: "createdBy", select: "fullName" },
-        { path: "assignedTo", select: "fullName" },
     ]);
 
     const notification = new Notification({
         title: newFile.title,
         body: `${newFile.title} has been uploaded`,
-        to: newFile.assignedTo,
+        to: approver._id,
         type: FileStatus.PENDING,
     });
     await notification.save();
-    await newFile.populate("assignedTo");
+    // await newFile.populate("assignedTo");
 
-    const deviceTokens = newFile?.assignedTo?.deviceTokens || [];
-
-    for (const token of deviceTokens) {
-        if (token) {
-            console.log("token", token);
-            await NotificationService.sendNotification(
-                token,
-                notification.title,
-                notification.body
-            );
-            console.log("title", notification.title);
-            console.log("body", notification.body);
-        }
+    const deviceToken = approver?.deviceToken;
+    if (deviceToken) {
+        await NotificationService.sendNotification(
+            deviceToken,
+            notification.title,
+            notification.body,
+        );
     }
+
+    // for (const token of deviceTokens) {
+    //     if (token) {
+    //         console.log("token", token);
+    //         await NotificationService.sendNotification(
+    //             token,
+    //             notification.title,
+    //             notification.body,
+    //         );
+    //         console.log("title", notification.title);
+    //         console.log("body", notification.body);
+    //     }
+    // }
 
     return res.status(200).json({
         status: true,
@@ -76,7 +86,7 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
         file: {
             fileName: populatedFile.fileUniqueName,
             createdBy: populatedFile.createdBy.fullName,
-            assignedTo: populatedFile.assignedTo.fullName,
+            assignedTo: approver.fullName,
             title: populatedFile.title,
             description: populatedFile.description,
         },
@@ -92,7 +102,10 @@ const downloadPdf = asyncHandler(async (req, res, next) => {
         error.status = 404;
         return next(error);
     }
-    if (req.user.role === Role.ASSISTANT && file.createdBy !== req.user.id) {
+    if (
+        req.session.user.role === Role.ASSISTANT &&
+        file.createdBy !== req.session.user.id
+    ) {
         const error = new Error("You are not authorized to download this file");
         error.status = 403;
         return next(error);
@@ -113,7 +126,6 @@ const fetchDocuments = async (query, sortOptions) => {
         .sort(sortOptions)
         .populate("department")
         .populate("createdBy", "fullName username email role")
-        .populate("assignedTo", "fullName username email role");
 };
 
 const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
@@ -141,12 +153,12 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
     }
     const requestedStatuses = status.toLowerCase().split("-");
     const invalidStatuses = requestedStatuses.filter(
-        (status) => !fileStatuses.includes(status)
+        (status) => !fileStatuses.includes(status),
     );
 
     if (invalidStatuses.length > 0) {
         const error = new Error(
-            `Invalid status values: ${invalidStatuses.join(", ")}`
+            `Invalid status values: ${invalidStatuses.join(", ")}`,
         );
         error.status = 400;
         return next(error);
@@ -163,38 +175,19 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
     // query.status = status.toLowerCase();
 
     switch (req.user.role) {
-        case Role.SENIOR_ASSISTANT:
         case Role.ASSISTANT:
-            if (createdBy || assignedTo) {
+            if (createdBy) {
                 const error = new Error("Access denied");
                 error.status = 401;
                 return next(error);
             }
-            query.createdBy = req.user._id;
+            query.createdBy = req.session.user._id;
             break;
         case Role.APPROVER:
-            if (createdBy || assignedTo) {
-                const error = new Error("Access denied");
-                error.status = 401;
-                return next(error);
-            }
-            query.assignedTo = req.user._id;
-            break;
         case Role.ADMIN:
-            if (createdBy && assignedTo) {
-                const error = new Error(
-                    "Please provide either createdBy or assignedTo"
-                );
-                error.status = 400;
-                return next(error);
-            }
             if (createdBy) {
                 const user = await User.findOne({ username: createdBy });
                 query.createdBy = user._id;
-            }
-            if (assignedTo) {
-                const user = await User.findOne({ username: assignedTo });
-                query.assignedTo = user._id;
             }
             break;
         default:
@@ -300,7 +293,7 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
         file.status === FileStatus.APPROVED
     ) {
         const error = new Error(
-            "Cannot update file status to " + status.toLowerCase()
+            "Cannot update file status to " + status.toLowerCase(),
         );
         error.status = 400;
         return next(error);
@@ -350,7 +343,7 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
             await NotificationService.sendNotification(
                 token,
                 notification.title,
-                notification.body
+                notification.body,
             );
         }
     }
@@ -388,7 +381,7 @@ const getEncKeyByFileName = asyncHandler(async (req, res, next) => {
     const { clientPublicKey, fileUniqueName } = req.body;
     if (!clientPublicKey || !fileUniqueName) {
         const error = new Error(
-            "Please provide clientPublicKey and fileUniqueName"
+            "Please provide clientPublicKey and fileUniqueName",
         );
         error.status = 400;
         return next(error);
