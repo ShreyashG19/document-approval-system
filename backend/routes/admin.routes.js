@@ -3,9 +3,9 @@ const router = express.Router();
 const upload = require("../config/multerConfig");
 const { Role } = require("../utils/enums");
 const {
-    verifyToken,
+    verifySession,
     authorizeRoles,
-} = require("../middlewares/user.middlewares");
+} = require("../middlewares/auth.middlewares");
 const {
     createApproverValidator,
     createSrAssistantValidator,
@@ -19,32 +19,32 @@ const {
 
 router.get(
     "/get-users",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.ADMIN]),
-    getUsersByRole
+    getUsersByRole,
 );
 
 router.get(
     "/get-all-users",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.ADMIN]),
-    getAllUsers
+    getAllUsers,
 );
 
 //only when old approver is deactivated
 router.post(
     "/create-approver",
-    verifyToken,
+    verifySession,
     createApproverValidator,
     authorizeRoles([Role.ADMIN]),
-    createApprover
+    createApprover,
 );
 
 router.post(
     "/create-sr-assistant",
-    verifyToken,
+    verifySession,
     createSrAssistantValidator,
     authorizeRoles([Role.ADMIN]),
-    createSrAssistant
+    createSrAssistant,
 );
 module.exports = router;

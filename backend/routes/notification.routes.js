@@ -2,9 +2,9 @@ const Notification = require("../models/notification.model");
 const express = require("express");
 const router = express.Router();
 const {
-    verifyToken,
+    verifySession,
     authorizeRoles,
-} = require("../middlewares/user.middlewares");
+} = require("../middlewares/auth.middlewares");
 const {
     getNotifications,
     markNotificationsAsSeen,
@@ -13,16 +13,16 @@ const { Role } = require("../utils/enums");
 
 router.get(
     "/get-notifications",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.SENIOR_ASSISTANT, Role.ASSISTANT, Role.APPROVER]),
-    getNotifications
+    getNotifications,
 );
 
 router.post(
     "/mark-seen",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.SENIOR_ASSISTANT, Role.ASSISTANT, Role.APPROVER]),
-    markNotificationsAsSeen
+    markNotificationsAsSeen,
 );
 
 module.exports = router;

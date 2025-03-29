@@ -9,7 +9,6 @@ const {
     getUsers,
 } = require("../controllers/user.controllers");
 const {
-    verifyToken,
     resetPasswordValidator,
     //v2
     updateProfileValidator,
@@ -24,7 +23,7 @@ const {
 const { Role } = require("../utils/enums");
 const router = express.Router();
 
-router.post("/signout-all", verifyToken, signOutAll);
+router.post("/signout-all", verifySession, signOutAll);
 
 //v2
 router.post(
@@ -34,7 +33,7 @@ router.post(
     emailValidator,
     passwordValidator,
     usernameValidator,
-    sendCredentials
+    sendCredentials,
 );
 
 // router.post("/reset-password", resetPasswordValidator, resetPassword);
@@ -44,7 +43,7 @@ router.post(
     verifySession,
     authorizeRoles([Role.ADMIN]),
     updateProfileValidator,
-    updateProfile
+    updateProfile,
 );
 
 router.post(
@@ -52,7 +51,7 @@ router.post(
     verifySession,
     authorizeRoles([Role.ADMIN]),
     usernameValidator,
-    setUserStatus
+    setUserStatus,
 );
 
 router.get("/get-users", verifySession, authorizeRoles([Role.ADMIN]), getUsers);

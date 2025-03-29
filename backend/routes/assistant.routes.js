@@ -13,30 +13,30 @@ const {
     getApprover,
 } = require("../controllers/assistant.controllers");
 const {
-    verifyToken,
+    verifySession,
     authorizeRoles,
-} = require("../middlewares/user.middlewares");
+} = require("../middlewares/auth.middlewares");
 
 router.post(
     "/create-user",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.SENIOR_ASSISTANT]),
     createUserValidator,
-    createUser
+    createUser,
 );
 
 router.get(
     "/get-created-assistants",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.SENIOR_ASSISTANT]),
-    getCreatedAssistants
+    getCreatedAssistants,
 );
 
 router.get(
     "/get-approver",
-    verifyToken,
+    verifySession,
     authorizeRoles([Role.SENIOR_ASSISTANT, Role.ASSISTANT]),
-    getApprover
+    getApprover,
 );
 
 module.exports = router;
