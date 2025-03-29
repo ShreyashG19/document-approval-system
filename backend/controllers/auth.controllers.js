@@ -1,8 +1,11 @@
 const User = require("../models/user.model");
+const Session = require("../models/session.model");
 const { hashPassword, verifyPassword } = require("../utils/hashPassword");
 const crypto = require("crypto");
 const asyncHandler = require("../utils/asyncHandler");
 const createError = require("../utils/createError");
+const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 const register = asyncHandler(async (req, res, next) => {
     const { username, password, fullName, email, mobileNo, role } = req.body;
 
@@ -36,8 +39,10 @@ const login = asyncHandler(async (req, res) => {
     const { username, password, deviceToken } = req.body;
     let user = await User.findOne({ username });
 
-    if (!user) return res.status(401).json({ message: "User not found" });
-    if (user.isActive === false) {
+    if (!user) {
+        throw createError(401, "User not found");
+    }
+    if (!user.isActive) {
         throw createError(400, "User is deactivated");
     }
 
@@ -46,23 +51,28 @@ const login = asyncHandler(async (req, res) => {
     if (!isMatch) {
         throw createError(401, "Invalid username or password");
     }
-    if (user.sessionID) {
-        req.sessionStore.destroy(user.sessionID, (err) => {
-            if (err) console.error("Error destroying previous session:", err);
-        });
-    }
 
-    //storing device token
-    user.deviceToken = deviceToken;
-
-    //Store the new session ID
-    user.sessionID = req.sessionID;
-    await user.save();
-
-    req.session.username = user.username; // Store user info in session
-    req.session.user = user;
-    console.log("role", req.session.role);
-    console.log("user", req.session.user);
+    const jti = uuidv4();
+    const token = jwt.sign(
+        {
+            jti,
+            username: user.username,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" },
+    );
+    const newSession = await Session.create({
+        jti,
+        username: user.username,
+        role: user.role,
+        deviceToken: deviceToken,
+        user: user._id,
+    });
+    res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "Strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 2 days
+    });
     return res.status(200).json({
         success: true,
         message: "Login success!",
@@ -78,31 +88,17 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-    const user = await User.findOne({ username: req.session.username });
-    if (!user) {
-        return createError(400, "User not found");
-    }
-    req.session.destroy(async (err) => {
-        if (err) {
-            console.error("Error destroying session:", err);
-            throw err;
-        }
-
-        // Remove session ID from user in database
-        user.sessionID = null;
-        user.deviceToken = null;
-        await user.save();
-
-        res.clearCookie("connect.sid");
-        return res.status(200).json({
-            status: true,
-            message: "Logged out successfully",
-        });
+    await Session.findOneAndDelete({ jti: req.session.jti });
+    res.clearCookie("token");
+    return res.status(200).json({
+        success: true,
+        message: "Logged out successfully",
     });
 });
 
 const getSession = asyncHandler(async (req, res) => {
-    const user = await User.findOne({ username: req.session.username });
+    await req.session.populate("user");
+    const user = req.session.user;
     if (!user) {
         return createError(400, "User not found");
     }
@@ -120,9 +116,7 @@ const getSession = asyncHandler(async (req, res) => {
     });
 });
 
-const terminateUserSession = async (req, sessionID) => {
-    req.sessionStore.destroy(sessionID, async (err) => {
-        if (err) console.log("Error destroying session:", err);
-    });
+const terminateUserSession = async (req, username) => {
+    await Session.deleteMany({ username });
 };
 module.exports = { register, login, logout, getSession, terminateUserSession };

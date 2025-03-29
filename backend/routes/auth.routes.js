@@ -6,6 +6,7 @@ const {
     ensureEmailExists,
     loginDetailsValidator,
     verifySession,
+    verifyAlreadyLoggedIn,
     authorizeRoles,
     emailValidator,
 } = require("../middlewares/auth.middlewares");
@@ -24,10 +25,10 @@ router.post(
     authorizeRoles([Role.ADMIN]),
     registerDetailsValidator,
     ensureUniqueUser,
-    register
+    register,
 );
 
-router.post("/login", loginDetailsValidator, login);
+router.post("/login", loginDetailsValidator, verifyAlreadyLoggedIn, login);
 router.post("/logout", verifySession, logout);
 
 // router.post("/send-otp", emailValidator, ensureEmailExists, sendOTPEmail);

@@ -1,8 +1,10 @@
 const Joi = require("joi");
 const User = require("../models/user.model");
+const Session = require("../models/session.model");
 const asyncHandler = require("../utils/asyncHandler");
 const createError = require("../utils/createError");
 const { Role } = require("../utils/enums");
+const jwt = require("jsonwebtoken");
 const {
     usernameSchema,
     fullNameSchema,
@@ -122,16 +124,42 @@ const passwordValidator = (req, res, next) => {
     next();
 };
 
+// const verifySession = asyncHandler(async (req, res, next) => {
+//     if (req.session.user) {
+//         next();
+//     } else {
+//         throw createError(401, "User not logged in");
+//     }
+// });
 const verifySession = asyncHandler(async (req, res, next) => {
-    if (req.session.user) {
+    const token = req.cookies.token;
+    if (token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.session = await Session.findOne({ jti: decoded.jti });
+        if (!req.session) {
+            res.clearCookie("token");
+            throw createError(401, "User not logged in");
+        }
         next();
     } else {
         throw createError(401, "User not logged in");
     }
 });
+const verifyAlreadyLoggedIn = asyncHandler(async (req, res, next) => {
+    const token = req.cookies.token;
+    if (token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.session = await Session.findOne({ jti: decoded.jti });
+        if (req.session) {
+            throw createError(400, "User already logged in");
+        }
+        next();
+    }
+    next();
+});
 
 const authorizeRoles = (roles) => (req, res, next) => {
-    if (!roles.includes(req.session.user.role)) {
+    if (!roles.includes(req.session.role)) {
         throw createError(401, "Access Denied!");
     }
     next();
@@ -147,5 +175,6 @@ module.exports = {
     mobileNoValidator,
     usernameValidator,
     verifySession,
+    verifyAlreadyLoggedIn,
     authorizeRoles,
 };
