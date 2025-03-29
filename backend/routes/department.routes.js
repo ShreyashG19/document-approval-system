@@ -2,22 +2,16 @@ const express = require("express");
 const router = express.Router();
 const Department = require("../models/department.model");
 const { Role } = require("../utils/enums");
-const { verifyFileAtrributes } = require("../middlewares/file.middlewares");
 const asyncHandler = require("../utils/asyncHandler");
 const {
-    verifyToken,
+    verifySession,
     authorizeRoles,
-} = require("../middlewares/user.middlewares");
+} = require("../middlewares/auth.middlewares");
 
 router.get(
     "/get-all-departments",
-    verifyToken,
-    authorizeRoles([
-        Role.SENIOR_ASSISTANT,
-        Role.ASSISTANT,
-        Role.ADMIN,
-        Role.APPROVER,
-    ]),
+    verifySession,
+    authorizeRoles([Role.ASSISTANT, Role.ADMIN, Role.APPROVER]),
     asyncHandler(async (req, res, next) => {
         const departments = await Department.find({});
         if (departments.length === 0) {
@@ -31,13 +25,13 @@ router.get(
             message: "Successfully fetched all departments",
             data: departmentNames,
         });
-    })
+    }),
 );
 
 router.post(
     "/add-department",
-    verifyToken,
-    authorizeRoles([Role.ADMIN, Role.SENIOR_ASSISTANT, Role.ASSISTANT]),
+    verifySession,
+    authorizeRoles([Role.ADMIN, Role.ASSISTANT]),
     asyncHandler(async (req, res, next) => {
         let { departmentName } = req.body;
         departmentName = departmentName.trim().toLowerCase();
@@ -58,7 +52,7 @@ router.post(
             message: "Department added successfully",
             department: newDepartment.departmentName,
         });
-    })
+    }),
 );
 
 module.exports = router;

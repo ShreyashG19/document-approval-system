@@ -51,78 +51,6 @@ const signiInDetailsValidator = (req, res, next) => {
     next();
 };
 
-const verifyToken = asyncHandler(async (req, res, next) => {
-    const token = req.cookies.token;
-    if (!token) {
-        const error = new Error("User not logged in");
-        error.statusCode = 401;
-        return next(error);
-    }
-
-    const decoded = jwt.verify(token, config.jwtSecret);
-    if (!decoded) {
-        const error = new Error("Invalid token");
-        error.statusCode = 401;
-        res.clearCookie("token");
-        return next(error);
-    }
-
-    const user = await User.findOne({
-        username: decoded.username,
-        isActive: true,
-        isVerified: true,
-    });
-
-    if (!user) {
-        const error = new Error("User not found");
-        error.statusCode = 404;
-        res.clearCookie("token");
-        return next(error);
-    }
-    const jti = decoded.jti;
-    if (user.validJtis.length === 0) {
-        const error = new Error("User not logged in");
-        error.statusCode = 401;
-        res.clearCookie("token");
-        return next(error);
-    }
-    if (!user.validJtis.includes(jti)) {
-        const error = new Error("Invalid token");
-        error.statusCode = 401;
-        res.clearCookie("token");
-        return next(error);
-    }
-    req.user = user;
-    next();
-});
-
-const verifySpToken = asyncHandler(async (req, res, next) => {
-    const token = req.cookies.sptoken;
-    if (!token) {
-        return res.status(400).json({
-            status: false,
-            message: "Access Denied",
-        });
-    }
-
-    const decoded = jwt.verify(token, config.jwtSecret);
-    if (decoded.usage !== "OTP") {
-        return res.status(401).json({
-            status: false,
-            message: "No token found",
-        });
-    }
-    const user = await User.findOne({ username: decoded.username });
-    if (!user) {
-        const error = new Error("User not found");
-        error.statusCode = 404;
-        return next(error);
-    }
-    req.user = user;
-    // req.username = decoded.username;
-    // req.usage = decoded.usage;
-    next();
-});
 
 //new
 const resetPasswordSchema = Joi.object({
@@ -199,8 +127,6 @@ const updateProfileValidator = (req, res, next) => {
 module.exports = {
     signUpDetailsValidator,
     signiInDetailsValidator,
-    verifyToken,
-    verifySpToken,
     verifyEmailExists,
     verifyOldPassword,
     authorizeRoles,

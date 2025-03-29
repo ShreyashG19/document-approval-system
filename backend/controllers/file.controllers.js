@@ -3,6 +3,7 @@ const fs = require("fs");
 const File = require("../models/file.model");
 const Notification = require("../models/notification.model");
 const Department = require("../models/department.model");
+const Session = require("../models/session.model");
 const asyncHandler = require("../utils/asyncHandler");
 const appConfig = require("../config/appConfig");
 const { NotificationService } = require("../utils/NotificationService");
@@ -10,10 +11,11 @@ const { Role, FileStatus } = require("../utils/enums");
 const forge = require("node-forge");
 const crypto = require("crypto");
 const User = require("../models/user.model");
+const createError = require("../utils/createError");
 
 const uploadPdf = asyncHandler(async (req, res, next) => {
     //only take description if available
-    console.log("req.user", req.user);
+    console.log("req.session", req.session);
     const approver = await User.findOne({ role: Role.APPROVER });
     if (!approver) {
         const error = new Error("No approver found");
@@ -28,6 +30,7 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
     }
 
     // const currentUser = await User.findOne({ username: req.session.username });
+    await req.session.populate("user");
     const currentUser = req.session.user;
 
     const { department, title, description = null } = req.body;
@@ -58,13 +61,18 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
     await notification.save();
     // await newFile.populate("assignedTo");
 
-    const deviceToken = approver?.deviceToken;
-    if (deviceToken) {
-        await NotificationService.sendNotification(
-            deviceToken,
-            notification.title,
-            notification.body,
-        );
+    const approverSessions = await Session.find({
+        username: approver.username,
+    });
+
+    if (approverSessions.length > 0) {
+        for (const session of approverSessions) {
+            await NotificationService.sendNotification(
+                session.deviceToken,
+                notification.title,
+                notification.body,
+            );
+        }
     }
 
     // for (const token of deviceTokens) {
@@ -102,6 +110,7 @@ const downloadPdf = asyncHandler(async (req, res, next) => {
         error.status = 404;
         return next(error);
     }
+    await req.session.populate("user");
     if (
         req.session.user.role === Role.ASSISTANT &&
         file.createdBy !== req.session.user.id
@@ -173,8 +182,8 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
     //     return next(error);
     // }
     // query.status = status.toLowerCase();
-
-    switch (req.user.role) {
+    await req.session.populate("user");
+    switch (req.session.user.role) {
         case Role.ASSISTANT:
             if (createdBy) {
                 const error = new Error("Access denied");
@@ -329,24 +338,19 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
     });
     await notification.save();
     await file.populate("createdBy");
-    const deviceToken = file.createdBy?.deviceToken;
+    const assistantSessions = await Session.find({
+        username: file.createdBy.username,
+    });
 
-    if (deviceToken) {
-        await NotificationService.sendNotification(
-            deviceToken,
-            notification.title,
-            notification.body,
-        );
+    if (assistantSessions.length > 0) {
+        for (const session of assistantSessions) {
+            await NotificationService.sendNotification(
+                session.deviceToken,
+                notification.title,
+                notification.body,
+            );
+        }
     }
-    // for (const token of deviceTokens) {
-    //     if (token) {
-    //         await NotificationService.sendNotification(
-    //             token,
-    //             notification.title,
-    //             notification.body,
-    //         );
-    //     }
-    // }
     return res.status(200).json({
         status: true,
         message: `File ${status.toLowerCase()} successfully`,
@@ -414,6 +418,7 @@ const getOwnEncKey = asyncHandler(async (req, res, next) => {
         error.status = 400;
         return next(error);
     }
+    await req.session.populate("user");
     const { encKey } = req.session.user;
     const publicKey = forge.pki.publicKeyFromPem(clientPublicKey);
     // Encrypt the encKey using RSA-OAEP
@@ -427,10 +432,7 @@ const getOwnEncKey = asyncHandler(async (req, res, next) => {
     });
 });
 const getEncKey = asyncHandler(async (req, res, next) => {
-    if (
-        req.session.user.role === Role.APPROVER ||
-        req.session.user.role === Role.ADMIN
-    ) {
+    if (req.session.role === Role.APPROVER || req.session.role === Role.ADMIN) {
         return getEncKeyByFileName(req, res, next);
     } else {
         return getOwnEncKey(req, res, next);
