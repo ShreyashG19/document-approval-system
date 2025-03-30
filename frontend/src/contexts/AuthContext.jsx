@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       setLoading(true);
-      const authUrl = import.meta.env.VITE_API_URL + "/user/status";
+      const authUrl = import.meta.env.VITE_API_URL + "/auth/get-session";
       const response = await fetch(authUrl, {
         method: "GET",
         headers: {
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         },
         credentials: "include",
       });
-
+      console.log("Auth status response:", response);
       if (!response.ok) {
         const error = await response.json();
         console.log(error.message);

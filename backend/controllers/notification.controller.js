@@ -2,8 +2,9 @@ const Notification = require("../models/notification.model");
 const asyncHandler = require("../utils/asyncHandler");
 
 const getNotifications = asyncHandler(async (req, res, next) => {
+    await req.session.populate("user");
     const notifications = await Notification.find({
-        to: req.user._id,
+        to: req.session.user._id,
         seen: false,
     })
         .populate("to", "fullName username")
@@ -23,12 +24,13 @@ const getNotifications = asyncHandler(async (req, res, next) => {
 });
 
 const markNotificationsAsSeen = asyncHandler(async (req, res, next) => {
+    await req.session.populate("user");
     await Notification.updateMany(
         {
-            to: req.user._id,
+            to: req.session.user._id,
             seen: false,
         },
-        { $set: { seen: true } }
+        { $set: { seen: true } },
     );
     return res.status(200).json({
         status: true,
