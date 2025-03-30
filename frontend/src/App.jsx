@@ -27,7 +27,7 @@ import { toast, Toaster } from "react-hot-toast";
 import { FaBell } from "react-icons/fa";
 import MainLayout from "./components/MainLayout";
 import RegistrationSuccessful from "./pages/RegistrationSuccessful"; // Import RegistrationSuccessful component
-
+import { CryptoProvider } from "./contexts/CryptoContext";
 import {
   ApproverRestrictedRoute,
   LoginRestrictedRoute,
@@ -73,121 +73,123 @@ const App = () => {
   return (
     <AuthProvider>
       <UsersProvider>
-        <NotificationProvider>
-          <Toaster />
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/otp/verify" element={<OTPUI />} />
-            <Route path="/registrationsuccessful" element={<RegistrationSuccessful />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/forgot-password-otp" element={<ForgotPassOTP />} />
-            <Route path="/set-new-pass" element={<SetNewPassword />} />
-            <Route
-              path="/approver/dashboard"
-              element={
-                <ApproverRestrictedRoute>
-                  <MainLayout>
-                    <ApproverDashboard />
-                  </MainLayout>
-                </ApproverRestrictedRoute>
-              }
-            />
-            <Route
-              path="/users/manage"
-              element={
-                <SARestrictedRoute>
-                  <MainLayout>
-                    <ManageUsers />
-                  </MainLayout>
-                </SARestrictedRoute>
-              }
-            />
-            <Route
-              path="/assistant/dashboard"
-              element={
-                // <AssistantRestrictedRoute>
+        <CryptoProvider>
+          <NotificationProvider>
+            <Toaster />
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/otp/verify" element={<OTPUI />} />
+              <Route path="/registrationsuccessful" element={<RegistrationSuccessful />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/forgot-password-otp" element={<ForgotPassOTP />} />
+              <Route path="/set-new-pass" element={<SetNewPassword />} />
+              <Route
+                path="/approver/dashboard"
+                element={
+                  <ApproverRestrictedRoute>
+                    <MainLayout>
+                      <ApproverDashboard />
+                    </MainLayout>
+                  </ApproverRestrictedRoute>
+                }
+              />
+              <Route
+                path="/users/manage"
+                element={
+                  <SARestrictedRoute>
+                    <MainLayout>
+                      <ManageUsers />
+                    </MainLayout>
+                  </SARestrictedRoute>
+                }
+              />
+              <Route
+                path="/assistant/dashboard"
+                element={
+                  // <AssistantRestrictedRoute>
                   <MainLayout>
                     <AssistantDashboard />
                   </MainLayout>
-                // </AssistantRestrictedRoute>
-              }
-            />
-            <Route
-              path="/remark-pdf"
-              element={
-                <MainLayout>
-                  <RemarkUI />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <MainLayout>
-                  <Notifications />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/history"
-              element={
-                <MainLayout>
-                  <History />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/edit/profile"
-              element={
-                <MainLayout>
-                  <EditProfile />
-                </MainLayout>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <LoginRestrictedRoute>
+                  // </AssistantRestrictedRoute>
+                }
+              />
+              <Route
+                path="/remark-pdf"
+                element={
                   <MainLayout>
-                    <ProfileDashboard />
+                    <RemarkUI />
                   </MainLayout>
-                </LoginRestrictedRoute>
-              }
-            />
-            <Route
-              path="/admin/dashboard"
-              element={
-               // <AdminRestrictedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <MainLayout>
+                    <Notifications />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <MainLayout>
+                    <History />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/edit/profile"
+                element={
+                  <MainLayout>
+                    <EditProfile />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <LoginRestrictedRoute>
+                    <MainLayout>
+                      <ProfileDashboard />
+                    </MainLayout>
+                  </LoginRestrictedRoute>
+                }
+              />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  // <AdminRestrictedRoute>
                   <MainLayout>
                     <AdminDashboard />
                   </MainLayout>
-               // </AdminRestrictedRoute>
-              }
-            />
-            <Route
-              path="/changepassword"
-              element={
-                <LoginRestrictedRoute>
+                  // </AdminRestrictedRoute>
+                }
+              />
+              <Route
+                path="/changepassword"
+                element={
+                  <LoginRestrictedRoute>
+                    <MainLayout>
+                      <ChangePassword />
+                    </MainLayout>
+                  </LoginRestrictedRoute>
+                }
+              />
+              <Route
+                path="/correction"
+                element={
                   <MainLayout>
-                    <ChangePassword />
+                    <Correction />
                   </MainLayout>
-                </LoginRestrictedRoute>
-              }
-            />
-            <Route
-              path="/correction"
-              element={
-                <MainLayout>
-                  <Correction />
-                </MainLayout>
-              }
-            />
+                }
+              />
 
-            <Route path="/support" element={<Support />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-          </Routes>
-        </NotificationProvider>
+              <Route path="/support" element={<Support />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+            </Routes>
+          </NotificationProvider>
+        </CryptoProvider>
       </UsersProvider>
     </AuthProvider>
   );

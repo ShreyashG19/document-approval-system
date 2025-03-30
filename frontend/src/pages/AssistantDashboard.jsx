@@ -1,4 +1,4 @@
-import { useState, useEffect ,useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FaSearch } from "react-icons/fa";
 
 import {
@@ -75,8 +75,7 @@ const AssistantDashboard = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `${
-          import.meta.env.VITE_API_URL
+        `${import.meta.env.VITE_API_URL
         }/file/get-documents?status=${selectedTab.toLowerCase()}`,
         { withCredentials: true }
       );
@@ -119,7 +118,7 @@ const AssistantDashboard = () => {
       fetchDocuments();
     };
     initialize();
-  }, [selectedTab]);
+  }, []);
   // Fetch Departments
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -207,11 +206,10 @@ const AssistantDashboard = () => {
             <button
               key={tab}
               onClick={() => setSelectedTab(tab)}
-              className={`px-4 py-2 ${
-                selectedTab === tab
+              className={`px-4 py-2 ${selectedTab === tab
                   ? "border-b-2 border-blue-500 text-blue-500"
                   : "text-gray-600 hover:text-blue-500"
-              }`}
+                }`}
               disabled={isLoading}
             >
               {tab}
@@ -430,8 +428,8 @@ const AssistantDashboard = () => {
                     <span className="font-medium">Date:</span>{" "}
                     {currentDocDetails.createdDate
                       ? new Date(
-                          currentDocDetails.createdDate
-                        ).toLocaleDateString()
+                        currentDocDetails.createdDate
+                      ).toLocaleDateString()
                       : "Not available"}
                   </p>
                 </div>

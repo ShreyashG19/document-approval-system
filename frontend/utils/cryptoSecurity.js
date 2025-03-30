@@ -4,8 +4,12 @@ import axios from "axios";
 
 export class CryptoService {
   constructor() {
-    this._encKey = null;
-    this._initialized = false;
+    if (!CryptoService.instance) {
+      this._encKey = null;
+      this._initialized = false;
+      CryptoService.instance = this;
+    }
+    return CryptoService.instance;
   }
   isInitialized() {
     return this._initialized;
@@ -30,11 +34,15 @@ export class CryptoService {
     }
   }
   async generateKeysAndRequestEncKey(apiUrl) {
+    if (this.encKey) return; // Prevent re-running
+
     try {
+      console.log("Generating RSA key pair...");
       const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
       const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
       const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
 
+      console.log("Requesting encrypted key from server...");
       const response = await axios.post(
         `${apiUrl}/file/get-enc-key`,
         { clientPublicKey: publicKeyPem },
@@ -50,12 +58,13 @@ export class CryptoService {
       );
 
       this.encKey = decryptedKey;
-      return true;
+      console.log("Encryption key successfully set.");
     } catch (error) {
       console.error("Key exchange failed:", error);
       throw error;
     }
   }
+
 
   async encryptFile(file) {
     if (!this.encKey) throw new Error("Encryption key not available");
