@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import { CryptoService } from  "../../utils/cryptoSecurity";
+import { CryptoService } from "../../utils/cryptoSecurity";
 
 export const CryptoContext = createContext();
 
@@ -10,12 +10,17 @@ export const CryptoProvider = ({ children }) => {
   useEffect(() => {
     const generateKeyIfNeeded = async () => {
       if (!encKey) {
-        const generatedKey = await cryptoService.generateKeysAndRequestEncKey();
-        setEncKey(generatedKey);
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL;
+          await cryptoService.initialize(apiUrl);
+          setEncKey(cryptoService.getEncKey());
+        } catch (error) {
+          console.error("Encryption key initialization failed:", error);
+        }
       }
     };
     generateKeyIfNeeded();
-  }, [encKey]);
+  }, [encKey, cryptoService]);
 
   return (
     <CryptoContext.Provider value={{ cryptoService, encKey, setEncKey }}>

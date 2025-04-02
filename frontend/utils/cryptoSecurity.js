@@ -5,12 +5,13 @@ import axios from "axios";
 export class CryptoService {
   constructor() {
     if (!CryptoService.instance) {
-      this._encKey = null;
+      this.encKey = null;
       this._initialized = false;
       CryptoService.instance = this;
     }
     return CryptoService.instance;
   }
+
   isInitialized() {
     return this._initialized;
   }
@@ -18,21 +19,22 @@ export class CryptoService {
   setEncKey(key) {
     this.encKey = key;
   }
+
   getEncKey() {
     return this.encKey;
   }
 
   async initialize(apiUrl) {
     if (this._initialized) return;
-
     try {
       await this.generateKeysAndRequestEncKey(apiUrl);
       this._initialized = true;
     } catch (error) {
-      this._initialized = false;
+      console.error("Initialization error:", error);
       throw error;
     }
   }
+
   async generateKeysAndRequestEncKey(apiUrl) {
     if (this.encKey) return; // Prevent re-running
 
@@ -65,7 +67,6 @@ export class CryptoService {
     }
   }
 
-
   async encryptFile(file) {
     if (!this.encKey) throw new Error("Encryption key not available");
 
@@ -82,6 +83,7 @@ export class CryptoService {
 
   decryptContent(encryptedContent) {
     if (!this.encKey) throw new Error("Encryption key not available");
+    if (!encryptedContent) throw new Error("No encrypted content provided");
 
     try {
       const decrypted = CryptoJS.AES.decrypt(encryptedContent, this.encKey);
@@ -106,10 +108,6 @@ export class CryptoService {
     }
     return uint8Array;
   }
-
-  getEncKey() {
-    return this.encKey;
-  }
 }
 
 export const fileUtils = {
@@ -126,9 +124,5 @@ export const fileUtils = {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  },
-
-  createPreviewUrl(blob) {
-    return URL.createObjectURL(blob);
   },
 };
