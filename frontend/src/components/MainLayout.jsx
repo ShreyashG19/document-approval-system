@@ -1,11 +1,12 @@
 import React from 'react'
 import Navbar from './Navbar'
+import { Outlet } from 'react-router-dom'
 
 const MainLayout = ({children}) => {
   return (
-    <div>
+    <div className='min-h-screen w-full ' >
         <Navbar />
-        <div>{children}</div>
+        <Outlet />
     </div>
   )
 }

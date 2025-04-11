@@ -40,11 +40,12 @@ const Login = () => {
   }, []);
 
   // Redirect if user is already logged in
+  //! Make Routing neat and clean 
   const roleRoutes = {
-    [Role.APPROVER]: "/approver/dashboard",
-    [Role.SENIOR_ASSISTANT]: "/assistant/dashboard",
-    [Role.ASSISTANT]: "/assistant/dashboard",
-    [Role.ADMIN]: "/admin/dashboard",
+    [Role.APPROVER]: "/MainPage/approver/dashboard",
+    [Role.SENIOR_ASSISTANT]: "/MainPage/assistant/dashboard",
+    [Role.ASSISTANT]: "/MainPage/assistant/dashboard",
+    [Role.ADMIN]: "/MainPage/admin/dashboard",
   };
 
   // 🚀 Redirect if user is already logged in
@@ -105,6 +106,8 @@ const Login = () => {
       if (!response.ok) throw new Error((await response.json()).message);
 
       const result = await response.json();
+      console.log('User: ',result);
+      
       setLoggedInUser(result.user);
       setUsername("");
       setPassword("");

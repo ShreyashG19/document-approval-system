@@ -17,7 +17,7 @@ import DocumentsList from "../components/DocumentsList";
 import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
-import { getStatusColor } from "../../utils/statusColors";
+import { getStatusColor  } from "../../utils/statusColors";
 
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
@@ -25,7 +25,6 @@ const AssistantDashboard = () => {
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -158,7 +157,7 @@ const AssistantDashboard = () => {
 
     try {
       const encryptedContent = await cryptoService.encryptFile(newDocFile);
-
+      
       const formData = new FormData();
       const blob = new Blob([encryptedContent], { type: "text/plain" });
       formData.append("pdfFile", new File([blob], `${newDocFile.name}.enc`));
