@@ -13,46 +13,50 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const { loggedInUser, setLoggedInUser, loading, logout } = useAuth();
-  const { unreadCount, resetCount, fetchNotifications, fcmToken } =
-    useNotifications();
+  const { unreadCount, resetCount, fetchNotifications, fcmToken } = useNotifications();
 
   useEffect(() => {
     fetchNotifications();
   }, []);
 
-  console.log(loggedInUser)
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
-
+  const navigateManageUsers = () => {
+    navigate("/MainPage/users/manage");
+    handleMenuClose();
+  };
   const navigateNoti = () => {
-    navigate("/notifications");
+    navigate("/MainPage/notifications");
     resetCount();
     handleMenuClose();
   };
 
   const navigateHistory = () => {
-    navigate("/history");
+    navigate("/MainPage/history");
     handleMenuClose();
   };
 
   const navigateProfile = () => {
-    navigate("/profile");
+    navigate("/MainPage/profile");
     handleMenuClose();
   };
 
-  const navigateManageUsers = () => {
-    navigate("/users/manage");
-    handleMenuClose();
-  };
+  
 
   const navigateHome = () => {
     if (loggedInUser?.role === Role.APPROVER) {
-      navigate("/approver/dashboard");
+      navigate("/MainPage/approver/dashboard");
     } else if (loggedInUser?.role === Role.ADMIN) {
       navigate("/admin/dashboard");
     } else {
-      navigate("/assistant/dashboard");
+      navigate("/MainPage/assistant/dashboard");
     }
+    handleMenuClose();
+  };
+
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
+  const goTo = (path) => {
+    navigate(path);
     handleMenuClose();
   };
 
@@ -86,7 +90,7 @@ const Navbar = () => {
       toast.error(error.message, { position: "top-center", duration: 2000 });
     }
   };
-
+ 
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -114,7 +118,10 @@ const Navbar = () => {
         <div className="relative">
           <Tooltip title="Notifications" arrow>
             <button
-              onClick={navigateNoti}
+              onClick={() => {
+                goTo("/MainPage/notifications");
+                resetCount();
+              }}
               className="text-gray-600 text-xl hover:text-blue-500"
             >
               <FaBell />
@@ -138,23 +145,21 @@ const Navbar = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
-          PaperProps={{ style: { maxHeight: 200, width: "20ch" } }}
+          PaperProps={{ style: { maxHeight: 300, width: "20ch" } }}
         >
           <MenuItem onClick={navigateProfile}>View Profile</MenuItem>
-          {loggedInUser?.role !== Role.ADMIN && (
-            <>
-              <MenuItem onClick={navigateHistory}>History</MenuItem>
-              {loggedInUser?.role === Role.SENIOR_ASSISTANT && (
-                <MenuItem onClick={navigateManageUsers}>Create User</MenuItem>
-              )}
-            </>
-          )}
-        
-          <MenuItem onClick={navigateHome}>Update User</MenuItem>
-          <MenuItem onClick={navigateHome}>Show Users</MenuItem>
-          <MenuItem onClick={handleLogout}>Logout</MenuItem>
 
+          {loggedInUser?.role !== Role.ADMIN && (
+            <MenuItem onClick={navigateHistory}>History</MenuItem>
+          )}
+
+          {(loggedInUser?.role === Role.SENIOR_ASSISTANT || loggedInUser?.role === Role.ADMIN) && (
+            <MenuItem onClick={navigateManageUsers}>Manage Users</MenuItem>
+          )}
+
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
+
       </div>
     </div>
   );

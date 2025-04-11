@@ -194,12 +194,14 @@
 // export default App;
 import React from 'react'
 import AppRoutes from './routes/AppRoutes'
+import { EncryptionProvider } from './contexts/EncryptionContext'
 
 const App = () => {
   return (
     <div>
+      <EncryptionProvider>
       <AppRoutes/>
-
+      </EncryptionProvider>
     </div>
   )
 }

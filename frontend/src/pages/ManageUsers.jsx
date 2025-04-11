@@ -1,21 +1,32 @@
 import React, { useState, useContext, useEffect } from "react";
-import { FaUserPlus, FaTrashAlt } from "react-icons/fa";
+import { FaUserPlus, FaTrashAlt, FaEye, FaEyeSlash } from "react-icons/fa";
 import { Toaster, toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import AddUser from "../components/AddUser";
 import { UsersContext } from "../contexts/UsersContext";
 import { AuthContext } from "../contexts/AuthContext";
-import Navbar from "../components/Navbar";
+import { Role } from "../../utils/enums";
 
 const ManageUsers = () => {
-  const { approver, assistants, refreshUsers } = useContext(UsersContext);
-  const navigate = useNavigate();
   const { loggedInUser } = useContext(AuthContext);
   const [showAddUser, setShowAddUser] = useState(false);
-  const [loading, setLoading] = useState(false); // Add a loading state
-  const [userType, setUserType] = useState(""); // Add a state to track the type of user being added
-  
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    username: "",
+    password: "",
+    mobileNo: "",
+    role: "",
+  });
+  const [assistants, setAssistants] = useState([]);
+  const [approver, setApprover] = useState(null);
+
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!loggedInUser) {
       navigate("/");
@@ -24,133 +35,286 @@ const ManageUsers = () => {
     }
   }, [loggedInUser]);
 
-  const handleDeleteUser = (id, role) => {
-    // Your delete user logic here
-  };
-
-  const handleAddUser = async (newUserData) => {
-    setLoading(true); // Start loading
+  const handleDeleteUser = async (id, role) => {
     try {
-      // Your API call to add a new user
-      await axios.post("/assistant/create-user", newUserData);
-      toast.success("User added successfully!");
-      refreshUsers(); // Refresh user list after adding the new user
+      await axios.delete(`/assistant/delete-user/${id}`);
+      toast.success(`${role} deleted successfully.`);
+      refreshUsers();
     } catch (error) {
-      toast.error("Error adding user. Please try again.");
-    } finally {
-      setLoading(false); // Stop loading once the process is done
+      toast.error("Error deleting user.");
     }
   };
 
-  const handleOpenAddUser = (type) => {
-    setUserType(type);
+
+
+  const fetchAssistants = async () => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_API_URL + "/user/get-users",
+        { withCredentials: true }
+      );
+
+      if (response.status === 200) {
+        const users = response.data.users;
+
+        const assistants = users.filter(
+          (user) => user.role.toLowerCase().includes("assistant")
+        );
+
+        const approver = users.find(
+          (user) => user.role.toLowerCase() === "approver"
+        );
+
+        setAssistants(assistants);
+        setApprover(approver);
+
+        console.log("Filtered Assistants:", assistants);
+        console.log("Found Approver:", approver);
+      }
+    } catch (error) {
+      console.error("fetchAssistants error:", error);
+    }
+  };
+
+
+  const refreshUsers = () => {
+    fetchAssistants();
+  }
+
+
+  const handleAddUser = async (e) => {
+    e.preventDefault();
+    if (formData.password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const registerURL = import.meta.env.VITE_API_URL + "/auth/register";
+      await axios.post(registerURL, formData, { withCredentials: true });
+      toast.success("User added successfully!");
+      refreshUsers();
+      setShowAddUser(false);
+      setFormData({
+        fullName: "",
+        email: "",
+        username: "",
+        password: "",
+        mobileNo: "",
+
+        role: "",
+      });
+    } catch (error) {
+      toast.error(error.response.data.message);
+      console.log('error : ', error);
+
+    } finally {
       setLoading(false);
-      setShowAddUser(true);
-    }, 1000); // Simulate loading delay before showing modal
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-white to-blue-100">
       <Toaster />
-      {/* <Navbar/> */}
       <div className="flex items-center justify-center flex-grow p-4">
         <div className="w-full max-w-3xl bg-white shadow-lg border border-gray-200 rounded-lg p-8">
-          <div className="flex gap-4 mb-6 justify-end">
-        
-          </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Manage Team</h3>
 
-          {/* Approvers */}
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Manage Team
-          </h3>
-          {!approver ? (
-            <p className="text-gray-600">No Approvers available</p>
-          ) : (
-            <div className="space-y-4">
+          {/* === Approver Section === */}
+          <div className="mb-6">
+            <h4 className="text-md font-bold text-indigo-700 mb-2">Approver</h4>
+            {approver ? (
               <div
                 key={approver.id}
                 className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
               >
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {approver.fullName}
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-800">{approver.fullName}</h3>
                   <p className="text-sm text-gray-600">{approver.email}</p>
                   <span className="text-xs text-gray-400">{approver.role}</span>
                 </div>
                 <button
-                  title="Delete User"
+                  title="Delete Approver"
                   onClick={() => handleDeleteUser(approver.id, "Approver")}
                   className="text-red-600 hover:text-red-800"
                 >
                   <FaTrashAlt />
                 </button>
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-gray-600">No Approver available</p>
+            )}
+          </div>
 
-          {/* Assistants */}
-          
-          {assistants.length === 0 ? (
-            <p className="text-gray-600">No Assistants available</p>
-          ) : (
-            <div className="space-y-4">
-              {assistants.map((user) => (
-                <div
-                  key={user.username}
-                  className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
-                >
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {user.fullName}
-                    </h3>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                    <span className="text-xs text-gray-400">{user.role}</span>
-                  </div>
-                  <button
-                    title="Delete User"
-                    onClick={() => handleDeleteUser(user.id, "Assistant")}
-                    className="text-red-600 hover:text-red-800"
+          {/* === Assistants Section === */}
+          <div className="mb-6">
+            <h4 className="text-md font-bold text-indigo-700 mb-2">Assistants</h4>
+            {assistants.length === 0 ? (
+              <p className="text-gray-600">No Assistants available</p>
+            ) : (
+              <div className="space-y-4">
+                {assistants.map((user) => (
+                  <div
+                    key={user.username}
+                    className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
                   >
-                    <FaTrashAlt />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">{user.fullName}</h3>
+                      <p className="text-sm text-gray-600">{user.email}</p>
+                      <span className="text-xs text-gray-400">{user.role}</span>
+                    </div>
+                    <button
+                      title="Delete Assistant"
+                      onClick={() => handleDeleteUser(user.id, "Assistant")}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FaTrashAlt />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          <div className="flex gap-4 mt-8 justify-end">
+          {/* === Add User Button === */}
+          <div className="flex justify-end">
             <button
-              onClick={() => handleOpenAddUser("Assistant")}
-              className="text-white bg-blue-600 hover:bg-blue-700 p-2 rounded-lg flex items-center gap-2"
+              onClick={() => setShowAddUser(true)}
+              className="text-white bg-indigo-600 hover:bg-indigo-700 p-2 rounded-lg flex items-center gap-2"
             >
-              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Add Assistant</>}
-            </button>
-            <button
-              onClick={() => handleOpenAddUser("Approver")}
-              className="text-white bg-green-600 hover:bg-green-700 p-2 rounded-lg flex items-center gap-2"
-            >
-              {loading ? <span className="loading loading-bars loading-lg"></span> : <><FaUserPlus /> Add Approver</>}
+              <FaUserPlus /> Add User
             </button>
           </div>
         </div>
       </div>
 
-      {/* Add Modal */}
-      <AddUser
-        showAddUser={showAddUser}
-        setShowAddUser={setShowAddUser}
-        handleAddUser={handleAddUser} // Pass the add user function to the modal
-        userType={userType} // Pass the user type to the modal
-      />
+      {/* Add User Modal */}
+      {showAddUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add New User</h2>
+            <form onSubmit={handleAddUser} className="space-y-4">
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                placeholder="Username"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="Full Name"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              />
 
-      {/* Loader */}
+              <input type="text"
+                name="mobileNo"
+                value={formData.mobileNo}
+                onChange={handleChange}
+                placeholder="Mobile No"
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              />
+
+
+              {/* Password Field */}
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+
+              {/* Confirm Password Field */}
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value) }}
+                  placeholder="Confirm Password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              >
+                <option value="">Select Role</option>
+                <option value={Role.APPROVER}>Approver</option>
+                <option value={Role.ASSISTANT}>Assistant</option>
+              </select>
+              <div className="flex justify-between mt-4">
+                <button
+                  type="submit"
+                  className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+                >
+                  {loading ? "Adding..." : "Add User"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddUser(false)}
+                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-          <span className="loading loading-lg"></span>
-          <div className="text-white text-xl">Loading...</div>
+          <span className="text-white text-xl">Loading...</span>
         </div>
       )}
     </div>

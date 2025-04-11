@@ -18,7 +18,8 @@ import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
- 
+import { useEncryption } from "../contexts/EncryptionContext";
+
 const AdminDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
   const [username, setUsername] = useState("John Doe"); // Replace with actual username fetching logic
@@ -30,7 +31,8 @@ const AdminDashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [encKey, setEncKey] = useState(null);
+
+  const { encKey } = useEncryption();
 
   // Dialog States
   const [openDialog, setOpenDialog] = useState(false);
@@ -67,9 +69,8 @@ const AdminDashboard = () => {
       setIsLoading(true);
       setError(null);
       setDocuments([]);
-      const apiUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/get-documents?status=${selectedTab.toLowerCase()}`;
+      const apiUrl = `${import.meta.env.VITE_API_URL
+        }/file/get-documents?status=${selectedTab.toLowerCase()}`;
       console.log("apiUrl", apiUrl);
 
       const response = await axios.get(apiUrl, {
@@ -102,21 +103,21 @@ const AdminDashboard = () => {
     setIsLoading(false);
   };
 
-   
 
-  const generateKeysAndRequestEncKey = async () => {
-    try {
-      await cryptoService.generateKeysAndRequestEncKey(
-        import.meta.env.VITE_API_URL
-      );
-      const key = cryptoService.getEncKey();
-      setEncKey(key);
-      console.log("Successfully received and decrypted encryption key");
-    } catch (error) {
-      console.error("Error in key exchange:", error);
-      toast.error("Failed to establish secure connection");
-    }
-  };
+
+  //   try {
+  //     await cryptoService.generateKeysAndRequestEncKey(
+  //       import.meta.env.VITE_API_URL
+  //     );
+  //     const key = cryptoService.getEncKey();
+  //     setEncKey(key);
+  //     console.log("Successfully received and decrypted encryption key");
+  //     console.log("khud gaye ")
+  //   } catch (error) {
+  //     console.error("Error in key exchange:", error);
+  //     toast.error("Failed to establish secure connection");
+  //   }
+  // };
   //fetch documents on tab change
   useEffect(() => {
     const initialize = async () => {
@@ -154,8 +155,8 @@ const AdminDashboard = () => {
     setFilteredData(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
- 
-//modular 
+
+  //modular 
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
@@ -213,11 +214,10 @@ const AdminDashboard = () => {
             <button
               key={tab}
               onClick={() => setSelectedTab(tab)}
-              className={`px-4 py-2 ${
-                selectedTab === tab
-                  ? "border-b-2 border-blue-500 text-blue-500"
-                  : "text-gray-600 hover:text-blue-500"
-              }`}
+              className={`px-4 py-2 ${selectedTab === tab
+                ? "border-b-2 border-blue-500 text-blue-500"
+                : "text-gray-600 hover:text-blue-500"
+                }`}
               disabled={isLoading}
             >
               {tab}
@@ -243,7 +243,7 @@ const AdminDashboard = () => {
               className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
               disabled={isLoading}
             >
-              <IoMdRefresh className="h-6 w-5"/>
+              <IoMdRefresh className="h-6 w-5" />
             </button>
           </div>
         </div>
@@ -381,7 +381,7 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-       {/* New Document Dialog */}
+      {/* New Document Dialog */}
       {/* PDF Preview Dialog */}
       <Dialog
         open={viewPdfDialogOpen}
@@ -411,7 +411,7 @@ const AdminDashboard = () => {
                 width="100%"
                 height="100%"
               >
-               <p>
+                <p>
                   Your browser does not support PDFs.{" "}
                   <a href={currentPdfUrl}>Download the PDF</a>.
                 </p>
@@ -437,8 +437,8 @@ const AdminDashboard = () => {
                     <span className="font-medium">Date:</span>{" "}
                     {currentDocDetails.createdDate
                       ? new Date(
-                          currentDocDetails.createdDate
-                        ).toLocaleDateString()
+                        currentDocDetails.createdDate
+                      ).toLocaleDateString()
                       : "Not available"}
                   </p>
                 </div>

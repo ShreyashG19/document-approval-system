@@ -17,7 +17,7 @@ import DocumentsList from "../components/DocumentsList";
 import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
-import { getStatusColor  } from "../../utils/statusColors";
+import { getStatusColor } from "../../utils/statusColors";
 
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
@@ -157,7 +157,7 @@ const AssistantDashboard = () => {
 
     try {
       const encryptedContent = await cryptoService.encryptFile(newDocFile);
-      
+
       const formData = new FormData();
       const blob = new Blob([encryptedContent], { type: "text/plain" });
       formData.append("pdfFile", new File([blob], `${newDocFile.name}.enc`));
@@ -206,8 +206,8 @@ const AssistantDashboard = () => {
               key={tab}
               onClick={() => setSelectedTab(tab)}
               className={`px-4 py-2 ${selectedTab === tab
-                  ? "border-b-2 border-blue-500 text-blue-500"
-                  : "text-gray-600 hover:text-blue-500"
+                ? "border-b-2 border-blue-500 text-blue-500"
+                : "text-gray-600 hover:text-blue-500"
                 }`}
               disabled={isLoading}
             >
