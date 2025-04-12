@@ -11,7 +11,8 @@ const DocumentsList = ({
   startDate,
   endDate,
   searchQuery,
-  handleTitleClick, encKey
+  handleTitleClick,
+  encKey,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,14 +30,15 @@ const DocumentsList = ({
       if (department) queryParams.append("department", department);
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL
+        `${
+          import.meta.env.VITE_API_URL
         }/file/get-documents?${queryParams.toString()}`,
         { withCredentials: true }
       );
 
       if (response.data.status && response.data.documents) {
         setDocuments(response.data.documents);
-        console.log(documents)
+        console.log(documents);
       } else {
         throw new Error("Invalid response format");
       }
@@ -61,16 +63,14 @@ const DocumentsList = ({
     return (
       (!startDate || docDate >= new Date(startDate)) &&
       (!endDate || docDate <= new Date(endDate)) &&
-      (!searchQuery || doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
+      (!searchQuery ||
+        doc.title.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
 
- 
-
-
   return (
     <div className="flex items-start justify-start flex-grow">
-      <div className="w-full max-w-4xl bg-white shadow-lg border border-gray-200 rounded-lg p-6">
+      <div className="w-full max-w-7xl bg-white shadow-lg border border-gray-200 rounded-lg p-6">
         {isLoading ? (
           <div className="text-center py-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
@@ -79,7 +79,7 @@ const DocumentsList = ({
           <div className="text-center text-red-500 py-4">{error}</div>
         ) : (
           <>
-            <div className="space-y-4">
+            <div className="max-h-[500px] overflow-y-auto space-y-4 pr-2">
               {filteredDocuments.length > 0 ? (
                 filteredDocuments.map((doc) => (
                   <div
@@ -98,7 +98,7 @@ const DocumentsList = ({
                             department: doc.department?.departmentName,
                             createdBy: doc.createdBy?.fullName,
                             createdDate: doc.createdDate,
-                            status: doc.status
+                            status: doc.status,
                           });
                         }}
                       >

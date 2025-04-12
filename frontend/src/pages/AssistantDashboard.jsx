@@ -32,6 +32,8 @@ const AssistantDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [encKey, setEncKey] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+
   const { handleUpload } = useFileHandlers();
 
 
@@ -70,23 +72,49 @@ const AssistantDashboard = () => {
   const [documentsCache, setDocumentsCache] = useState({});
 
   // Fetch Documents
-  const fetchDocuments = async () => {
-    if (documentsCache[selectedTab]) {
-      setDocuments(documentsCache[selectedTab]); // Load from cache
+  // const fetchDocuments = async () => {
+  //   if (documentsCache[selectedTab]) {
+  //     setDocuments(documentsCache[selectedTab]); // Load from cache
+  //     setFilteredData(documentsCache[selectedTab]);
+  //     return;
+  //   }
+
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await axios.get(
+  //       `${import.meta.env.VITE_API_URL
+  //       }/file/get-documents?status=${selectedTab.toLowerCase()}`,
+  //       { withCredentials: true }
+  //     );
+  //     setDocuments(response.data.documents);
+  //     setFilteredData(response.data.documents);
+
+  //     setDocumentsCache((prevCache) => ({
+  //       ...prevCache,
+  //       [selectedTab]: response.data.documents,
+  //     }));
+  //   } catch (error) {
+  //     setError("Failed to fetch documents");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  const fetchDocuments = async (forceRefresh = false) => {
+    if (!forceRefresh && documentsCache[selectedTab]) {
+      setDocuments(documentsCache[selectedTab]);
       setFilteredData(documentsCache[selectedTab]);
       return;
     }
-
+  
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL
-        }/file/get-documents?status=${selectedTab.toLowerCase()}`,
+        `${import.meta.env.VITE_API_URL}/file/get-documents?status=${selectedTab.toLowerCase()}`,
         { withCredentials: true }
       );
       setDocuments(response.data.documents);
       setFilteredData(response.data.documents);
-
       setDocumentsCache((prevCache) => ({
         ...prevCache,
         [selectedTab]: response.data.documents,
@@ -97,33 +125,23 @@ const AssistantDashboard = () => {
       setIsLoading(false);
     }
   };
+  
   const handleRefresh = async () => {
     setIsLoading(true);
     await fetchDocuments();
     setIsLoading(false);
   };
 
-  const generateKeysAndRequestEncKey = async () => {
-    try {
-      await cryptoService.generateKeysAndRequestEncKey(
-        import.meta.env.VITE_API_URL
-      );
-      const key = cryptoService.getEncKey();
-      setEncKey(key);
-      console.log("Successfully received and decrypted encryption key");
-    } catch (error) {
-      console.error("Error in key exchange:", error);
-      toast.error("Failed to establish secure connection");
-    }
-  };
   //fetch documents on tab change
   useEffect(() => {
     const initialize = async () => {
-      await generateKeysAndRequestEncKey();
+      // await generateKeysAndRequestEncKey();
       fetchDocuments();
     };
     initialize();
   }, []);
+
+  
   // Fetch Departments
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -172,9 +190,18 @@ const AssistantDashboard = () => {
         setNewDocDesc("");
         fetchDocuments();
         setNewDocDialogOpen(false);
+        setUploadSuccess(true);
       },
     });
+
   };
+
+  useEffect(() => {
+    if (uploadSuccess) {
+      fetchDocuments(true); // you can skip the cache here
+      setUploadSuccess(false); // reset for next upload
+    }
+  }, [uploadSuccess]);
   
   const resetFilters = () => {
     setSearchQuery("");

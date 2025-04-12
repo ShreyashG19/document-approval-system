@@ -31,7 +31,6 @@ const ApproverDashboard = () => {
   const [, setDepartments] = useState([])
   const [currentAction, setCurrentAction] = useState("")
   const [isActionInProgress, setIsActionInProgress] = useState(false)
-
   const [currentDocDetails, setCurrentDocDetails] = useState({
     description: "",
     remarks: "",
@@ -48,6 +47,8 @@ const ApproverDashboard = () => {
       navigate("/")
     }
   }, [loggedInUser, navigate])
+
+
 
   // Fetch Documents
   const fetchDocuments = async () => {
@@ -199,13 +200,15 @@ const ApproverDashboard = () => {
                 setDescription={setDescription}
                 setRemark={setRemark}
                 handleTitleClick={(url, document) => openPdfDialog(url, document)}
+                selectedTab={selectedTab}
               />
             ) : (
-              <SentBackTabContent
+              <NewCm
                 setfileUnName={setfileUnName}
                 setDescription={setDescription}
                 setRemark={setRemark}
                 handleTitleClick={(url, document) => openPdfDialog(url, document)}
+                selectedTab={selectedTab}
               />
             )}
           </div>
