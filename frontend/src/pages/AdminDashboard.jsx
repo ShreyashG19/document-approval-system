@@ -374,7 +374,6 @@ const AdminDashboard = () => {
                 setCurrentDocDetails(details);
                 setViewPdfDialogOpen(true);
               }}
-            encKey={encKey}
             />
           )}
         </div>

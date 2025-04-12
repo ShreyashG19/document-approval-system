@@ -31,7 +31,7 @@ const AssistantDashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [encKey, setEncKey] = useState(null);
+  // const [encKey, setEncKey] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const { handleUpload } = useFileHandlers();
@@ -382,7 +382,7 @@ const AssistantDashboard = () => {
                 setCurrentDocDetails(details);
                 setViewPdfDialogOpen(true);
               }}
-              encKey={encKey}
+              // encKey={encKey}
             />
           )}
         </div>
