@@ -200,7 +200,7 @@ const App = () => {
   return (
     <div>
       <EncryptionProvider>
-      <AppRoutes/>
+        <AppRoutes />
       </EncryptionProvider>
     </div>
   )

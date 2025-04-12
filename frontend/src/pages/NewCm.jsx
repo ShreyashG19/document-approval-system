@@ -13,6 +13,7 @@ import { IoMdRefresh } from "react-icons/io";
 import "../index.css";
 import CryptoJS from "crypto-js";
 import forge from "node-forge";
+import { useEncryption } from "../contexts/EncryptionContext";
 const NewCm = ({
   handleTitleClick,
   setfileUnName,
@@ -31,7 +32,8 @@ const NewCm = ({
   // const [remark, setRemark] = useState("");
   const [departments, setDepartments] = useState([]);
   const [displayRemark, setDisplayRemark] = useState("");
-  const [encKey, setEncKey] = useState(null);
+  // const [encKey, setEncKey] = useState(null);
+  const { getEncKeyForDoc } = useEncryption();
 
   const [searchTerm, setSearchTerm] = useState("");
   const convertWordArrayToUint8Array = (wordArray) => {
@@ -50,61 +52,60 @@ const NewCm = ({
     return uint8Array;
   };
 
-  const generateKeysAndRequestEncKey = async (fileUniqueName) => {
-    try {
-      if (!fileUniqueName) {
-        throw new Error("File unique name is required");
-      }
+  // const generateKeysAndRequestEncKey = async (fileUniqueName) => {
+  //   try {
+  //     if (!fileUniqueName) {
+  //       throw new Error("File unique name is required");
+  //     }
 
-      // Generate RSA Key Pair
-      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
-      const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
-      const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
+  //     // Generate RSA Key Pair
+  //     const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
+  //     const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
+  //     const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
 
-      // Send Public Key to Server
-      const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
-      const response = await axios.post(
-        responseUrl,
-        {
-          clientPublicKey: publicKeyPem,
-          fileUniqueName: fileUniqueName,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  //     // Send Public Key to Server
+  //     const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
+  //     const response = await axios.post(
+  //       responseUrl,
+  //       {
+  //         clientPublicKey: publicKeyPem,
+  //         fileUniqueName: fileUniqueName,
+  //       },
+  //       {
+  //         withCredentials: true,
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
 
-      const encryptedEncKey = response.data.encryptedEncKey;
+  //     const encryptedEncKey = response.data.encryptedEncKey;
 
-      // Decrypt the encKey using Private Key
-      const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-      const decryptedKey = privateKey.decrypt(
-        forge.util.decode64(encryptedEncKey),
-        "RSA-OAEP",
-        { md: forge.md.sha256.create() }
-      );
+  //     // Decrypt the encKey using Private Key
+  //     const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+  //     const decryptedKey = privateKey.decrypt(
+  //       forge.util.decode64(encryptedEncKey),
+  //       "RSA-OAEP",
+  //       { md: forge.md.sha256.create() }
+  //     );
 
-      setEncKey(decryptedKey);
-      console.log("Successfully received and decrypted encryption key");
-      return decryptedKey;
-    } catch (error) {
-      console.error("Error in key exchange:", error);
-      toast.error("Failed to establish secure connection");
-      throw error;
-    }
-  };
+  //     setEncKey(decryptedKey);
+  //     console.log("Successfully received and decrypted encryption key");
+  //     return decryptedKey;
+  //   } catch (error) {
+  //     console.error("Error in key exchange:", error);
+  //     toast.error("Failed to establish secure connection");
+  //     throw error;
+  //   }
+  // };
   const handleDownload = async (fileName) => {
     try {
-      let   currentEncKey = await generateKeysAndRequestEncKey(fileName);
- 
+      let currentEncKey = await getEncKeyForDoc(fileName);
+
 
       console.log("Downloading:", fileName);
-      const downloadUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/download-pdf/${fileName}`;
+      const downloadUrl = `${import.meta.env.VITE_API_URL
+        }/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
@@ -147,10 +148,10 @@ const NewCm = ({
       if (endDate) queryParams.append("endDate", endDate);
       if (searchTerm.trim()) queryParams.append("search", searchTerm.trim());
 
-      const getDocsUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/get-documents?${queryParams}`;
+      const getDocsUrl = `${import.meta.env.VITE_API_URL
+        }/file/get-documents?${queryParams}`;
       const response = await axios.get(getDocsUrl, { withCredentials: true });
+      console.log(response.data)
 
       if (response.data.status && response.data.documents) {
         setFilteredData(response.data.documents);
@@ -264,8 +265,8 @@ const NewCm = ({
 
   const handlePreview = async (fileName) => {
     try {
-      let   currentEncKey = await generateKeysAndRequestEncKey(fileName);
- 
+      let currentEncKey = await getEncKeyForDoc(fileName);
+
 
       console.log("fileName", fileName);
       const downloadUrl =
@@ -384,9 +385,9 @@ const NewCm = ({
             .filter((doc) =>
               searchTerm.trim()
                 ? doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  doc.createdBy?.fullName
-                    ?.toLowerCase()
-                    .includes(searchTerm.toLowerCase())
+                doc.createdBy?.fullName
+                  ?.toLowerCase()
+                  .includes(searchTerm.toLowerCase())
                 : true
             )
             .map((item) => (
@@ -398,6 +399,7 @@ const NewCm = ({
                   <div className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md">
                     📄
                   </div>
+                  {/* Lawda Neeraj */}
                   <div className="flex flex-col flex-grow">
                     <h3
                       className="text-xl font-bold tracking-tight font-open-sans text-gray-800 cursor-pointer"
@@ -427,140 +429,140 @@ const NewCm = ({
                   </div>
                 </div>
 
-                <div className="flex space-x-4 items-center">
-                  <FaEye
-                    className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
-                    onClick={async () => {
-                      const url = await handlePreview(item.fileUniqueName);
-                      setfileUnName(item.fileUniqueName);
-                      setDescription(
-                        item.description || "No description available"
-                      );
-                      setDisplayRemark(item.remark || "No remarks available"); // For display
-                      setRemark(item.remark || ""); // For editing
-                      handleTitleClick(url, item);
-                    }}
-                  />
-                  <FaDownload
-                    className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
-                    onClick={() => handleDownload(item.fileUniqueName)}
-                  />
+                  <div className="flex space-x-4 items-center">
+                    <FaEye
+                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                      onClick={async () => {
+                        const url = await handlePreview(item.fileUniqueName);
+                        setfileUnName(item.fileUniqueName);
+                        setDescription(
+                          item.description || "No description available"
+                        );
+                        setDisplayRemark(item.remark || "No remarks available"); // For display
+                        setRemark(item.remark || ""); // For editing
+                        handleTitleClick(url, item);
+                      }}
+                    />
+                    <FaDownload
+                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                      onClick={() => handleDownload(item.fileUniqueName)}
+                    />
+                  </div>
                 </div>
+                ))
+        )}
               </div>
-            ))
+
+      {/* Modal for PDF display */ }
+      { isModalOpen && (
+                <div
+                  className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
+                  onClick={closeModal}
+                >
+                  <div
+                    className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-3xl mx-2 sm:mx-4 relative"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Modal Header */}
+                    <div className="flex justify-between items-center mb-4 border-b pb-2">
+                      <h2 className="text-2xl font-semibold text-gray-800">
+                        {selectedDocument?.title}
+                      </h2>
+                      <button
+                        onClick={closeModal}
+                        className="text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        <AiOutlineClose className="h-6 w-6" />
+                      </button>
+                    </div>
+
+                    {/* PDF Viewer Placeholder */}
+                    <div className="flex items-center justify-center h-64 bg-gray-100 rounded-md mb-4 border border-gray-300">
+                      <p className="text-center text-gray-500">PDF content goes here</p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        onClick={() => handleApprove(selectedDocument.fileUniqueName)}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
+                      >
+                        <AiOutlineCheck className="h-5 w-5" />
+                        Approve
+                      </button>
+
+                      <button
+                        onClick={() => handleReject(selectedDocument.fileUniqueName)}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
+                      >
+                        <AiOutlineCloseCircle className="h-5 w-5" />
+                        Reject
+                      </button>
+
+                      <button
+                        className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
+                        onClick={() => openRemarkModal(selectedDocument)}
+                      >
+                        <FaCommentDots className="h-5 w-5" />
+                        Give Remark
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+        {/* Modal for Remarks */}
+        {isRemarkModalOpen && (
+          <div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
+            onClick={closeRemarkModal}
+          >
+            <div
+              className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-md mx-2 sm:mx-4 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  Give Remark
+                </h2>
+                <button
+                  onClick={closeRemarkModal}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <AiOutlineClose className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Remark Input */}
+              <textarea
+                className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                rows="4"
+                placeholder="Enter your remark here..."
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+              ></textarea>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md shadow-md hover:bg-gray-400 transition"
+                  onClick={closeRemarkModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
+                  onClick={handleRemarkSubmit}
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
-
-      {/* Modal for PDF display */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-3xl mx-2 sm:mx-4 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {selectedDocument?.title}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <AiOutlineClose className="h-6 w-6" />
-              </button>
-            </div>
-
-            {/* PDF Viewer Placeholder */}
-            <div className="flex items-center justify-center h-64 bg-gray-100 rounded-md mb-4 border border-gray-300">
-              <p className="text-center text-gray-500">PDF content goes here</p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap justify-end gap-2">
-              <button
-                onClick={() => handleApprove(selectedDocument.fileUniqueName)}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
-              >
-                <AiOutlineCheck className="h-5 w-5" />
-                Approve
-              </button>
-
-              <button
-                onClick={() => handleReject(selectedDocument.fileUniqueName)}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
-              >
-                <AiOutlineCloseCircle className="h-5 w-5" />
-                Reject
-              </button>
-
-              <button
-                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
-                onClick={() => openRemarkModal(selectedDocument)}
-              >
-                <FaCommentDots className="h-5 w-5" />
-                Give Remark
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for Remarks */}
-      {isRemarkModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
-          onClick={closeRemarkModal}
-        >
-          <div
-            className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-md mx-2 sm:mx-4 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Give Remark
-              </h2>
-              <button
-                onClick={closeRemarkModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <AiOutlineClose className="h-6 w-6" />
-              </button>
-            </div>
-
-            {/* Remark Input */}
-            <textarea
-              className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              rows="4"
-              placeholder="Enter your remark here..."
-              value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-            ></textarea>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md shadow-md hover:bg-gray-400 transition"
-                onClick={closeRemarkModal}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-                onClick={handleRemarkSubmit}
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      );
 };
 
-export default NewCm;
+      export default NewCm;

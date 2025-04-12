@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { FaDownload, FaSearch } from "react-icons/fa";
 import CryptoJS from "crypto-js";
+import { useEncryption } from "../contexts/EncryptionContext";
 
 const DocumentsListHistory = ({
   status,
@@ -16,6 +17,8 @@ const DocumentsListHistory = ({
   const [error, setError] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { getEncKeyForDoc } = useEncryption();
 
   // Fetch Documents from API
   const fetchDocuments = async () => {
@@ -34,6 +37,7 @@ const DocumentsListHistory = ({
 
       if (response.data.status && response.data.documents) {
         setDocuments(response.data.documents);
+        console.log(response.data)
       } else {
         throw new Error("Invalid response format");
       }
@@ -66,6 +70,9 @@ const DocumentsListHistory = ({
   // Handle Document Download
   const handleDownload = async (fileName) => {
     try {
+      let currentEncKey = await getEncKeyForDoc(fileName);
+
+
       console.log("Downloading:", fileName);
       const downloadUrl = `${import.meta.env.VITE_API_URL
         }/file/download-pdf/${fileName}`;
@@ -74,8 +81,8 @@ const DocumentsListHistory = ({
         responseType: "text",
       });
 
-      // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+      // Decrypt the content using the secure key
+      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
       const typedArray = convertWordArrayToUint8Array(decrypted);
 
       // Create blob and download
@@ -83,6 +90,7 @@ const DocumentsListHistory = ({
       downloadBlob(blob, fileName.replace(".enc", ""));
     } catch (error) {
       console.error("Download error:", error);
+      toast.error("Failed to download document");
     }
   };
 
@@ -118,24 +126,34 @@ const DocumentsListHistory = ({
   // Handle Document Preview
   const handlePreview = async (fileName) => {
     try {
-      console.log("Previewing:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL
-        }/file/download-pdf/${fileName}`;
+      let currentEncKey = await getEncKeyForDoc(fileName);
+
+
+      console.log("fileName", fileName);
+      const downloadUrl =
+        import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
       });
 
-      // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, "mykey");
+      // Decrypt the content using the secure key
+      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
+
+      // Convert to Uint8Array
       const typedArray = convertWordArrayToUint8Array(decrypted);
 
-      // Create blob and generate preview URL
-      const blob = new Blob([typedArray], { type: "application/pdf" });
+      // Create blob and download
+      const blob = new Blob([typedArray], {
+        type: "application/pdf" || "application/octet-stream",
+      });
+
       const url = URL.createObjectURL(blob);
+      console.log("file url generated for preview : ", url);
       return url;
     } catch (error) {
-      console.error("Preview error:", error);
+      console.error("Decryption error:", error);
+      toast.error("Failed to decrypt document");
     }
   };
   const getStatusColor = (status) => {

@@ -72,69 +72,69 @@ const AppRoutes = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <UsersProvider>
-          {/* <CryptoProvider> */}
-          <NotificationProvider>
-            <Toaster />
+        {/* <UsersProvider> */}
+        {/* <CryptoProvider> */}
+        <NotificationProvider>
+          <Toaster />
 
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/otp/verify" element={<OTPUI />} />
-              <Route path="/registrationsuccessful" element={<RegistrationSuccessful />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/forgot-password-otp" element={<ForgotPassOTP />} />
-              <Route path="/set-new-pass" element={<SetNewPassword />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/support" element={<Support />} />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/otp/verify" element={<OTPUI />} />
+            <Route path="/registrationsuccessful" element={<RegistrationSuccessful />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/forgot-password-otp" element={<ForgotPassOTP />} />
+            <Route path="/set-new-pass" element={<SetNewPassword />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/support" element={<Support />} />
 
-              {/* MainLayout Protected Routes */}
-              <Route path="/MainPage" element={<MainLayout />}>
-                <Route
-                  path="approver/dashboard"
-                  element={
-                    <ApproverRestrictedRoute>
-                      <ApproverDashboard />
-                    </ApproverRestrictedRoute>
-                  }
-                />
-                <Route
-                  path="users/manage"
-                  element={
-                    // <SARestrictedRoute>
-                    <ManageUsers />
-                    // </SARestrictedRoute>
-                  }
-                />
-                <Route path="assistant/dashboard" element={<AssistantDashboard />} />
-                <Route path="remark-pdf" element={<RemarkUI />} />
-                <Route path="notifications" element={<Notifications />} />
-                <Route path="history" element={<History />} />
-                <Route path="edit/profile" element={<EditProfile />} />
-                <Route
-                  path="profile"
-                  element={
-                    <LoginRestrictedRoute>
-                      <ProfileDashboard />
-                    </LoginRestrictedRoute>
-                  }
-                />
-                <Route path="admin/dashboard" element={<AdminDashboard />} />
-                <Route
-                  path="changepassword"
-                  element={
-                    <LoginRestrictedRoute>
-                      <ChangePassword />
-                    </LoginRestrictedRoute>
-                  }
-                />
-                <Route path="correction" element={<Correction />} />
-              </Route>
-            </Routes>
-          </NotificationProvider>
-          {/* </CryptoProvider> */}
-        </UsersProvider>
+            {/* MainLayout Protected Routes */}
+            <Route path="/MainPage" element={<MainLayout />}>
+              <Route
+                path="approver/dashboard"
+                element={
+                  <ApproverRestrictedRoute>
+                    <ApproverDashboard />
+                  </ApproverRestrictedRoute>
+                }
+              />
+              <Route
+                path="users/manage"
+                element={
+                  // <SARestrictedRoute>
+                  <ManageUsers />
+                  // </SARestrictedRoute>
+                }
+              />
+              <Route path="assistant/dashboard" element={<AssistantDashboard />} />
+              <Route path="remark-pdf" element={<RemarkUI />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="history" element={<History />} />
+              <Route path="edit/profile" element={<EditProfile />} />
+              <Route
+                path="profile"
+                element={
+                  <LoginRestrictedRoute>
+                    <ProfileDashboard />
+                  </LoginRestrictedRoute>
+                }
+              />
+              <Route path="admin/dashboard" element={<AdminDashboard />} />
+              <Route
+                path="changepassword"
+                element={
+                  <LoginRestrictedRoute>
+                    <ChangePassword />
+                  </LoginRestrictedRoute>
+                }
+              />
+              <Route path="correction" element={<Correction />} />
+            </Route>
+          </Routes>
+        </NotificationProvider>
+        {/* </CryptoProvider> */}
+        {/* </UsersProvider> */}
       </AuthProvider>
     </BrowserRouter>
   );

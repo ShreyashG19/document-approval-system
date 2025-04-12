@@ -30,10 +30,13 @@ import { FiEdit2 } from "react-icons/fi";
 import { Role } from "../../utils/enums";
 import { fileUtils, CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
- 
+import { useEncryption } from "../contexts/EncryptionContext";
+
+
 const History = () => {
   // State Management
   const [selectedTab, setSelectedTab] = useState("PENDING");
+  const { getEncKeyForDoc } = useEncryption();
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
@@ -74,10 +77,10 @@ const History = () => {
     status: "",
   });
   const { loggedInUser } = useAuth();
-  
 
 
-  
+
+
 
   // Fetch Documents
   const fetchDocuments = async () => {
@@ -85,9 +88,8 @@ const History = () => {
       setIsLoading(true);
       setError(null);
       setDocuments([]);
-      const apiUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/get-documents?status=${selectedTab.toLowerCase()}`;
+      const apiUrl = `${import.meta.env.VITE_API_URL
+        }/file/get-documents?status=${selectedTab.toLowerCase()}`;
       console.log("apiUrl", apiUrl);
 
       const response = await axios.get(apiUrl, {
@@ -273,7 +275,7 @@ const History = () => {
           </div>
         </div>
 
-        {/* Document List */}
+        Document List
         {isLoading || loading ? (
           <div className="flex justify-center items-center">
             <Loader type="ball-pulse" active />
@@ -299,6 +301,7 @@ const History = () => {
       {/* Add Document Button */}
 
       {/* PDF Preview Dialog */}
+      {/* ith aahe bug me */}
       <Dialog
         open={viewPdfDialogOpen}
         onClose={() => setViewPdfDialogOpen(false)}
@@ -374,7 +377,7 @@ const History = () => {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2 flex items-center justify-between">
                   Remarks
-                      
+
                 </h3>
                 {isRemarkEditable ? (
                   <div>

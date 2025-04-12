@@ -18,6 +18,7 @@ import { IoIosAdd, IoMdRefresh } from "react-icons/io";
 import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
+import { useEncryption } from "../contexts/EncryptionContext";
 
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
@@ -30,6 +31,8 @@ const AssistantDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [encKey, setEncKey] = useState(null);
+
+  // const {getEncKeyForAssistant} = useEncryption();
 
   // Dialog States
   const [openDialog, setOpenDialog] = useState(false);

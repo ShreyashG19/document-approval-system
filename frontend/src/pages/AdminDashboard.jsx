@@ -32,7 +32,7 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const { encKey } = useEncryption();
+  const { getEncKeyForDoc } = useEncryption();
 
   // Dialog States
   const [openDialog, setOpenDialog] = useState(false);
@@ -121,7 +121,7 @@ const AdminDashboard = () => {
   //fetch documents on tab change
   useEffect(() => {
     const initialize = async () => {
-      await generateKeysAndRequestEncKey();
+      await getEncKeyForDoc();
       fetchDocuments();
     };
     initialize();
@@ -368,14 +368,13 @@ const AdminDashboard = () => {
               status={selectedTab.toLowerCase()}
               department={selectedCategory}
               startDate={startDate}
-              endDate={endDate}
               searchQuery={searchQuery}
               handleTitleClick={(url, details) => {
                 setCurrentPdfUrl(url);
                 setCurrentDocDetails(details);
                 setViewPdfDialogOpen(true);
               }}
-              encKey={encKey}
+            encKey={encKey}
             />
           )}
         </div>
