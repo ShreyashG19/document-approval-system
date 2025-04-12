@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { FaDownload } from "react-icons/fa";
 import CryptoJS from "crypto-js";
+import { useFileHandlers } from "../hooks/files";
 
 const DocumentsList = ({
   status,
@@ -15,6 +16,7 @@ const DocumentsList = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [documents, setDocuments] = useState([]);
+  const { handleDownload, handlePreview } = useFileHandlers();
 
   // Fetch Documents from API
   const fetchDocuments = async () => {
@@ -63,87 +65,8 @@ const DocumentsList = ({
     );
   });
 
-  // Handle Document Download
-  const handleDownload = async (fileName) => {
-    try {
-      if (!encKey) {
-        toast.error('Encryption key not available');
-        return;
-      }
+ 
 
-      console.log("Downloading:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
-        withCredentials: true,
-        responseType: "text",
-      });
-
-      // Decrypt the content using the secure key
-      const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
-      const typedArray = convertWordArrayToUint8Array(decrypted);
-
-      // Create blob and download 
-      const blob = new Blob([typedArray], { type: "application/pdf" });
-      downloadBlob(blob, fileName.replace(".enc", ""));
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error('Failed to download document');
-    }
-  };
-  // Convert CryptoJS WordArray to Uint8Array
-  const convertWordArrayToUint8Array = (wordArray) => {
-    const len = wordArray.sigBytes;
-    const words = wordArray.words;
-    const uint8Array = new Uint8Array(len);
-    let offset = 0;
-
-    for (let i = 0; i < len; i += 4) {
-      const word = words[i >>> 2];
-      for (let j = 0; j < 4 && offset < len; ++j) {
-        uint8Array[offset++] = (word >>> (24 - j * 8)) & 0xff;
-      }
-    }
-
-    return uint8Array;
-  };
-
-  // Download Blob File
-  const downloadBlob = (blob, filename) => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  };
-
-  // Handle Document Preview
-  const handlePreview = async (fileName) => {
-    try {
-      console.log("Previewing:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL
-        }/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
-        withCredentials: true,
-        responseType: "text",
-      });
-
-      // Decrypt the content
-      const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
-      const typedArray = convertWordArrayToUint8Array(decrypted);
-
-      // Create blob and generate preview URL
-      const blob = new Blob([typedArray], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      return url;
-    } catch (error) {
-      console.error("Preview error:", error);
-    }
-  };
 
   return (
     <div className="flex items-start justify-start flex-grow">

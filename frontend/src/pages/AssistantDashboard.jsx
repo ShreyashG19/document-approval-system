@@ -19,6 +19,7 @@ import forge from "node-forge";
 import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
 import { useEncryption } from "../contexts/EncryptionContext";
+import { useFileHandlers } from "../hooks/files";
 
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
@@ -31,6 +32,8 @@ const AssistantDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [encKey, setEncKey] = useState(null);
+  const { handleUpload } = useFileHandlers();
+
 
   // const {getEncKeyForAssistant} = useEncryption();
 
@@ -151,45 +154,28 @@ const AssistantDashboard = () => {
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
   //modular
-  const handleDocumentUpload = async () => {
-    const toastId = toast.loading("Uploading document...");
+  const handleDocumentUpload = () => {
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
       toast.error("Please fill all required fields");
       return;
     }
-
-    try {
-      const encryptedContent = await cryptoService.encryptFile(newDocFile);
-
-      const formData = new FormData();
-      const blob = new Blob([encryptedContent], { type: "text/plain" });
-      formData.append("pdfFile", new File([blob], `${newDocFile.name}.enc`));
-      formData.append("department", newDocDepartment);
-      formData.append("title", newDocTitle);
-      formData.append("description", newDocDesc || "");
-
-      const uploadUrl = `${import.meta.env.VITE_API_URL}/file/upload-pdf`;
-      const response = await axios.post(uploadUrl, formData, {
-        withCredentials: true,
-      });
-
-      if (response.data) {
-        toast.dismiss(toastId);
-        toast.success("Document uploaded successfully");
+  
+    handleUpload({
+      file: newDocFile,
+      department: newDocDepartment,
+      title: newDocTitle,
+      description: newDocDesc,
+      onSuccess: () => {
         setNewDocFile(null);
         setNewDocDepartment("");
         setNewDocTitle("");
         setNewDocDesc("");
         fetchDocuments();
         setNewDocDialogOpen(false);
-      }
-    } catch (error) {
-      toast.dismiss(toastId);
-      console.error("Upload error:", error);
-      toast.error(error.response?.data?.message || "Error uploading document");
-    }
+      },
+    });
   };
-
+  
   const resetFilters = () => {
     setSearchQuery("");
     setStartDate("");
