@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useNotifications } from "../contexts/NotificationContext";
-import { Role, FileStatus } from "../../utils/enums";
+import { Role, FileStatus } from "../../utils/enums.js";
 
 // Add this helper function at the top of the file
 const formatDateTime = (dateString) => {
