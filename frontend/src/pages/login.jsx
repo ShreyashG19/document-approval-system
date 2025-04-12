@@ -106,8 +106,8 @@ const Login = () => {
       if (!response.ok) throw new Error((await response.json()).message);
 
       const result = await response.json();
-      console.log('User: ',result);
-      
+      console.log('User: ', result);
+
       setLoggedInUser(result.user);
       setUsername("");
       setPassword("");
@@ -167,20 +167,7 @@ const Login = () => {
               onIconClick={() => setShowPassword(!showPassword)}
             />
 
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => navigate("/forgot-password")}
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex items-center"
-                disabled={forgotLoading}
-              >
-                {forgotLoading ? (
-                  <span className="loading loading-spinner"></span>
-                ) : (
-                  "Forgot Password?"
-                )}
-              </button>
-            </div>
+
 
             <button
               type="submit"
