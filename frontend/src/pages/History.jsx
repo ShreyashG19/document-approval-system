@@ -78,10 +78,6 @@ const History = () => {
   });
   const { loggedInUser } = useAuth();
 
-
-
-
-
   // Fetch Documents
   const fetchDocuments = async () => {
     try {

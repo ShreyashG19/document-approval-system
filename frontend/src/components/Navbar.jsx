@@ -149,11 +149,11 @@ const Navbar = () => {
         >
           <MenuItem onClick={navigateProfile}>View Profile</MenuItem>
 
-          {loggedInUser?.role !== Role.ADMIN && (
+          
             <MenuItem onClick={navigateHistory}>History</MenuItem>
-          )}
+          
 
-          {(loggedInUser?.role === Role.SENIOR_ASSISTANT || loggedInUser?.role === Role.ADMIN) && (
+          {(loggedInUser?.role === Role.ADMIN) && (
             <MenuItem onClick={navigateManageUsers}>Manage Users</MenuItem>
           )}
 
