@@ -13,7 +13,9 @@ import { IoMdRefresh } from "react-icons/io";
 import "../index.css";
 import CryptoJS from "crypto-js";
 import forge from "node-forge";
-import { useEncryption } from "../contexts/EncryptionContext";
+import { useFileHandlers } from "../hooks/files";
+
+
 const NewCm = ({
   handleTitleClick,
   setfileUnName,
@@ -33,106 +35,62 @@ const NewCm = ({
   const [departments, setDepartments] = useState([]);
   const [displayRemark, setDisplayRemark] = useState("");
   // const [encKey, setEncKey] = useState(null);
-  const { getEncKeyForDoc } = useEncryption();
+  // const { getEncKeyForDoc } = useEncryption();
+
+  const { handleDownload, handlePreview } = useFileHandlers();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const convertWordArrayToUint8Array = (wordArray) => {
-    const len = wordArray.sigBytes;
-    const words = wordArray.words;
-    const uint8Array = new Uint8Array(len);
-    let offset = 0;
+  // const convertWordArrayToUint8Array = (wordArray) => {
+  //   const len = wordArray.sigBytes;
+  //   const words = wordArray.words;
+  //   const uint8Array = new Uint8Array(len);
+  //   let offset = 0;
 
-    for (let i = 0; i < len; i += 4) {
-      const word = words[i >>> 2];
-      for (let j = 0; j < 4 && offset < len; ++j) {
-        uint8Array[offset++] = (word >>> (24 - j * 8)) & 0xff;
-      }
-    }
-
-    return uint8Array;
-  };
-
-  // const generateKeysAndRequestEncKey = async (fileUniqueName) => {
-  //   try {
-  //     if (!fileUniqueName) {
-  //       throw new Error("File unique name is required");
+  //   for (let i = 0; i < len; i += 4) {
+  //     const word = words[i >>> 2];
+  //     for (let j = 0; j < 4 && offset < len; ++j) {
+  //       uint8Array[offset++] = (word >>> (24 - j * 8)) & 0xff;
   //     }
+  //   }
 
-  //     // Generate RSA Key Pair
-  //     const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
-  //     const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
-  //     const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
+  //   return uint8Array;
+  // };
+  
+  // const handleDownload = async (fileName) => {
+  //   try {
+  //     let currentEncKey = await getEncKeyForDoc(fileName);
 
-  //     // Send Public Key to Server
-  //     const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
-  //     const response = await axios.post(
-  //       responseUrl,
-  //       {
-  //         clientPublicKey: publicKeyPem,
-  //         fileUniqueName: fileUniqueName,
-  //       },
-  //       {
-  //         withCredentials: true,
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //       }
-  //     );
 
-  //     const encryptedEncKey = response.data.encryptedEncKey;
+  //     console.log("Downloading:", fileName);
+  //     const downloadUrl = `${import.meta.env.VITE_API_URL
+  //       }/file/download-pdf/${fileName}`;
+  //     const response = await axios.get(downloadUrl, {
+  //       withCredentials: true,
+  //       responseType: "text",
+  //     });
 
-  //     // Decrypt the encKey using Private Key
-  //     const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-  //     const decryptedKey = privateKey.decrypt(
-  //       forge.util.decode64(encryptedEncKey),
-  //       "RSA-OAEP",
-  //       { md: forge.md.sha256.create() }
-  //     );
+  //     // Decrypt the content using the secure key
+  //     const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
+  //     const typedArray = convertWordArrayToUint8Array(decrypted);
 
-  //     setEncKey(decryptedKey);
-  //     console.log("Successfully received and decrypted encryption key");
-  //     return decryptedKey;
+  //     // Create blob and download
+  //     const blob = new Blob([typedArray], { type: "application/pdf" });
+  //     downloadBlob(blob, fileName.replace(".enc", ""));
   //   } catch (error) {
-  //     console.error("Error in key exchange:", error);
-  //     toast.error("Failed to establish secure connection");
-  //     throw error;
+  //     console.error("Download error:", error);
+  //     toast.error("Failed to download document");
   //   }
   // };
-  const handleDownload = async (fileName) => {
-    try {
-      let currentEncKey = await getEncKeyForDoc(fileName);
-
-
-      console.log("Downloading:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL
-        }/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
-        withCredentials: true,
-        responseType: "text",
-      });
-
-      // Decrypt the content using the secure key
-      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
-      const typedArray = convertWordArrayToUint8Array(decrypted);
-
-      // Create blob and download
-      const blob = new Blob([typedArray], { type: "application/pdf" });
-      downloadBlob(blob, fileName.replace(".enc", ""));
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download document");
-    }
-  };
-  const downloadBlob = (blob, filename) => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
+  // const downloadBlob = (blob, filename) => {
+  //   const url = URL.createObjectURL(blob);
+  //   const link = document.createElement("a");
+  //   link.href = url;
+  //   link.download = filename;
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  //   URL.revokeObjectURL(url);
+  // };
 
   const fetchDocuments = async () => {
     try {
@@ -263,38 +221,38 @@ const NewCm = ({
     }
   };
 
-  const handlePreview = async (fileName) => {
-    try {
-      let currentEncKey = await getEncKeyForDoc(fileName);
+  // const handlePreview = async (fileName) => {
+  //   try {
+  //     let currentEncKey = await getEncKeyForDoc(fileName);
 
 
-      console.log("fileName", fileName);
-      const downloadUrl =
-        import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
-        withCredentials: true,
-        responseType: "text",
-      });
+  //     console.log("fileName", fileName);
+  //     const downloadUrl =
+  //       import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
+  //     const response = await axios.get(downloadUrl, {
+  //       withCredentials: true,
+  //       responseType: "text",
+  //     });
 
-      // Decrypt the content using the secure key
-      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
+  //     // Decrypt the content using the secure key
+  //     const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
 
-      // Convert to Uint8Array
-      const typedArray = convertWordArrayToUint8Array(decrypted);
+  //     // Convert to Uint8Array
+  //     const typedArray = convertWordArrayToUint8Array(decrypted);
 
-      // Create blob and download
-      const blob = new Blob([typedArray], {
-        type: "application/pdf" || "application/octet-stream",
-      });
+  //     // Create blob and download
+  //     const blob = new Blob([typedArray], {
+  //       type: "application/pdf" || "application/octet-stream",
+  //     });
 
-      const url = URL.createObjectURL(blob);
-      console.log("file url generated for preview : ", url);
-      return url;
-    } catch (error) {
-      console.error("Decryption error:", error);
-      toast.error("Failed to decrypt document");
-    }
-  };
+  //     const url = URL.createObjectURL(blob);
+  //     console.log("file url generated for preview : ", url);
+  //     return url;
+  //   } catch (error) {
+  //     console.error("Decryption error:", error);
+  //     toast.error("Failed to decrypt document");
+  //   }
+  // };
   const resetFilters = () => {
     setSearchTerm("");
     setStartDate("");
