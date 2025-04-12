@@ -27,7 +27,7 @@ const signOutAll = asyncHandler(async (req, res, next) => {
                 validJtis: [],
                 deviceTokens: [],
             },
-        }
+        },
     );
     console.log("cookie removed");
     return res
@@ -42,7 +42,7 @@ const sendCredentials = asyncHandler(async (req, res) => {
         config.authEmail,
         email,
         "Your account credentials",
-        `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
+        `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`,
     );
     await transporter.sendMail(mailOptions);
     return res.status(200).json({
@@ -98,9 +98,7 @@ const updateProfile = asyncHandler(async (req, res, next) => {
     await User.updateOne({ username }, { $set: updates });
 
     //terminate session
-    terminateUserSession(req, user.sessionID);
-    user.sessionID = null;
-    user.deviceToken = null;
+    await terminateUserSession(req, user.username);
     await user.save();
 
     // todo: is sending credentials to email needed?
@@ -110,7 +108,7 @@ const updateProfile = asyncHandler(async (req, res, next) => {
             config.authEmail,
             email,
             "Your account credentials",
-            `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`
+            `<p>Your account credentials for document approval system</p><p><b>Username:</b> ${username}</p><p><b>Password:</b> ${password}</p>`,
         );
         await sendEmail(mailOptions);
     }
@@ -144,10 +142,9 @@ const setUserStatus = asyncHandler(async (req, res, next) => {
 
     user.isActive = isActive;
     if (!isActive) {
-        terminateUserSession(req, user.sessionID);
-        user.sessionID = null;
-        user.deviceToken = null;
+        await terminateUserSession(req, user.username);
     }
+
     await user.save();
     return res.status(200).json({
         status: true,
@@ -157,7 +154,7 @@ const setUserStatus = asyncHandler(async (req, res, next) => {
 
 const getUsers = asyncHandler(async (req, res) => {
     const users = await User.find({ role: { $ne: Role.ADMIN } }).select(
-        "username fullName email mobileNo role isActive"
+        "username fullName email mobileNo role isActive",
     );
     if (!users.length) {
         throw createError(404, "No users found");
