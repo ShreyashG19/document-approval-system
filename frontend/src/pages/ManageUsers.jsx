@@ -13,7 +13,7 @@ const ManageUsers = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -35,17 +35,29 @@ const ManageUsers = () => {
     }
   }, [loggedInUser]);
 
-  const handleDeleteUser = async (id, role) => {
+  const toggleUserStatus = async (user) => {
     try {
-      await axios.delete(`/assistant/delete-user/${id}`);
-      toast.success(`${role} deleted successfully.`);
+      const currentStatus = user.isActive;
+      const updateStatusURL =
+        import.meta.env.VITE_API_URL + "/user/set-user-status";
+
+      const response = await axios.post(
+        updateStatusURL,
+        {
+          username: user.username,
+          isActive: !currentStatus,
+        },
+        { withCredentials: true }
+      );
+
+      console.log("User status updated successfully:", response.data);
       refreshUsers();
+      toast.success("User status updated");
     } catch (error) {
-      toast.error("Error deleting user.");
+      console.error("Error updating user status:", error);
+      toast.error("Error updating user");
     }
   };
-
-
 
   const fetchAssistants = async () => {
     try {
@@ -57,8 +69,8 @@ const ManageUsers = () => {
       if (response.status === 200) {
         const users = response.data.users;
 
-        const assistants = users.filter(
-          (user) => user.role.toLowerCase().includes("assistant")
+        const assistants = users.filter((user) =>
+          user.role.toLowerCase().includes("assistant")
         );
 
         const approver = users.find(
@@ -76,11 +88,9 @@ const ManageUsers = () => {
     }
   };
 
-
   const refreshUsers = () => {
     fetchAssistants();
-  }
-
+  };
 
   const handleAddUser = async (e) => {
     e.preventDefault();
@@ -107,8 +117,7 @@ const ManageUsers = () => {
       });
     } catch (error) {
       toast.error(error.response.data.message);
-      console.log('error : ', error);
-
+      console.log("error : ", error);
     } finally {
       setLoading(false);
     }
@@ -126,7 +135,9 @@ const ManageUsers = () => {
       <Toaster />
       <div className="flex items-center justify-center flex-grow p-4">
         <div className="w-full max-w-3xl bg-white shadow-lg border border-gray-200 rounded-lg p-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Manage Team</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Manage Team
+          </h3>
 
           {/* === Approver Section === */}
           <div className="mb-6">
@@ -137,13 +148,15 @@ const ManageUsers = () => {
                 className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
               >
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">{approver.fullName}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {approver.fullName}
+                  </h3>
                   <p className="text-sm text-gray-600">{approver.email}</p>
                   <span className="text-xs text-gray-400">{approver.role}</span>
                 </div>
                 <button
                   title="Delete Approver"
-                  onClick={() => handleDeleteUser(approver.id, "Approver")}
+                  onClick={() => toggleUserStatus(approver)}
                   className="text-red-600 hover:text-red-800"
                 >
                   <FaTrashAlt />
@@ -156,7 +169,9 @@ const ManageUsers = () => {
 
           {/* === Assistants Section === */}
           <div className="mb-6">
-            <h4 className="text-md font-bold text-indigo-700 mb-2">Assistants</h4>
+            <h4 className="text-md font-bold text-indigo-700 mb-2">
+              Assistants
+            </h4>
             {assistants.length === 0 ? (
               <p className="text-gray-600">No Assistants available</p>
             ) : (
@@ -167,16 +182,22 @@ const ManageUsers = () => {
                     className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
                   >
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800">{user.fullName}</h3>
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {user.fullName}
+                      </h3>
                       <p className="text-sm text-gray-600">{user.email}</p>
                       <span className="text-xs text-gray-400">{user.role}</span>
                     </div>
                     <button
                       title="Delete Assistant"
-                      onClick={() => handleDeleteUser(user.id, "Assistant")}
+                      onClick={() => toggleUserStatus(user)}
                       className="text-red-600 hover:text-red-800"
                     >
-                      <FaTrashAlt />
+                      {user.isActive ? (
+                        <button>DEACTIVATE</button>
+                      ) : (
+                        <button>ACTIVATE</button>
+                      )}
                     </button>
                   </div>
                 ))}
@@ -200,7 +221,9 @@ const ManageUsers = () => {
       {showAddUser && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Add New User</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Add New User
+            </h2>
             <form onSubmit={handleAddUser} className="space-y-4">
               <input
                 type="text"
@@ -230,7 +253,8 @@ const ManageUsers = () => {
                 required
               />
 
-              <input type="text"
+              <input
+                type="text"
                 name="mobileNo"
                 value={formData.mobileNo}
                 onChange={handleChange}
@@ -238,7 +262,6 @@ const ManageUsers = () => {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               />
-
 
               {/* Password Field */}
               <div className="relative">
@@ -266,7 +289,9 @@ const ManageUsers = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={confirmPassword}
-                  onChange={(e) => { setConfirmPassword(e.target.value) }}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                  }}
                   placeholder="Confirm Password"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10"
                   required
