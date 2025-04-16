@@ -24,6 +24,7 @@ const ManageUsers = () => {
   });
   const [assistants, setAssistants] = useState([]);
   const [approver, setApprover] = useState(null);
+  // const []
 
   const navigate = useNavigate();
 
@@ -35,7 +36,7 @@ const ManageUsers = () => {
     }
   }, [loggedInUser]);
 
-  const toggleUserStatus = async (user) => {
+  const setUserStatus = async (id, role) => {
     try {
       const currentStatus = user.isActive;
       const updateStatusURL =
@@ -156,7 +157,7 @@ const ManageUsers = () => {
                 </div>
                 <button
                   title="Delete Approver"
-                  onClick={() => toggleUserStatus(approver)}
+                  onClick={() => setUserStatus(approver.id, "Approver")}
                   className="text-red-600 hover:text-red-800"
                 >
                   <FaTrashAlt />
@@ -190,7 +191,7 @@ const ManageUsers = () => {
                     </div>
                     <button
                       title="Delete Assistant"
-                      onClick={() => toggleUserStatus(user)}
+                      onClick={() => setUserStatus(user.username, "Assistant")}
                       className="text-red-600 hover:text-red-800"
                     >
                       {user.isActive ? (
