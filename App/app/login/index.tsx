@@ -1,5 +1,6 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Formik } from 'formik';
+import { useRouter } from 'expo-router';
 import * as Yup from 'yup';
 
 const LoginSchema = Yup.object().shape({
@@ -8,14 +9,26 @@ const LoginSchema = Yup.object().shape({
 });
 
 export default function LoginScreen() {
-  const handleLogin = (values: { username: string; password: string }) => {
-    console.log('Login values:', values);
-    // Here you'll call your backend + FCM token logic
+  
+  const router = useRouter();
+  
+  const handleLogin = async (values: { username: string; password: string }) => {
+    const { username, password } = values;
+
+    if (username && password) {
+      router.replace({
+        pathname: '/home',
+        params: { username },
+      });
+      
+    } else {
+      alert('Please fill both fields');
+    }
   };
 
   return (
     <View className="flex-1 justify-center bg-white px-6">
-      <Text className="text-3xl font-bold text-blue-600 text-center mb-10">
+      <Text className="text-3xl font-bold text-blue-600 text-center mb-2">
         User Login
       </Text>
 

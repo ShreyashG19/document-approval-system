@@ -1,18 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function Index() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Delay to ensure router is mounted
     const timeout = setTimeout(() => {
-      router.replace('../login');
-    }, 10);
+      setMounted(true);
+    }, 0); // allow layout to mount
 
     return () => clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      router.replace('/login');
+    }
+  }, [mounted]);
 
   return (
     <View className="flex-1 justify-center items-center bg-white">
