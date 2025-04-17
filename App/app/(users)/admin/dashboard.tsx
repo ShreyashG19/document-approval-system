@@ -1,18 +1,31 @@
+import { useState } from 'react';
 import { View } from 'react-native';
-import DashboardTabs from '../../../components/DashboardTabs';
 import DashboardNavbar from '@/components/DashboardNavbar';
-import { useAuth } from '../../../contexts/AuthContext';
+import DashboardTabs from '@/components/DashboardTabs';
+import { router } from 'expo-router';
 
 export default function AdminDashboard() {
-  const { authState } = useAuth();
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
 
   return (
     <View className="flex-1 bg-white">
       <DashboardNavbar
-        label={`Welcome, Admin`}
-        onProfilePress={() => console.log('Go to profile')}
+        label="Welcome, Admin"
+        showSearch={searching}
+        onToggleSearch={() => {
+          if (searching) setQuery('');
+          setSearching(prev => !prev);
+        }}
+        searchValue={query}
+        onSearchChange={setQuery}
+        onNavigateToProfile={() => console.log('Go to profile')}
+        onManageUsers={() => console.log('Manage users clicked')}
+        onLogout={() => router.replace('/')}
       />
-      <DashboardTabs />
+
+
+      <DashboardTabs query={query} />
     </View>
   );
 }
