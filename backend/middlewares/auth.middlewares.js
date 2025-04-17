@@ -132,7 +132,7 @@
     //     }
     // });
     const verifySession = asyncHandler(async (req, res, next) => {
-        const token = req.cookies.token;
+        const token = req.cookies.token || req.headers?.authorization?.split(" ")[1];
         if (token) {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.session = await Session.findOne({ jti: decoded.jti });
