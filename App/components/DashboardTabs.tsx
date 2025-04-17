@@ -12,8 +12,8 @@ export default function DashboardTabs({ query }: { query: string }) {
       screenOptions={{
         swipeEnabled: true,
         tabBarLabelStyle: { fontWeight: 'bold', fontSize: 13 },
-        tabBarIndicatorStyle: { backgroundColor: '#25D366', height: 3 },
-        tabBarActiveTintColor: '#25D366',
+        tabBarIndicatorStyle: { backgroundColor: '#1E88E5', height: 3 },
+        tabBarActiveTintColor: '#1E88E5',
         tabBarInactiveTintColor: '#6B7280',
       }}
     >

@@ -37,6 +37,12 @@ const DashboardNavbar = ({
             <Ionicons name="menu-outline" size={28} color="#4B5563" />
           </TouchableOpacity>
         }
+        contentStyle={{
+          backgroundColor: '#1E88E5', // Tailwind's gray-100
+          borderRadius: 8,
+          paddingVertical: 10,
+          elevation: 4
+        }}
       >
         <Menu.Item onPress={onNavigateToProfile} title="Profile" />
         <Menu.Item onPress={onManageUsers} title="Manage Users" />
