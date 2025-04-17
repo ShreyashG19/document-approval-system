@@ -24,7 +24,6 @@ const ManageUsers = () => {
   });
   const [assistants, setAssistants] = useState([]);
   const [approver, setApprover] = useState(null);
-  // const []
 
   const navigate = useNavigate();
 
@@ -36,7 +35,7 @@ const ManageUsers = () => {
     }
   }, [loggedInUser]);
 
-  const setUserStatus = async (id, role) => {
+  const toggleUserStatus = async (user) => {
     try {
       const currentStatus = user.isActive;
       const updateStatusURL =
@@ -113,7 +112,6 @@ const ManageUsers = () => {
         username: "",
         password: "",
         mobileNo: "",
-
         role: "",
       });
     } catch (error) {
@@ -132,73 +130,97 @@ const ManageUsers = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r from-white to-blue-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-r from-blue-50 to-indigo-100">
       <Toaster />
-      <div className="flex items-center justify-center flex-grow p-4">
-        <div className="w-full max-w-3xl bg-white shadow-lg border border-gray-200 rounded-lg p-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="flex items-center justify-center flex-grow p-6">
+        <div className="w-full max-w-4xl bg-white shadow-xl rounded-xl p-8 border border-indigo-100">
+          <h3 className="text-xl font-bold text-indigo-800 mb-6 border-b pb-3 border-indigo-100">
             Manage Team
           </h3>
 
           {/* === Approver Section === */}
-          <div className="mb-6">
-            <h4 className="text-md font-bold text-indigo-700 mb-2">Approver</h4>
+          <div className="mb-8">
+            <h4 className="text-lg font-semibold text-indigo-700 mb-3 flex items-center">
+              <span className="inline-block w-2 h-6 bg-indigo-600 rounded mr-2"></span>
+              Approver
+            </h4>
             {approver ? (
               <div
                 key={approver.id}
-                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
+                className="flex justify-between items-center p-5 bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300"
               >
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {approver.fullName}
-                  </h3>
-                  <p className="text-sm text-gray-600">{approver.email}</p>
-                  <span className="text-xs text-gray-400">{approver.role}</span>
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
+                    {approver.fullName.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {approver.fullName}
+                    </h3>
+                    <p className="text-sm text-gray-600">{approver.email}</p>
+                    <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full mt-1 inline-block">
+                      {approver.role}
+                    </span>
+                  </div>
                 </div>
                 <button
-                  title="Delete Approver"
-                  onClick={() => setUserStatus(approver.id, "Approver")}
-                  className="text-red-600 hover:text-red-800"
+                  onClick={() => toggleUserStatus(approver)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    approver.isActive
+                      ? "bg-red-100 text-red-700 hover:bg-red-200"
+                      : "bg-green-100 text-green-700 hover:bg-green-200"
+                  }`}
                 >
-                  <FaTrashAlt />
+                  {approver.isActive ? "Deactivate" : "Activate"}
                 </button>
               </div>
             ) : (
-              <p className="text-gray-600">No Approver available</p>
+              <div className="p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+                <p className="text-gray-500">No Approver available</p>
+              </div>
             )}
           </div>
 
           {/* === Assistants Section === */}
-          <div className="mb-6">
-            <h4 className="text-md font-bold text-indigo-700 mb-2">
+          <div className="mb-8">
+            <h4 className="text-lg font-semibold text-indigo-700 mb-3 flex items-center">
+              <span className="inline-block w-2 h-6 bg-indigo-600 rounded mr-2"></span>
               Assistants
             </h4>
             {assistants.length === 0 ? (
-              <p className="text-gray-600">No Assistants available</p>
+              <div className="p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+                <p className="text-gray-500">No Assistants available</p>
+              </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid gap-4">
                 {assistants.map((user) => (
                   <div
                     key={user.username}
-                    className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all"
+                    className="flex justify-between items-center p-5 bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300"
                   >
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {user.fullName}
-                      </h3>
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                      <span className="text-xs text-gray-400">{user.role}</span>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
+                        {user.fullName.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {user.fullName}
+                        </h3>
+                        <p className="text-sm text-gray-600">{user.email}</p>
+                        <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full mt-1 inline-block">
+                          {user.role}
+                        </span>
+                      </div>
                     </div>
                     <button
-                      title="Delete Assistant"
-                      onClick={() => setUserStatus(user.username, "Assistant")}
-                      className="text-red-600 hover:text-red-800"
+                      onClick={() => toggleUserStatus(user)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        user.isActive
+                          ? "bg-red-100 text-red-700 hover:bg-red-200"
+                          : "bg-green-100 text-green-700 hover:bg-green-200"
+                      }`}
                     >
-                      {user.isActive ? (
-                        <button>DEACTIVATE</button>
-                      ) : (
-                        <button>ACTIVATE</button>
-                      )}
+                      {user.isActive ? "Deactivate" : "Activate"}
                     </button>
                   </div>
                 ))}
@@ -207,10 +229,10 @@ const ManageUsers = () => {
           </div>
 
           {/* === Add User Button === */}
-          <div className="flex justify-end">
+          <div className="flex justify-end border-t pt-4 border-indigo-100">
             <button
               onClick={() => setShowAddUser(true)}
-              className="text-white bg-indigo-600 hover:bg-indigo-700 p-2 rounded-lg flex items-center gap-2"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-md transition-all duration-300 font-medium"
             >
               <FaUserPlus /> Add User
             </button>
@@ -220,116 +242,154 @@ const ManageUsers = () => {
 
       {/* Add User Modal */}
       {showAddUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <div className="fixed inset-0 bg-opacity-50 justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative animate-fadeIn">
+            <h2 className="text-xl font-bold text-indigo-800 mb-6 pb-2 border-b border-indigo-100">
               Add New User
             </h2>
             <form onSubmit={handleAddUser} className="space-y-4">
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Username"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Full Name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-
-              <input
-                type="text"
-                name="mobileNo"
-                value={formData.mobileNo}
-                onChange={handleChange}
-                placeholder="Mobile No"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              />
-
-              {/* Password Field */}
-              <div className="relative">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Username
+                </label>
                 <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
+                  type="text"
+                  name="username"
+                  value={formData.username}
                   onChange={handleChange}
-                  placeholder="Password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10"
+                  placeholder="Enter username"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="Enter full name"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter email address"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Mobile Number
+                </label>
+                <input
+                  type="text"
+                  name="mobileNo"
+                  value={formData.mobileNo}
+                  onChange={handleChange}
+                  placeholder="Enter mobile number"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter password"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg pr-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-indigo-600"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
 
               {/* Confirm Password Field */}
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => {
-                    setConfirmPassword(e.target.value);
-                  }}
-                  placeholder="Confirm Password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                    }}
+                    placeholder="Confirm password"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg pr-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-indigo-600"
+                  >
+                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
 
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              >
-                <option value="">Select Role</option>
-                <option value={Role.APPROVER}>Approver</option>
-                <option value={Role.ASSISTANT}>Assistant</option>
-              </select>
-              <div className="flex justify-between mt-4">
-                <button
-                  type="submit"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Role
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                  required
                 >
-                  {loading ? "Adding..." : "Add User"}
-                </button>
+                  <option value="">Select Role</option>
+                  <option value={Role.APPROVER}>Approver</option>
+                  <option value={Role.ASSISTANT}>Assistant</option>
+                </select>
+              </div>
+
+              <div className="flex justify-between mt-6 pt-4 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setShowAddUser(false)}
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                  className="bg-gray-200 text-gray-800 px-5 py-2.5 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-md"
+                >
+                  {loading ? "Adding..." : "Add User"}
                 </button>
               </div>
             </form>
@@ -339,8 +399,11 @@ const ManageUsers = () => {
 
       {/* Loading Overlay */}
       {loading && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-          <span className="text-white text-xl">Loading...</span>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+          <div className="bg-white p-5 rounded-lg shadow-lg flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-600"></div>
+            <span className="text-gray-800 font-medium">Processing...</span>
+          </div>
         </div>
       )}
     </div>
