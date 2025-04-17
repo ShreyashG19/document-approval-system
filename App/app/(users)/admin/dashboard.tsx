@@ -1,9 +1,10 @@
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import DashboardTabs from '../../../components/DashboardTabs';
 
 export default function AdminDashboard() {
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text className="text-2xl font-bold">Welcome Admin</Text>
+    <View className="flex-1 bg-white">
+      <DashboardTabs />
     </View>
   );
 }
