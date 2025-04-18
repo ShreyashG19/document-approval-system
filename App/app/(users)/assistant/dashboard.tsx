@@ -1,9 +1,31 @@
-import { View, Text } from 'react-native';
+import { useState } from 'react';
+import { View } from 'react-native';
+import DashboardNavbar from '@/components/DashboardNavbar';
+import DashboardTabs from '@/components/DashboardTabs';
+import { router } from 'expo-router';
 
 export default function AssistantDashboard() {
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text className="text-2xl font-bold">Welcome Assistant</Text>
+    <View className="flex-1 bg-white">
+      <DashboardNavbar
+        label="Welcome, Assistant"
+        showSearch={searching}
+        onToggleSearch={() => {
+          if (searching) setQuery('');
+          setSearching(prev => !prev);
+        }}
+        searchValue={query}
+        onSearchChange={setQuery}
+        onNavigateToProfile={() => console.log('Go to profile')}
+        onManageUsers={() => console.log('Manage users clicked')}
+        onLogout={() => router.replace('/')}
+      />
+
+
+      <DashboardTabs query={query} />
     </View>
   );
 }

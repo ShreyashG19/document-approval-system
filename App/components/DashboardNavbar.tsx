@@ -38,10 +38,10 @@ const DashboardNavbar = ({
           </TouchableOpacity>
         }
         contentStyle={{
-          backgroundColor: '#1E88E5', // Tailwind's gray-100
+          backgroundColor: 'white', // Tailwind's gray-100
           borderRadius: 8,
           paddingVertical: 10,
-          elevation: 4
+          elevation: 4,
         }}
       >
         <Menu.Item onPress={onNavigateToProfile} title="Profile" />
