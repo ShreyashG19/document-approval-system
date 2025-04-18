@@ -16,14 +16,14 @@ interface Props {
 }
 
 export default function ProfileCard({
-  name = 'Adom Shafi',
-  email = 'hellobesnik@gmail.com',
+  name = 'Sahil Makandar',
+  email = 'sahilmakandar15@gmail.com',
   role = 'Admin',
   gender = 'Male',
-  birthDate = '1/11/2000',
-  mobile = '+880-1704-889-390',
-  country = 'BD',
-  zipCode = '5699',
+  birthDate = '1/23/2005',
+  mobile = '+91-9579891114',
+  country = 'India',
+  zipCode = '416 410',
   onBack,
 }: Props) {
   // Get user initials for avatar fallback
