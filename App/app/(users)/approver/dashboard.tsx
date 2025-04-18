@@ -25,7 +25,7 @@ export default function ApproverDashboard() {
       />
 
 
-      <DashboardTabs query={query} />
+      <DashboardTabs userRole='approver' query={query} />
     </View>
   );
 }

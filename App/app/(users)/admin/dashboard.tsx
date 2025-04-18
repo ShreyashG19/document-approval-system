@@ -23,7 +23,7 @@ export default function AdminDashboard() {
         onManageUsers={() => console.log('Manage users clicked')}
         onLogout={() => router.replace('/')}
       />
-      <DashboardTabs query={query} />
+      <DashboardTabs userRole='admin' query={query} />
     </View>
   );
 }
