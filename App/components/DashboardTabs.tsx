@@ -11,7 +11,7 @@ export default function DashboardTabs({ query }: { query: string }) {
     <Tab.Navigator
       screenOptions={{
         swipeEnabled: true,
-        tabBarLabelStyle: { fontWeight: 'bold', fontSize: 13 },
+        tabBarLabelStyle: { fontWeight: 'bold', fontSize: 12 }, // reduced font size
         tabBarIndicatorStyle: { backgroundColor: '#1E88E5', height: 3 },
         tabBarActiveTintColor: '#1E88E5',
         tabBarInactiveTintColor: '#6B7280',
