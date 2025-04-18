@@ -19,12 +19,10 @@ export default function AdminDashboard() {
         }}
         searchValue={query}
         onSearchChange={setQuery}
-        onNavigateToProfile={() => console.log('Go to profile')}
+        onNavigateToProfile={() => router.push('/profile')}
         onManageUsers={() => console.log('Manage users clicked')}
         onLogout={() => router.replace('/')}
       />
-
-
       <DashboardTabs query={query} />
     </View>
   );
