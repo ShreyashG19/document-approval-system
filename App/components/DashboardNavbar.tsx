@@ -44,9 +44,9 @@ const DashboardNavbar = ({
           elevation: 4,
         }}
       >
-        <Menu.Item onPress={onNavigateToProfile} title="Profile" />
-        <Menu.Item onPress={onManageUsers} title="Manage Users" />
-        <Menu.Item onPress={onLogout} title="Logout" />
+        <Menu.Item onPress={onNavigateToProfile} title="Profile" titleStyle={{color: "black"}} />
+        <Menu.Item onPress={onManageUsers} title="Manage Users" titleStyle={{color: "black"}}/>
+        <Menu.Item onPress={onLogout} title="Logout" titleStyle={{color: "black"}}/>
       </Menu>
 
       {/* Center */}

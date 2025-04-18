@@ -5,8 +5,8 @@ import { Formik } from 'formik';
 export default function LoginPage() {
   const router = useRouter();
 
-  const handleLogin = (values: { email: string; password: string }) => {
-    const user = values.email.toLowerCase().trim();
+  const handleLogin = (values: { username: string; password: string }) => {
+    const user = values.username.toLowerCase().trim();
 
     if (user === 'admin') router.push('/admin/dashboard');
     else if (user === 'assistant') router.push('/assistant/dashboard');
@@ -34,11 +34,11 @@ export default function LoginPage() {
 
         {/* Form */}
         <Formik
-          initialValues={{ email: '', password: '' }}
+          initialValues={{ username: '', password: '' }}
           onSubmit={handleLogin}
           validate={(values) => {
-            const errors: { email?: string; password?: string } = {};
-            if (!values.email) errors.email = 'Email is required';
+            const errors: { username?: string; password?: string } = {};
+            if (!values.username) errors.username = 'username is required';
             if (!values.password) errors.password = 'Password is required';
             return errors;
           }}
@@ -46,18 +46,18 @@ export default function LoginPage() {
           {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
             <>
               <View className="mb-4">
-                <Text className="text-black mb-1 ml-1">Email address</Text>
+                <Text className="text-black mb-1 ml-1">Username</Text>
                 <TextInput
                   className="border border-gray-300 rounded-lg px-4 py-3"
-                  placeholder="sahil@example.com"
-                  onChangeText={handleChange('email')}
-                  onBlur={handleBlur('email')}
-                  value={values.email}
+                  placeholder="Admin"
+                  onChangeText={handleChange('username')}
+                  onBlur={handleBlur('username')}
+                  value={values.username}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
-                {touched.email && errors.email && (
-                  <Text className="text-red-600 mt-1 ml-1 text-sm">{errors.email}</Text>
+                {touched.username && errors.username && (
+                  <Text className="text-red-600 mt-1 ml-1 text-sm">{errors.username}</Text>
                 )}
               </View>
 
