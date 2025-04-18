@@ -12,6 +12,7 @@ export default function ApproverDashboard() {
     <View className="flex-1 bg-white">
       <DashboardNavbar
         label="Welcome, Approver"
+        userRole={'approver'} 
         showSearch={searching}
         onToggleSearch={() => {
           if (searching) setQuery('');
@@ -21,6 +22,8 @@ export default function ApproverDashboard() {
         onSearchChange={setQuery}
         onNavigateToProfile={() => router.push('/profile')}
         onManageUsers={() => console.log('Manage users clicked')}
+        onViewAllUsers={() => console.log('View all users clicked')}
+        onViewHistory={() => console.log('History clicked')}
         onLogout={() => router.replace('/')}
       />
 

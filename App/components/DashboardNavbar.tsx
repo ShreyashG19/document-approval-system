@@ -11,7 +11,10 @@ interface Props {
   onToggleSearch?: () => void;
   onNavigateToProfile?: () => void;
   onManageUsers?: () => void;
+  onViewAllUsers?: () => void;
+  onViewHistory?: () => void;
   onLogout?: () => void;
+  userRole: 'admin' | 'approver' | 'assistant';
 }
 
 const DashboardNavbar = ({
@@ -23,6 +26,9 @@ const DashboardNavbar = ({
   onNavigateToProfile,
   onManageUsers,
   onLogout,
+  onViewAllUsers,
+  onViewHistory,
+  userRole
 }: Props) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
@@ -38,16 +44,28 @@ const DashboardNavbar = ({
           </TouchableOpacity>
         }
         contentStyle={{
-          backgroundColor: 'white', // Tailwind's gray-100
+          backgroundColor: 'white',
           borderRadius: 8,
           paddingVertical: 10,
           elevation: 4,
         }}
       >
-        <Menu.Item onPress={onNavigateToProfile} title="Profile" titleStyle={{color: "black"}} />
-        <Menu.Item onPress={onManageUsers} title="Manage Users" titleStyle={{color: "black"}}/>
-        <Menu.Item onPress={onLogout} title="Logout" titleStyle={{color: "black"}}/>
+        <Menu.Item onPress={onNavigateToProfile} title="Profile" titleStyle={{ color: 'black' }} />
+
+        {userRole === 'admin' && (
+          <Menu.Item onPress={onManageUsers} title="Manage Users" titleStyle={{ color: 'black' }} />
+        )}
+
+        {userRole === 'approver' && (
+          <>
+            <Menu.Item onPress={onViewAllUsers} title="All Users" titleStyle={{ color: 'black' }} />
+            <Menu.Item onPress={onViewHistory} title="History" titleStyle={{ color: 'black' }} />
+          </>
+        )}
+
+        <Menu.Item onPress={onLogout} title="Logout" titleStyle={{ color: 'black' }} />
       </Menu>
+
 
       {/* Center */}
       <View className="flex-1 mr-3">
