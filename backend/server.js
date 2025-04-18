@@ -12,8 +12,6 @@ const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
-const assistantRoutes = require("./routes/assistant.routes");
-const adminRoutes = require("./routes/admin.routes");
 const fileRoutes = require("./routes/file.routes");
 const departmentRoutes = require("./routes/department.routes");
 const notificationRoutes = require("./routes/notification.routes");
@@ -59,8 +57,6 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
-app.use("/assistant", assistantRoutes);
-app.use("/admin", adminRoutes);
 app.use("/file", fileRoutes);
 app.use("/department", departmentRoutes);
 app.use("/notification", notificationRoutes);
