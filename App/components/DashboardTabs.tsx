@@ -6,28 +6,34 @@ import CorrectionScreen from './tabscreens/CorrectionScreen';
 
 const Tab = createMaterialTopTabNavigator();
 
-export default function DashboardTabs({ query }: { query: string }) {
+export default function DashboardTabs({
+  query,
+  userRole,
+}: {
+  query: string;
+  userRole: 'admin' | 'approver' | 'assistant';
+}) {
   return (
     <Tab.Navigator
       screenOptions={{
         swipeEnabled: true,
-        tabBarLabelStyle: { fontWeight: 'bold', fontSize: 12 }, // reduced font size
+        tabBarLabelStyle: { fontWeight: 'bold', fontSize: 12 },
         tabBarIndicatorStyle: { backgroundColor: '#1E88E5', height: 3 },
         tabBarActiveTintColor: '#1E88E5',
         tabBarInactiveTintColor: '#6B7280',
       }}
     >
       <Tab.Screen name="Pending">
-        {() => <PendingScreen query={query} />}
+        {() => <PendingScreen query={query} userRole={userRole} />}
       </Tab.Screen>
       <Tab.Screen name="Approved">
-        {() => <ApprovedScreen query={query} />}
+        {() => <ApprovedScreen query={query} userRole={userRole} />}
       </Tab.Screen>
       <Tab.Screen name="Rejected">
-        {() => <RejectedScreen query={query} />}
+        {() => <RejectedScreen query={query} userRole={userRole} />}
       </Tab.Screen>
       <Tab.Screen name="Correction">
-        {() => <CorrectionScreen query={query} />}
+        {() => <CorrectionScreen query={query} userRole={userRole} />}
       </Tab.Screen>
     </Tab.Navigator>
   );
