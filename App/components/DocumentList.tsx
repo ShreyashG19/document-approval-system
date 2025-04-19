@@ -1,4 +1,3 @@
-// DocumentList.tsx
 import React from 'react';
 import { ScrollView, View, Text, Alert, ActivityIndicator } from 'react-native';
 import * as FileSystem from 'expo-file-system';
@@ -31,21 +30,13 @@ export default function DocumentList({
 }: Props) {
   const dummyPdf = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
 
-  // Generate random dates between the last 30 days
   const getRandomDate = () => {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
     return new Date(thirtyDaysAgo.getTime() + Math.random() * (now.getTime() - thirtyDaysAgo.getTime()));
   };
 
-  // Sample users based on role
-  const users = [
-    'John Smith',
-    'Maria Garcia',
-    'Alex Johnson',
-    'Sarah Lee',
-    'Mohammed Ali'
-  ];
+  const users = ['John Smith', 'Maria Garcia', 'Alex Johnson', 'Sarah Lee', 'Mohammed Ali'];
 
   const dummyDocs: Document[] = Array.from({ length: 10 }, (_, i) => ({
     id: `${userRole}-${status}-${i + 1}`,
@@ -60,10 +51,17 @@ export default function DocumentList({
     doc.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handlePreview = (url: string) => {
+  const handlePreview = (doc: Document) => {
     router.push({
-      pathname: '/pdfviewer',
-      params: { url },
+      pathname: '/(docs)/[id]',
+      params: {
+        id: doc.id,
+        title: doc.title,
+        url: doc.url,
+        status: doc.status,
+        uploadedBy: doc.uploadedBy,
+        uploadDate: doc.uploadDate.toISOString(),
+      },
     });
   };
 
@@ -72,10 +70,7 @@ export default function DocumentList({
       const filename = `${title.replace(/\s+/g, '_')}.pdf`;
       const downloadUrl = `${FileSystem.documentDirectory}${filename}`;
 
-      const { uri } = await FileSystem.downloadAsync(
-        url,
-        downloadUrl
-      );
+      const { uri } = await FileSystem.downloadAsync(url, downloadUrl);
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
@@ -124,7 +119,7 @@ export default function DocumentList({
               status={doc.status}
               uploadedBy={doc.uploadedBy}
               uploadDate={doc.uploadDate}
-              onPreview={() => handlePreview(doc.url)}
+              onPreview={() => handlePreview(doc)}
               onDownload={() => handleDownload(doc.url, doc.title)}
             />
           ))}
