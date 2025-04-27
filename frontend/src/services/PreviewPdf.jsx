@@ -68,9 +68,19 @@ const PdfViewer = () => {
         toast.dismiss(loadingToastId);
         toast.success("Document loaded successfully");
 
-        // 👇 If mobile, open PDF directly
+        // 🚀 If mobile, open PDF directly with fallback
         if (isMobile) {
-          window.open(url, "_blank");
+          const newTab = window.open(url, "_blank");
+
+          if (
+            !newTab ||
+            newTab.closed ||
+            typeof newTab.closed === "undefined"
+          ) {
+            // 🚨 Popup blocked or failed to open
+            console.warn("Popup blocked. Redirecting user...");
+            window.location.href = url;
+          }
         }
       } catch (error) {
         console.error("Preview Error:", error);
