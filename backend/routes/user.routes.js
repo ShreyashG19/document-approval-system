@@ -54,6 +54,11 @@ router.post(
     setUserStatus,
 );
 
-router.get("/get-users", verifySession, authorizeRoles([Role.ADMIN]), getUsers);
+router.get(
+    "/get-users",
+    verifySession,
+    authorizeRoles([Role.ADMIN, Role.APPROVER]),
+    getUsers,
+);
 
 module.exports = router;
