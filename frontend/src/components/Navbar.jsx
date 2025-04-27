@@ -13,7 +13,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const { loggedInUser, setLoggedInUser, loading, logout } = useAuth();
-  const { unreadCount, resetCount, fetchNotifications, fcmToken } = useNotifications();
+  const { unreadCount, resetCount, fetchNotifications, fcmToken } =
+    useNotifications();
 
   useEffect(() => {
     fetchNotifications();
@@ -39,13 +40,11 @@ const Navbar = () => {
     handleMenuClose();
   };
 
-  
-
   const navigateHome = () => {
     if (loggedInUser?.role === Role.APPROVER) {
       navigate("/MainPage/approver/dashboard");
     } else if (loggedInUser?.role === Role.ADMIN) {
-      navigate("/admin/dashboard");
+      navigate("/MainPage/admin/dashboard");
     } else {
       navigate("/MainPage/assistant/dashboard");
     }
@@ -90,7 +89,7 @@ const Navbar = () => {
       toast.error(error.message, { position: "top-center", duration: 2000 });
     }
   };
- 
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -149,17 +148,14 @@ const Navbar = () => {
         >
           <MenuItem onClick={navigateProfile}>View Profile</MenuItem>
 
-          
-            <MenuItem onClick={navigateHistory}>History</MenuItem>
-          
+          <MenuItem onClick={navigateHistory}>History</MenuItem>
 
-          {(loggedInUser?.role === Role.ADMIN) && (
+          {loggedInUser?.role === Role.ADMIN && (
             <MenuItem onClick={navigateManageUsers}>Manage Users</MenuItem>
           )}
 
           <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
-
       </div>
     </div>
   );

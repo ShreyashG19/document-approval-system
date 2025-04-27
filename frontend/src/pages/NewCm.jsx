@@ -14,6 +14,7 @@ import "../index.css";
 import CryptoJS from "crypto-js";
 import forge from "node-forge";
 import { useFileHandlers } from "../hooks/files";
+import { useNavigate } from "react-router-dom";
 
 const NewCm = ({
   handleTitleClick,
@@ -37,6 +38,8 @@ const NewCm = ({
   // const { getEncKeyForDoc } = useEncryption();
 
   const { handleDownload, handlePreview } = useFileHandlers();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDocuments();
@@ -397,10 +400,11 @@ const NewCm = ({
                   </div>
 
                   <div className="flex space-x-4 items-center mt-2 sm:mt-0">
-                    <FaEye
+                    {/* <FaEye
                       className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
                       onClick={async () => {
-                        const url = await handlePreview(item.fileUniqueName);
+                        // const url = await handlePreview(item.fileUniqueName);
+                        
                         setfileUnName(item.fileUniqueName);
                         setDescription(
                           item.description || "No description available"
@@ -408,6 +412,27 @@ const NewCm = ({
                         setDisplayRemark(item.remark || "No remarks available");
                         setRemark(item.remark || "");
                         handleTitleClick(url, item);
+                      }}
+                    /> */}
+                    {/* <FaEye
+                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                      onClick={() => {
+                        navigate("/MainPage/previewpdf", {
+                          state: {
+                            fileUniqueName: item.fileUniqueName,
+                            description:
+                              item.description || "No description available",
+                            displayRemark:
+                              item.remark || "No remarks available",
+                            remark: item.remark || "",
+                          },
+                        });
+                      }}
+                    /> */}
+                    <FaEye
+                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
+                      onClick={() => {
+                        navigate(`/MainPage/previewPdf/${item.fileUniqueName}`);
                       }}
                     />
                     <FaDownload

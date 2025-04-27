@@ -32,12 +32,14 @@ const Notifications = () => {
   const { loggedInUser, setLoggedInUser, loading, logout } = useAuth();
   const navigate = useNavigate();
 
- const navigateback = () => {
+  const navigateback = () => {
     {
       loggedInUser.role === Role.APPROVER
-        ?  navigate("/approver/dashboard")
-        :loggedInUser.role === Role.SENIOR_ASSISTANT
-        ? navigate("/assistant/dashboard"):navigate ("/admin/dashboard");}
+        ? navigate("/MainPage/approver/dashboard")
+        : loggedInUser.role === Role.SENIOR_ASSISTANT
+        ? navigate("/MainPage/assistant/dashboard")
+        : navigate("/MainPage/admin/dashboard");
+    }
   };
 
   const getNotificationColor = (type) => {

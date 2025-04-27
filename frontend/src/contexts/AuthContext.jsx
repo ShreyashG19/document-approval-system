@@ -39,9 +39,11 @@ export const AuthProvider = ({ children }) => {
       const result = await response.json();
       console.log("Auth status:", result);
       setLoggedInUser(result.user);
+      setIsAuthenticated(true);
     } catch (error) {
       console.log("AuthContext service :: checkAuthStatus :: error : ", error);
       setLoggedInUser(null);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }

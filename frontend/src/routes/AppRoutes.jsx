@@ -39,6 +39,8 @@ import MainLayout from "../components/MainLayout";
 import { onMessageListener } from "../../utils/firebaseUtils.js";
 import { toast, Toaster } from "react-hot-toast";
 import { FaBell } from "react-icons/fa";
+import PreviewPdf from "../services/PreviewPdf.jsx";
+import PdfViewer from "../services/PreviewPdf.jsx";
 
 const AppRoutes = () => {
   const { fetchNotifications } = useNotifications();
@@ -72,22 +74,21 @@ const AppRoutes = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        {/* <UsersProvider> */}
-        {/* <CryptoProvider> */}
         <NotificationProvider>
           <Toaster />
 
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/otp/verify" element={<OTPUI />} />
-            <Route path="/registrationsuccessful" element={<RegistrationSuccessful />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+            {/* <Route
+              path="/registrationsuccessful"
+              element={<RegistrationSuccessful />}
+            /> */}
+            {/* <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/forgot-password-otp" element={<ForgotPassOTP />} />
-            <Route path="/set-new-pass" element={<SetNewPassword />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/support" element={<Support />} />
+            <Route path="/set-new-pass" element={<SetNewPassword />} /> */}
+            {/* <Route path="/admin/login" element={<AdminLogin />} /> */}
+            {/* <Route path="/support" element={<Support />} /> */}
 
             {/* MainLayout Protected Routes */}
             <Route path="/MainPage" element={<MainLayout />}>
@@ -107,7 +108,10 @@ const AppRoutes = () => {
                   // </SARestrictedRoute>
                 }
               />
-              <Route path="assistant/dashboard" element={<AssistantDashboard />} />
+              <Route
+                path="assistant/dashboard"
+                element={<AssistantDashboard />}
+              />
               <Route path="remark-pdf" element={<RemarkUI />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="history" element={<History />} />
@@ -130,11 +134,13 @@ const AppRoutes = () => {
                 }
               />
               <Route path="correction" element={<Correction />} />
+              <Route
+                path="/MainPage/previewPdf/:fileName"
+                element={<PdfViewer />}
+              />
             </Route>
           </Routes>
         </NotificationProvider>
-        {/* </CryptoProvider> */}
-        {/* </UsersProvider> */}
       </AuthProvider>
     </BrowserRouter>
   );

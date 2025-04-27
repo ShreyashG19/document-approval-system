@@ -40,7 +40,7 @@ const Login = () => {
   }, []);
 
   // Redirect if user is already logged in
-  //! Make Routing neat and clean 
+  //! Make Routing neat and clean
   const roleRoutes = {
     [Role.APPROVER]: "/MainPage/approver/dashboard",
     [Role.SENIOR_ASSISTANT]: "/MainPage/assistant/dashboard",
@@ -106,7 +106,7 @@ const Login = () => {
       if (!response.ok) throw new Error((await response.json()).message);
 
       const result = await response.json();
-      console.log('User: ', result);
+      console.log("User: ", result);
 
       setLoggedInUser(result.user);
       setUsername("");
@@ -117,10 +117,10 @@ const Login = () => {
       // Redirect based on role
       navigate(
         {
-          [Role.APPROVER]: "/approver/dashboard",
-          [Role.SENIOR_ASSISTANT]: "/assistant/dashboard",
-          [Role.ASSISTANT]: "/assistant/dashboard",
-          [Role.ADMIN]: "/admin/dashboard",
+          [Role.APPROVER]: "/MainPage/approver/dashboard",
+          [Role.SENIOR_ASSISTANT]: "/MainPage/assistant/dashboard",
+          [Role.ASSISTANT]: "/MainPage/assistant/dashboard",
+          [Role.ADMIN]: "/MainPage/admin/dashboard",
         }[result.user.role] || "/"
       );
     } catch (error) {
@@ -166,8 +166,6 @@ const Login = () => {
               icon={showPassword ? <FaEye /> : <FaEyeSlash />}
               onIconClick={() => setShowPassword(!showPassword)}
             />
-
-
 
             <button
               type="submit"
