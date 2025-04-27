@@ -44,39 +44,33 @@ const PdfViewer = () => {
     const fetchPdf = async () => {
       try {
         const encKey = await getEncKeyForDoc(fileName);
-        const downloadUrl = `${
-          import.meta.env.VITE_API_URL
-        }/file/download-pdf/${fileName}`;
-
+        const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
+    
         const loadingToastId = toast.info("Loading your document...", {
           autoClose: false,
         });
-
+    
         const response = await axios.get(downloadUrl, {
           withCredentials: true,
           responseType: "text",
         });
-
+    
         const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
         const typedArray = convertWordArrayToUint8Array(decrypted);
-
+    
         const blob = new Blob([typedArray], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         setFileUrl(url);
         setLoading(false);
-
+    
         toast.dismiss(loadingToastId);
         toast.success("Document loaded successfully");
-
+    
         // 🚀 If mobile, open PDF directly with fallback
         if (isMobile) {
           const newTab = window.open(url, "_blank");
-
-          if (
-            !newTab ||
-            newTab.closed ||
-            typeof newTab.closed === "undefined"
-          ) {
+    
+          if (!newTab || newTab.closed || typeof newTab.closed === "undefined") {
             // 🚨 Popup blocked or failed to open
             console.warn("Popup blocked. Redirecting user...");
             window.location.href = url;
@@ -88,6 +82,7 @@ const PdfViewer = () => {
         setLoading(false);
       }
     };
+    
 
     fetchPdf();
 
