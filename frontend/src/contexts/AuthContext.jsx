@@ -2,15 +2,13 @@ import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 export const AuthContext = createContext();
 export const useAuth = () => React.useContext(AuthContext);
+
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [tempUser, setTempUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // const login = () => {
-  //   setIsAuthenticated(true);
-  // };
 
   const logout = () => {
     setLoggedInUser(null);
@@ -33,7 +31,7 @@ export const AuthProvider = ({ children }) => {
       if (!response.ok) {
         const error = await response.json();
         console.log(error.message);
-        throw new Error(`${response.message}`);
+        throw new Error(error.message || "Authentication failed");
       }
 
       const result = await response.json();

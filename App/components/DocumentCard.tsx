@@ -74,7 +74,7 @@ export default function DocumentCard({
       <View className="flex-row justify-between mt-2">
         <TouchableOpacity
           onPress={onPreview}
-          className="flex-1 py-2 flex-row justify-center items-center space-x-1 rounded-l-md bg-blue-50"
+          className="flex-1 py-2 flex-row justify-center items-center space-x-1 rounded-l-md  "
         >
           <Ionicons name="eye-outline" size={18} color="#2563EB" />
           <Text className="text-blue-600 font-medium">Preview</Text>

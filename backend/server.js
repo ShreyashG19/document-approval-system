@@ -18,18 +18,22 @@ const notificationRoutes = require("./routes/notification.routes");
 
 const app = express();
 const corsOptions = {
-    origin: ["http://localhost:5174", "http://localhost:5173"],
-    credentials: true,
+  origin: [
+    "http://localhost:5174",
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ],
+  credentials: true,
 };
 
 connectDB(config.mongodbUri)
-    .then(() => {
-        console.log("MongoDB connection successfull!");
-    })
-    .catch((error) => {
-        console.log("server service :: connectDB :: error : ", error);
-        console.log("MongoDB connection failed!!!!!");
-    });
+  .then(() => {
+    console.log("MongoDB connection successfull!");
+  })
+  .catch((error) => {
+    console.log("server service :: connectDB :: error : ", error);
+    console.log("MongoDB connection failed!!!!!");
+  });
 
 // app.use(
 //     session({
@@ -51,8 +55,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
-    console.log("new connection");
-    res.send("welcome to document approval system");
+  console.log("new connection");
+  res.send("welcome to document approval system");
 });
 
 app.use("/auth", authRoutes);
@@ -64,5 +68,5 @@ app.use("/notification", notificationRoutes);
 app.use(errorHandler);
 const PORT = config.port || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
