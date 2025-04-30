@@ -101,6 +101,7 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
   });
 });
 
+// technalogiya
 // const downloadPdf = asyncHandler(async (req, res, next) => {
 //   const fileName = req.params.filename;
 //   console.log("fileName", fileName);
@@ -156,14 +157,26 @@ const downloadPdf = asyncHandler(async (req, res, next) => {
     return res.status(404).json({ error: "File not found" });
   }
 
+  // Set headers
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename="${file.originalName || fileName}"`
+    `attachment; filename="${encodeURIComponent(
+      file.originalName || fileName
+    )}"`
   );
 
+  // Stream the file
   const fileStream = fs.createReadStream(filePath);
   fileStream.pipe(res);
+
+  // Handle stream errors
+  fileStream.on("error", (err) => {
+    console.error("File stream error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Error streaming file" });
+    }
+  });
 });
 
 const fetchDocuments = async (query, sortOptions) => {
