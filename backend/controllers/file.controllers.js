@@ -100,37 +100,70 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
     },
   });
 });
- 
+
+// const downloadPdf = asyncHandler(async (req, res, next) => {
+//   const fileName = req.params.filename;
+//   console.log("fileName", fileName);
+//   const file = await File.findOne({ fileUniqueName: fileName });
+//   if (!file) {
+//     const error = new Error("File not found");
+//     error.status = 404;
+//     return next(error);
+//   }
+//   await req.session.populate("user");
+
+//   if (
+//     req.session.user.role === Role.ASSISTANT &&
+//     file.createdBy.toString() !== req.session.user.id
+//   ) {
+//     const error = new Error("You are not authorized to download this file");
+//     error.status = 403;
+//     return next(error);
+//   }
+
+//   const filePath = path.join(appConfig.baseUploadDir, file.fileUniqueName);
+//   if (!fs.existsSync(filePath)) {
+//     const error = new Error("File not found");
+//     error.status = 404;
+//     return next(error);
+//   }
+//   const fileContent = fs.readFileSync(filePath, "utf8");
+//   res.send(fileContent);
+// });
+
 const downloadPdf = asyncHandler(async (req, res, next) => {
   const fileName = req.params.filename;
   console.log("fileName", fileName);
+
   const file = await File.findOne({ fileUniqueName: fileName });
   if (!file) {
-    const error = new Error("File not found");
-    error.status = 404;
-    return next(error);
+    return res.status(404).json({ error: "File not found" });
   }
-  await req.session.populate("user");
 
-  
+  await req.session.populate("user");
 
   if (
     req.session.user.role === Role.ASSISTANT &&
     file.createdBy.toString() !== req.session.user.id
   ) {
-    const error = new Error("You are not authorized to download this file");
-    error.status = 403;
-    return next(error);
+    return res
+      .status(403)
+      .json({ error: "You are not authorized to download this file" });
   }
 
   const filePath = path.join(appConfig.baseUploadDir, file.fileUniqueName);
   if (!fs.existsSync(filePath)) {
-    const error = new Error("File not found");
-    error.status = 404;
-    return next(error);
+    return res.status(404).json({ error: "File not found" });
   }
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  res.send(fileContent);
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${file.originalName || fileName}"`
+  );
+
+  const fileStream = fs.createReadStream(filePath);
+  fileStream.pipe(res);
 });
 
 const fetchDocuments = async (query, sortOptions) => {
