@@ -468,13 +468,7 @@ const AdminDashboard = () => {
         <DialogActions></DialogActions>
       </Dialog>
       {/* Add Document Button */}
-      <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
-        <IoIosAdd
-          className="text-4xl"
-          onClick={() => setNewDocDialogOpen(true)}
-          disabled={isLoading}
-        />
-      </div>
+      
 
       {/* PDF Preview Dialog */}
       <Dialog
