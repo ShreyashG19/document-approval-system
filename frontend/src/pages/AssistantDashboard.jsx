@@ -20,7 +20,7 @@ import { CryptoService } from "../../utils/cryptoSecurity";
 import { getStatusColor } from "../../utils/statusColors";
 import { useEncryption } from "../contexts/EncryptionContext";
 import { useFileHandlers } from "../hooks/files";
-
+import { useRef } from "react";
 const AssistantDashboard = () => {
   const [cryptoService] = useState(new CryptoService());
   const [username, setUsername] = useState("John Doe"); // Replace with actual username fetching logic
@@ -35,6 +35,7 @@ const AssistantDashboard = () => {
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const { handleUpload } = useFileHandlers();
+  const [isUploading, setIsUploading] = useState(false);
 
 
   // const {getEncKeyForAssistant} = useEncryption();
@@ -68,6 +69,7 @@ const AssistantDashboard = () => {
     createdDate: "",
     status: "",
   });
+  const toastIdRef = useRef(null);
 
   const [documentsCache, setDocumentsCache] = useState({});
 
@@ -106,7 +108,7 @@ const AssistantDashboard = () => {
       setFilteredData(documentsCache[selectedTab]);
       return;
     }
-  
+
     try {
       setIsLoading(true);
       const response = await axios.get(
@@ -125,7 +127,7 @@ const AssistantDashboard = () => {
       setIsLoading(false);
     }
   };
-  
+
   const handleRefresh = async () => {
     setIsLoading(true);
     await fetchDocuments();
@@ -141,7 +143,7 @@ const AssistantDashboard = () => {
     initialize();
   }, []);
 
-  
+
   // Fetch Departments
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -177,24 +179,41 @@ const AssistantDashboard = () => {
       toast.error("Please fill all required fields");
       return;
     }
-  
-    handleUpload({
-      file: newDocFile,
-      department: newDocDepartment,
-      title: newDocTitle,
-      description: newDocDesc,
-      onSuccess: () => {
-        setNewDocFile(null);
-        setNewDocDepartment("");
-        setNewDocTitle("");
-        setNewDocDesc("");
-        fetchDocuments();
-        setNewDocDialogOpen(false);
-        setUploadSuccess(true);
-      },
+
+    setIsUploading(true); // 🔐 Disable form
+
+    const uploadPromise = new Promise((resolve, reject) => {
+      handleUpload({
+        file: newDocFile,
+        department: newDocDepartment,
+        title: newDocTitle,
+        description: newDocDesc,
+        onSuccess: () => {
+          // ✅ Reset state
+          setNewDocFile(null);
+          setNewDocDepartment("");
+          setNewDocTitle("");
+          setNewDocDesc("");
+          setNewDocDialogOpen(false);
+          setUploadSuccess(true);
+          setIsUploading(false); // 🔓 Enable form
+          resolve();
+        },
+        onError: (err) => {
+          setIsUploading(false); // 🔓 Enable form even on error
+          reject(err);
+        },
+      });
     });
 
+    toast.promise(uploadPromise, {
+      loading: "Uploading document...",
+      success: "File uploaded successfully!",
+      error: "Failed to upload document",
+    });
   };
+
+
 
   useEffect(() => {
     if (uploadSuccess) {
@@ -202,7 +221,7 @@ const AssistantDashboard = () => {
       setUploadSuccess(false); // reset for next upload
     }
   }, [uploadSuccess]);
-  
+
   const resetFilters = () => {
     setSearchQuery("");
     setStartDate("");
@@ -382,7 +401,7 @@ const AssistantDashboard = () => {
                 setCurrentDocDetails(details);
                 setViewPdfDialogOpen(true);
               }}
-              // encKey={encKey}
+            // encKey={encKey}
             />
           )}
         </div>
@@ -411,19 +430,21 @@ const AssistantDashboard = () => {
         <DialogContent>
           <div className="flex gap-4 h-[80vh]">
             {/* PDF Viewer - Left Side */}
-            <div className="flex-grow">
+            {currentPdfUrl && (
               <object
                 data={currentPdfUrl}
                 type="application/pdf"
-                width="100%"
-                height="100%"
+                className="w-full h-[75vh] rounded-md border"
+                onLoad={() => {
+                  if (toastIdRef.current) {
+                    toast.dismiss(toastIdRef.current);
+                    toastIdRef.current = null;
+                  }
+                }}
               >
-                <p>
-                  Your browser does not support PDFs.{" "}
-                  <a href={currentPdfUrl}>Download the PDF</a>.
-                </p>
+                <p className="text-center text-sm mt-4">PDF preview is not supported in this browser.</p>
               </object>
-            </div>
+            )}
 
             {/* Details Panel - Right Side */}
             <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
@@ -487,8 +508,13 @@ const AssistantDashboard = () => {
       {/* PDF Preview Dialog */}
       <Dialog
         open={newDocDialogOpen}
-        onClose={() => setNewDocDialogOpen(false)}
+        onClose={() => {
+          if (!isUploading()) {
+            setNewDocDialogOpen(false);
+          }
+        }}
       >
+
         <DialogTitle>Upload Document</DialogTitle>
         <DialogContent>
           <TextField
@@ -496,20 +522,25 @@ const AssistantDashboard = () => {
             label="Document Title"
             type="text"
             fullWidth
+            disabled={isUploading}
             value={newDocTitle}
             onChange={(e) => setNewDocTitle(e.target.value)}
-            disabled={isLoading}
+
           />
           <TextField
             select
             margin="dense"
             fullWidth
+            disabled={isUploading}
             value={newDocDepartment}
             onChange={(e) => setNewDocDepartment(e.target.value)}
             SelectProps={{ native: true }}
-            disabled={isLoading}
+
           >
-            <option value="">Select Department</option>
+            <option
+              disabled={isUploading}
+              value="">Select Department</option>
+
             {departments?.map((department, idx) => (
               <option key={idx} value={department}>
                 {department}
@@ -519,10 +550,11 @@ const AssistantDashboard = () => {
 
           <input
             type="file"
+            disabled={isUploading}
             accept=".pdf"
             onChange={(e) => setNewDocFile(e.target.files[0])}
             className="my-4"
-            disabled={isLoading}
+
           />
           <TextField
             margin="dense"
@@ -531,19 +563,16 @@ const AssistantDashboard = () => {
             fullWidth
             multiline
             rows={4}
+            disabled={isUploading}
             value={newDocDesc}
             onChange={(e) => setNewDocDesc(e.target.value)}
-            disabled={isLoading}
           />
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setNewDocDialogOpen(false)}
-            disabled={isLoading}
-          >
+          <Button disabled={isUploading} onClick={() => setNewDocDialogOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleDocumentUpload} disabled={isLoading}>
+          <Button onClick={handleDocumentUpload} disabled={isUploading}>
             Upload
           </Button>
         </DialogActions>
