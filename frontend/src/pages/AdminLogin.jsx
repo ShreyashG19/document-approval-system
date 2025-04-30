@@ -18,6 +18,8 @@ const AdminLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
     const apiUrl = import.meta.env.VITE_API_URL + "/user/signin";
 
     const formData = {
@@ -30,6 +32,7 @@ const AdminLogin = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
           body: JSON.stringify(formData),
           credentials: "include",

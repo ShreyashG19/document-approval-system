@@ -24,26 +24,34 @@ export const EncryptionProvider = ({ children }) => {
     const getEncKeyForAssistant = async () => {
         const { publicKeyPem, privateKeyPem } = getOrGenerateKeys();
         const cacheKey = "self";
-
+    
         if (encKeyCache.current[cacheKey]) {
             return encKeyCache.current[cacheKey];
         }
-
+    
         try {
+            const token = localStorage.getItem("token");
+            if(!token) throw new Error("Token not found. Please log in again.");
+            
             const response = await axios.post(
                 `${import.meta.env.VITE_API_URL}/file/get-enc-key`,
-                { clientPublicKey: publicKeyPem },
-                { withCredentials: true }
+                { clientPublicKey: publicKeyPem }, // Request body
+                { 
+                    headers: { 
+                        "Authorization": `Bearer ${token}` 
+                    },
+                    withCredentials: true 
+                } // Config object
             );
+            
             const encryptedEncKey = response.data.encryptedEncKey;
-
             const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
             const decryptedKey = privateKey.decrypt(
                 forge.util.decode64(encryptedEncKey),
                 "RSA-OAEP",
                 { md: forge.md.sha256.create() }
             );
-
+    
             encKeyCache.current[cacheKey] = decryptedKey;
             return decryptedKey;
         } catch (err) {
@@ -54,36 +62,46 @@ export const EncryptionProvider = ({ children }) => {
     };
 
     const getEncKeyForDoc = async (fileUniqueName) => {
-        const { publicKeyPem, privateKeyPem } = getOrGenerateKeys();
+    const { publicKeyPem, privateKeyPem } = getOrGenerateKeys();
 
-        if (encKeyCache.current[fileUniqueName]) {
-            return encKeyCache.current[fileUniqueName];
-        }
+    if (encKeyCache.current[fileUniqueName]) {
+        return encKeyCache.current[fileUniqueName];
+    }
 
-        try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/file/get-enc-key`,
-                { clientPublicKey: publicKeyPem, fileUniqueName },
-                { withCredentials: true }
-            );
+    try {
+        const token = localStorage.getItem("token");
+        if(!token) throw newError("Token not found. Please log in again.");
+        
+        const response = await axios.post(
+            `${import.meta.env.VITE_API_URL}/file/get-enc-key`,
+            { 
+                clientPublicKey: publicKeyPem, 
+                fileUniqueName 
+            }, // Request body
+            { 
+                headers: { 
+                    "Authorization": `Bearer ${token}` 
+                },
+                withCredentials: true 
+            } // Config object
+        );
 
-            const encryptedEncKey = response.data.encryptedEncKey;
+        const encryptedEncKey = response.data.encryptedEncKey;
+        const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+        const decryptedKey = privateKey.decrypt(
+            forge.util.decode64(encryptedEncKey),
+            "RSA-OAEP",
+            { md: forge.md.sha256.create() }
+        );
 
-            const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-            const decryptedKey = privateKey.decrypt(
-                forge.util.decode64(encryptedEncKey),
-                "RSA-OAEP",
-                { md: forge.md.sha256.create() }
-            );
-
-            encKeyCache.current[fileUniqueName] = decryptedKey;
-            return decryptedKey;
-        } catch (err) {
-            toast.error("Failed to fetch encryption key for document");
-            console.error(err);
-            return null;
-        }
-    };
+        encKeyCache.current[fileUniqueName] = decryptedKey;
+        return decryptedKey;
+    } catch (err) {
+        toast.error("Failed to fetch encryption key for document");
+        console.error(err);
+        return null;
+    }
+};
 
     return (
         <EncryptionContext.Provider

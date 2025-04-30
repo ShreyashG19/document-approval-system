@@ -64,11 +64,13 @@ const Navbar = () => {
     const toastId = toast.loading("Logging out...", { position: "top-center" });
 
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await fetch(
         import.meta.env.VITE_API_URL + "/auth/logout",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
           body: JSON.stringify({ deviceToken: fcmToken }),
           credentials: "include",
         }

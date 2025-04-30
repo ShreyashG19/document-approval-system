@@ -35,9 +35,12 @@ export const useFileHandlers = () => {
 
   const handlePreview = async (fileName) => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
+      
       const encKey = await getEncKeyForDoc(fileName);
       const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
+      const response = await axios.get(downloadUrl, {headers: {"Authorization": `Bearer ${token}`}},{
         withCredentials: true,
         responseType: "text",
       });
@@ -56,9 +59,11 @@ export const useFileHandlers = () => {
 
   const handleDownload = async (fileName) => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const encKey = await getEncKeyForDoc(fileName);
       const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
+      const response = await axios.get(downloadUrl, {headers: {"Authorization": `Bearer ${token}`}}, {
         withCredentials: true,
         responseType: "text",
       });
@@ -105,9 +110,11 @@ export const useFileHandlers = () => {
           formData.append("department", department);
           formData.append("title", title);
           formData.append("description", description);
+          const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
           const uploadUrl = `${import.meta.env.VITE_API_URL}/file/upload-pdf`;
-          const response = await axios.post(uploadUrl, formData, {
+          const response = await axios.post(uploadUrl, formData, {headers: {"Authorization": `Bearer ${token}`}}, {
             withCredentials: true,
           });
 

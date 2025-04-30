@@ -37,6 +37,8 @@ const ManageUsers = () => {
 
   const toggleUserStatus = async (user) => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const currentStatus = user.isActive;
       const updateStatusURL =
         import.meta.env.VITE_API_URL + "/user/set-user-status";
@@ -47,6 +49,7 @@ const ManageUsers = () => {
           username: user.username,
           isActive: !currentStatus,
         },
+        {headers:{"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
 
@@ -61,8 +64,11 @@ const ManageUsers = () => {
 
   const fetchAssistants = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.get(
         import.meta.env.VITE_API_URL + "/user/get-users",
+        {headers:{"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
 
@@ -101,8 +107,10 @@ const ManageUsers = () => {
 
     setLoading(true);
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const registerURL = import.meta.env.VITE_API_URL + "/auth/register";
-      await axios.post(registerURL, formData, { withCredentials: true });
+      await axios.post(registerURL, formData, {headers: {"Authorization": `Bearer ${token}`}},{ withCredentials: true });
       toast.success("User added successfully!");
       refreshUsers();
       setShowAddUser(false);

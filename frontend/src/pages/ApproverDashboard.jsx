@@ -55,15 +55,24 @@ const ApproverDashboard = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?status=pending`,
-        {
-          withCredentials: true,
+      const token = localStorage.getItem("token");
+      console.log("approver dashboard token", token);
+      if(!token) throw new Error("Token not found. Please log in again.");
+      const url = `${import.meta.env.VITE_API_URL}/file/get-documents?status=pending`
+      const response = await fetch(
+        url,
+        { 
+          method : "GET",
+          headers: { 
+            "Authorization": `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
         }
       );
+      const data = await response.json();
 
-      if (response.data.status && response.data.documents) {
-        setFilteredData(response.data.documents);
+      if (data.status && data.documents) {
+        setFilteredData(data.documents);
       } else {
         throw new Error("Invalid response format");
       }
@@ -99,6 +108,8 @@ const ApproverDashboard = () => {
         reject: "Rejecting Document...",
         correction: "Sending Document for Correction...",
       };
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       const loadingToast = toast.loading(actionMessages[actionType]);
       const actionEndpoints = {
@@ -113,6 +124,7 @@ const ApproverDashboard = () => {
           fileUniqueName: fileUnName,
           remarks: remark,
         },
+        { headers: {"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
 

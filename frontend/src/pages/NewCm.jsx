@@ -113,11 +113,11 @@ const NewCm = ({
       if (startDate) queryParams.append("startDate", startDate);
       if (endDate) queryParams.append("endDate", endDate);
       if (searchTerm.trim()) queryParams.append("search", searchTerm.trim());
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
-      const getDocsUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/get-documents?${queryParams}`;
-      const response = await axios.get(getDocsUrl, { withCredentials: true });
+      const getDocsUrl = `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams}`;
+      const response = await axios.get(getDocsUrl, { headers:{"Authorization": `Bearer ${token}`}, withCredentials: true});
       console.log(response.data);
 
       if (response.data.status && response.data.documents) {
@@ -136,9 +136,12 @@ const NewCm = ({
   };
   const fetchDepartments = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
+      // console.log("akjsdbfadsbfkjadsf",token)
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
-        { withCredentials: true }
+        {headers:{"Authorization": `Bearer ${token}`}, withCredentials: true},
       );
       if (response.data && response.data.data) {
         // Add console.log to debug the response
@@ -192,10 +195,13 @@ const NewCm = ({
     console.log("fileUniqueName:", fileUniqueName);
 
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       toast.loading("Approving document...");
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/file/approve`,
         { fileUniqueName },
+        {headers: { "Authorization": `Bearer ${token}` }},
         { withCredentials: true }
       );
       closeModal();
@@ -213,10 +219,13 @@ const NewCm = ({
   const handleReject = async (fileUniqueName) => {
     console.log("rejected file", fileUniqueName);
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       toast.loading("Rejecting document...");
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/file/reject`,
         { fileUniqueName },
+        {headers: { "Authorization": `Bearer ${token}` }},
         { withCredentials: true }
       );
       closeModal();

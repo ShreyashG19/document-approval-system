@@ -43,6 +43,8 @@ const PdfViewer = () => {
 
     const fetchPdf = async () => {
       try {
+        const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
         const encKey = await getEncKeyForDoc(fileName);
         const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
     
@@ -50,7 +52,7 @@ const PdfViewer = () => {
           autoClose: false,
         });
     
-        const response = await axios.get(downloadUrl, {
+        const response = await axios.get(downloadUrl, {headers: {"Authorization":`Bearer ${token}`}}, {
           withCredentials: true,
           responseType: "text",
         });

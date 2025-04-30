@@ -112,12 +112,15 @@ const ChangePassword = () => {
     const toastId = toast.loading("Changing password...");
 
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/user/change-password`,
         {
           currentPassword,
           newPassword,
         },
+        {headers: { "Authorization": `Bearer ${token}` }},
         {
           withCredentials: true,
         }

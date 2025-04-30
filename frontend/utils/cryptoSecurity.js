@@ -45,8 +45,11 @@ export class CryptoService {
       const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
 
       console.log("Requesting encrypted key from server...");
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.post(
         `${apiUrl}/file/get-enc-key`,
+        {headers: { "Authorization": `Bearer ${token}` }},
         { clientPublicKey: publicKeyPem },
         { withCredentials: true }
       );

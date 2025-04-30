@@ -20,11 +20,14 @@ const Support = () => {
 
     try {
       // Replace with your API endpoint
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const apiUrl = import.meta.env.VITE_API_URL + "/support/contact";
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
