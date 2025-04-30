@@ -1,7 +1,7 @@
 // useFileHandlers.js
 import axios from "axios";
 import { toast } from "react-toastify";
-
+//for encryption
 const convertWordArrayToUint8Array = (wordArray) => {
   const len = wordArray.sigBytes;
   const words = wordArray.words;
