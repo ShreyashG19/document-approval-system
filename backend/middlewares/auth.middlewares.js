@@ -147,6 +147,7 @@ const verifySession = asyncHandler(async (req, res, next) => {
 });
 const verifyAlreadyLoggedIn = asyncHandler(async (req, res, next) => {
     const token = req.cookies.token;
+    console.log(token);
     if (token) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.session = await Session.findOne({ jti: decoded.jti });
