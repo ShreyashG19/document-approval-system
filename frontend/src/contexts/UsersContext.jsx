@@ -11,9 +11,13 @@ export const UsersProvider = ({ children }) => {
   };
   const fetchApprover = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const getApproverUrl =
         import.meta.env.VITE_API_URL + "/assistant/get-approver";
-      const response = await axios.get(getApproverUrl, {
+      const response = await axios.get(getApproverUrl, 
+        {headers: { "Authorization": `Bearer ${token}` }},
+        {
         withCredentials: true,
       });
       console.log("response", response);
@@ -31,9 +35,13 @@ export const UsersProvider = ({ children }) => {
 
   const fetchAssistants = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const getAssistantsUrl =
         import.meta.env.VITE_API_URL + "/assistant/get-created-assistants";
-      const response = await axios.get(getAssistantsUrl, {
+      const response = await axios.get(getAssistantsUrl, 
+        {headers: { "Authorization": `Bearer ${token}` }},
+        { 
         withCredentials: true,
       });
       console.log("response", response);

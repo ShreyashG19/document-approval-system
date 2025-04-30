@@ -52,10 +52,12 @@ const EditProfile = () => {
         fullName: name,
         mobileNo: phone,
       };
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const updateProfileUrl =
         import.meta.env.VITE_API_URL + "/user/update-profile";
 
-      const response = await axios.post(updateProfileUrl, updatedData, {
+      const response = await axios.post(updateProfileUrl, updatedData,{headers:{"Authorization": `Bearer ${token}`}}, {
         withCredentials: true,
       });
 

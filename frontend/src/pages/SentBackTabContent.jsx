@@ -68,9 +68,12 @@ const SentBackTabContent = ({
       if (endDate) {
         queryParams.append("endDate", endDate);
       }
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/file/get-documents?${queryParams}`,
+        {headers:{"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
 
@@ -98,8 +101,11 @@ const SentBackTabContent = ({
   }, [category, startDate, endDate]);
   const fetchDepartments = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+        {headers:{"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
       if (response.data && response.data.data) {
@@ -151,6 +157,8 @@ const SentBackTabContent = ({
       const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048, e: 0x10001 });
       const publicKeyPem = forge.pki.publicKeyToPem(keyPair.publicKey);
       const privateKeyPem = forge.pki.privateKeyToPem(keyPair.privateKey);
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       // Send Public Key to Server
       const responseUrl = `${import.meta.env.VITE_API_URL}/file/get-enc-key`;
@@ -164,6 +172,7 @@ const SentBackTabContent = ({
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
         }
       );
@@ -193,11 +202,13 @@ const SentBackTabContent = ({
         toast.error("Encryption key not available");
         return;
       }
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       const downloadUrl = `${
         import.meta.env.VITE_API_URL
       }/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
+      const response = await axios.get(downloadUrl, {headers: {"Authorization": `Bearer: ${token}`}}, {
         withCredentials: true,
         responseType: "text",
       });
@@ -215,10 +226,13 @@ const SentBackTabContent = ({
     console.log("fileUniqueName:", fileUniqueName);
 
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       toast.loading("Approving document...");
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/file/approve`,
         { fileUniqueName },
+        {headers:{"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
       closeModal();
@@ -236,10 +250,13 @@ const SentBackTabContent = ({
   const handleReject = async (fileUniqueName) => {
     console.log("rejected file", fileUniqueName);
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       toast.loading("Rejecting document...");
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/file/reject`,
         { fileUniqueName },
+        {headers:{"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
       closeModal();
@@ -264,11 +281,13 @@ const SentBackTabContent = ({
           return null;
         }
       }
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       const downloadUrl = `${
         import.meta.env.VITE_API_URL
       }/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
+      const response = await axios.get(downloadUrl,  {headers: {"Authorization": `Bearer: ${token}`},
         withCredentials: true,
         responseType: "text",
       });

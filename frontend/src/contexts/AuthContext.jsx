@@ -19,11 +19,15 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       setLoading(true);
-      const authUrl = import.meta.env.VITE_API_URL + "/auth/get-session";
+      const token = localStorage.getItem("token");
+      console.log("token at auth context: ",token)
+      if (!token) throw new Error("Token not found. Please log in again.");
+      const authUrl = `${import.meta.env.VITE_API_URL}/auth/get-session`;
       const response = await fetch(authUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         credentials: "include",
       });

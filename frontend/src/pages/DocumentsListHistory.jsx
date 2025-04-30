@@ -28,10 +28,13 @@ const DocumentsListHistory = ({
 
       const queryParams = new URLSearchParams();
       if (department) queryParams.append("department", department);
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL
         }/file/get-documents?status=rejected-approved-correction&${queryParams}`,
+        {headers: { "Authorization": `Bearer ${token}` }},
         { withCredentials: true }
       );
 
@@ -71,7 +74,8 @@ const DocumentsListHistory = ({
   const handleDownload = async (fileName) => {
     try {
       let currentEncKey = await getEncKeyForDoc(fileName);
-
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       console.log("Downloading:", fileName);
       const downloadUrl = `${import.meta.env.VITE_API_URL
@@ -79,7 +83,7 @@ const DocumentsListHistory = ({
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
-      });
+      }, {headers: { "Authorization": `Bearer ${token}` }});
 
       // Decrypt the content using the secure key
       const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
@@ -127,6 +131,8 @@ const DocumentsListHistory = ({
   const handlePreview = async (fileName) => {
     try {
       let currentEncKey = await getEncKeyForDoc(fileName);
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
 
       console.log("fileName", fileName);
@@ -135,7 +141,7 @@ const DocumentsListHistory = ({
       const response = await axios.get(downloadUrl, {
         withCredentials: true,
         responseType: "text",
-      });
+      }, {headers: { "Authorization": `Bearer ${token}` }});
 
       // Decrypt the content using the secure key
       const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);

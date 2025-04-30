@@ -28,11 +28,14 @@ const DocumentsList = ({
       const queryParams = new URLSearchParams();
       if (status && status !== "all") queryParams.append("status", status);
       if (department) queryParams.append("department", department);
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
 
       const response = await axios.get(
         `${
           import.meta.env.VITE_API_URL
         }/file/get-documents?${queryParams.toString()}`,
+        { headers: { "Authorization": `Bearer ${token}` } },
         { withCredentials: true }
       );
 

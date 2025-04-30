@@ -109,8 +109,11 @@ const AssistantDashboard = () => {
   
     try {
       setIsLoading(true);
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/file/get-documents?status=${selectedTab.toLowerCase()}`,
+        { headers: {"Authorization": `Bearer ${token}`}},
         { withCredentials: true }
       );
       setDocuments(response.data.documents);
@@ -146,8 +149,11 @@ const AssistantDashboard = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
+        const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
+          {headers: {"Authorization": `Bearer ${token}`}},
           { withCredentials: true }
         );
         console.log("departments : ", response.data.data);

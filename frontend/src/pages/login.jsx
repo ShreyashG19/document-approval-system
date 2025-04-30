@@ -93,11 +93,16 @@ const Login = () => {
 
     // API call
     try {
+      // const token = localStorage.getItem("token");
+      // if (!token) throw new Error("Token not found. Please log in again.");
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/auth/login`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            // "Authorization": token
+          },
           body: JSON.stringify({ username, password, deviceToken: fcmToken }),
           credentials: "include",
         }
@@ -107,7 +112,7 @@ const Login = () => {
 
       const result = await response.json();
       console.log("User: ", result);
-
+      localStorage.setItem("token", result.user.token);
       setLoggedInUser(result.user);
       setUsername("");
       setPassword("");

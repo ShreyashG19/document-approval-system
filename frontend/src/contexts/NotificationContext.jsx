@@ -9,8 +9,11 @@ export const NotificationProvider = ({ children }) => {
   const [fcmToken, setFcmToken] = useState("");
   const fetchNotifications = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/notification/get-notifications`,
+        { headers: { "Authorization": `Bearer ${token}` } },
         { withCredentials: true }
       );
       console.log("Notifications fetched:", response);
@@ -24,11 +27,13 @@ export const NotificationProvider = ({ children }) => {
   };
   const markAllAsRead = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const markReadUrl =
         import.meta.env.VITE_API_URL + "/notification/mark-seen";
-      const response = await axios.post(
+      await axios.post(
         markReadUrl,
-        {},
+        {headers: { "Authorization": `Bearer ${token}` }},
         { withCredentials: true }
       );
       setNotifications([]);

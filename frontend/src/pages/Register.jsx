@@ -71,6 +71,8 @@ const Register = () => {
     if (!validateForm()) return;
 
     const apiUrl = import.meta.env.VITE_API_URL + "/auth/register";
+    const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
     const toastId = toast.loading("Signing up...", {
       position: "bottom-right",
     });
@@ -89,6 +91,7 @@ const Register = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
         credentials: "include",

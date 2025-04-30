@@ -61,11 +61,14 @@ const ForgotPassOTP = () => {
     }
 
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const otpUrl = import.meta.env.VITE_API_URL + "/user/verify-sp-otp";
       const response = await fetch(otpUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           email: tempUser.email,

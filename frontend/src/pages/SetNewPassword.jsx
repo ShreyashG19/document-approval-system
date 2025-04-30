@@ -63,10 +63,12 @@ const SetNewPassword = () => {
     if (Object.keys(errors).length > 0) return;
 
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const submitUrl = import.meta.env.VITE_API_URL + "/user/reset-password";
       const response = await fetch(submitUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ newPassword: password }),
         credentials: "include",
       });

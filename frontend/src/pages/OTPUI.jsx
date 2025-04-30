@@ -32,11 +32,14 @@ const OTPUI = () => {
       position: "top-center",
     });
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const otpUrl = import.meta.env.VITE_API_URL + "/user/resend-otp";
       const response = await fetch(otpUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           username: tempUser.username,
@@ -94,11 +97,14 @@ const OTPUI = () => {
       position: "top-center",
     });
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const otpUrl = import.meta.env.VITE_API_URL + "/user/verify-otp";
       const response = await fetch(otpUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           username: tempUser.username,

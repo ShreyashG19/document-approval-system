@@ -25,9 +25,12 @@ const ApprovalPage = () => {
 
   const fetchDocumentCounts = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/file/document-counts`,
-        { withCredentials: true }
+        { headers: { "Authorization": `Bearer ${token}` } },
+        { withCredentials: true },
       );
       setDocumentCounts(response.data);
     } catch (error) {
@@ -37,8 +40,11 @@ const ApprovalPage = () => {
 
   const fetchUnseenCounts = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/file/unseen-document-counts`,
+        { headers: { "Authorization": `Bearer ${token}` } },
         { withCredentials: true }
       );
       setUnseenCounts(response.data);
@@ -55,8 +61,11 @@ const ApprovalPage = () => {
 
   const markDocumentsAsSeen = async (tab) => {
     try {
+      const token = localStorage.getItem("token");
+      if(!token) throw new Error("Token not found. Please log in again.");
       await axios.post(
         `${import.meta.env.VITE_API_URL}/file/mark-documents-as-seen`,
+        {headers: { "Authorization": `Bearer ${token}` }},
         { status: tab },
         { withCredentials: true }
       );
