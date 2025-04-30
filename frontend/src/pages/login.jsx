@@ -6,6 +6,8 @@ import { Role } from "../../utils/enums";
 import { requestFCMToken } from "../../utils/firebaseUtils";
 import { useNotifications } from "../contexts/NotificationContext";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from "axios";
+import { head } from "framer-motion/client";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -93,27 +95,63 @@ const Login = () => {
 
     // API call
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
+      // const response = await fetch(
+      //   `${import.meta.env.VITE_API_URL}/auth/login`,
+      //   {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify({ username, password, deviceToken: fcmToken }),
+      //     credentials: "include",
+      //   }
+      // );
+
+      // if (!response.ok) throw new Error((await response.json()).message);
+
+      // const result = await response.json();
+      // console.log("User: ", result);
+
+      // setLoggedInUser(result.user);
+      // setUsername("");
+      // setPassword("");
+
+      // console.log("mkc token ki", result.body.user.user.JWT_token);
+      // localStorage.setItem("token", result.body.token);
+      // console.log(result.body);
+      // console.log("response:", result);
+
+      // toast.success("Login successful!", { position: "top-center" });
+
+      // // Redirect based on role
+      // navigate(
+      //   {
+      //     [Role.APPROVER]: "/MainPage/approver/dashboard",
+      //     [Role.SENIOR_ASSISTANT]: "/MainPage/assistant/dashboard",
+      //     [Role.ASSISTANT]: "/MainPage/assistant/dashboard",
+      //     [Role.ADMIN]: "/MainPage/admin/dashboard",
+      //   }[result.user.role] || "/"
+      // );
+      const loginUrl = `${import.meta.env.VITE_API_URL}/auth/login`;
+      const result = await axios.post(
+        loginUrl,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password, deviceToken: fcmToken }),
-          credentials: "include",
+          username,
+          password,
+          deviceToken: "mkc",
+        },
+        {
+          withCredentials: true,
         }
       );
 
-      if (!response.ok) throw new Error((await response.json()).message);
-
-      const result = await response.json();
-      console.log("User: ", result);
-
-      setLoggedInUser(result.user);
+      setLoggedInUser(result.data.user);
       setUsername("");
       setPassword("");
+      console.log("response", result.data.user.role);
+      console.log("token mkc", result.data.user.JWT_token);
+
+      localStorage.setItem("token", result.data.user.JWT_token);
 
       toast.success("Login successful!", { position: "top-center" });
-
       // Redirect based on role
       navigate(
         {
@@ -121,7 +159,7 @@ const Login = () => {
           [Role.SENIOR_ASSISTANT]: "/MainPage/assistant/dashboard",
           [Role.ASSISTANT]: "/MainPage/assistant/dashboard",
           [Role.ADMIN]: "/MainPage/admin/dashboard",
-        }[result.user.role] || "/"
+        }[result.data.user.role] || "/"
       );
     } catch (error) {
       toast.error(error.message, { position: "top-center" });
