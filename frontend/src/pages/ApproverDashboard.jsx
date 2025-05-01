@@ -173,27 +173,25 @@ const ApproverDashboard = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-blue-50 to-blue-100">
-      <div className="flex items-center justify-center w-full py-8 px-4 md:px-6 lg:px-8">
-        <div className="w-full max-w-7xl bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="flex items-center justify-center w-full md:py-6 md:px-6 lg:px-8">
+        <div className="w-full max-w-8xl bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 ease-in-out">
           {/* Tabs */}
           <div className="flex justify-around items-center border-b border-gray-200 p-2 bg-gray-50">
             <button
               onClick={() => setSelectedTab("NEW")}
-              className={`px-4 py-2 font-medium rounded-md transition-all duration-200 text-sm md:text-base ${
-                selectedTab === "NEW"
-                  ? "bg-blue-500 text-white shadow-md transform scale-105"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2 font-medium rounded-md transition-all duration-200 text-sm md:text-base ${selectedTab === "NEW"
+                ? "bg-blue-500 text-white shadow-md transform scale-105"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               NEW
             </button>
             <button
               onClick={() => setSelectedTab("SENT BACK")}
-              className={`px-4 py-2 font-medium rounded-md transition-all duration-200 text-sm md:text-base ${
-                selectedTab === "SENT BACK"
-                  ? "bg-blue-500 text-white shadow-md transform scale-105"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2 font-medium rounded-md transition-all duration-200 text-sm md:text-base ${selectedTab === "SENT BACK"
+                ? "bg-blue-500 text-white shadow-md transform scale-105"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               SENT BACK
             </button>
@@ -305,8 +303,8 @@ const ApproverDashboard = () => {
                     <span className="text-gray-800">
                       {currentDocDetails.createdDate
                         ? new Date(
-                            currentDocDetails.createdDate
-                          ).toLocaleDateString()
+                          currentDocDetails.createdDate
+                        ).toLocaleDateString()
                         : "Not available"}
                     </span>
                   </div>
@@ -380,11 +378,10 @@ const ApproverDashboard = () => {
                   handleDocumentAction("approve");
                 }}
                 disabled={isActionInProgress}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition-all ${
-                  isActionInProgress
-                    ? "bg-gray-400 cursor-not-allowed opacity-50"
-                    : "bg-green-500 hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-0.5"
-                } text-white`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition-all ${isActionInProgress
+                  ? "bg-gray-400 cursor-not-allowed opacity-50"
+                  : "bg-green-500 hover:bg-green-600 hover:shadow-lg transform hover:-translate-y-0.5"
+                  } text-white`}
               >
                 <AiOutlineCheck className="h-5 w-5" />
                 <span className="hidden sm:inline">
@@ -399,11 +396,10 @@ const ApproverDashboard = () => {
                   handleDocumentAction("reject");
                 }}
                 disabled={isActionInProgress}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition-all ${
-                  isActionInProgress
-                    ? "bg-gray-400 cursor-not-allowed opacity-50"
-                    : "bg-red-500 hover:bg-red-600 hover:shadow-lg transform hover:-translate-y-0.5"
-                } text-white`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition-all ${isActionInProgress
+                  ? "bg-gray-400 cursor-not-allowed opacity-50"
+                  : "bg-red-500 hover:bg-red-600 hover:shadow-lg transform hover:-translate-y-0.5"
+                  } text-white`}
               >
                 <AiOutlineCloseCircle className="h-5 w-5" />
                 <span className="hidden sm:inline">
@@ -422,11 +418,10 @@ const ApproverDashboard = () => {
                   }
                 }}
                 disabled={isActionInProgress}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition-all ${
-                  isActionInProgress
-                    ? "bg-gray-400 cursor-not-allowed opacity-50"
-                    : "bg-yellow-500 hover:bg-yellow-600 hover:shadow-lg transform hover:-translate-y-0.5"
-                } text-white`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md shadow-md transition-all ${isActionInProgress
+                  ? "bg-gray-400 cursor-not-allowed opacity-50"
+                  : "bg-yellow-500 hover:bg-yellow-600 hover:shadow-lg transform hover:-translate-y-0.5"
+                  } text-white`}
               >
                 <FiEdit2 className="h-5 w-5" />
                 <span className="hidden sm:inline">
