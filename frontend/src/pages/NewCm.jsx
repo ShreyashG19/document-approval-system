@@ -15,7 +15,8 @@ import CryptoJS from "crypto-js";
 import forge from "node-forge";
 import { useFileHandlers } from "../hooks/files";
 import { useNavigate } from "react-router-dom";
-
+import { FaRegFileAlt } from "react-icons/fa"
+import { FiFolder, FiUser, FiCalendar } from "react-icons/fi"
 const NewCm = ({
   handleTitleClick,
   setfileUnName,
@@ -114,9 +115,8 @@ const NewCm = ({
       if (endDate) queryParams.append("endDate", endDate);
       if (searchTerm.trim()) queryParams.append("search", searchTerm.trim());
 
-      const getDocsUrl = `${
-        import.meta.env.VITE_API_URL
-      }/file/get-documents?${queryParams}`;
+      const getDocsUrl = `${import.meta.env.VITE_API_URL
+        }/file/get-documents?${queryParams}`;
       const response = await axios.get(getDocsUrl, { withCredentials: true });
       console.log(response.data);
 
@@ -270,72 +270,103 @@ const NewCm = ({
   };
 
   return (
-    <div className="flex flex-col font-sans space-y-6 p-4">
+    <div className="font-sans bg-gray-50 min-h-screen p-4 w-full">
+
       {/* Search Section */}
-      <Toaster />
-      <div className="relative mb-6">
-        <FaSearch className="absolute top-3 left-3 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search"
-          className="w-full pl-10 pr-4 py-2 rounded-md bg-gray-100 text-gray-800 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="mb-8">
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FaSearch className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search documents..."
+            className="block w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 placeholder-gray-400 transition"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Filters Section */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
+            {/* Department Select */}
+            <div>
+              <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
+                Department
+              </label>
+              <select
+                id="department"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 disabled:bg-gray-50 disabled:text-gray-500"
+                disabled={isLoading}
+              >
+                <option value="">All Departments</option>
+                {departments?.map((department, idx) => (
+                  <option key={idx} value={department}>
+                    {department}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Start Date */}
+            <div>
+              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                From Date
+              </label>
+              <input
+                type="date"
+                id="startDate"
+                className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+
+            {/* End Date */}
+            <div>
+              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                To Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 disabled:bg-gray-50 disabled:text-gray-500"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate}
+                disabled={!startDate}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-end space-x-2">
+              <button
+                onClick={fetchDocuments}
+                disabled={isLoading}
+                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed transition"
+              >
+                <IoMdRefresh className={`mr-1 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Refreshing...' : 'Refresh'}
+              </button>
+              <button
+                onClick={resetFilters}
+                disabled={isLoading}
+                className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col space-y-2 tracking-tight scale-90 sm:flex-row sm:space-y-0 sm:space-x-4">
-        <select
-          value={category}
-          onChange={(e) => {
-            const newCategory = e.target.value;
-            setCategory(newCategory);
-          }}
-          className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
-          disabled={isLoading}
-        >
-          <option value="">All Categories</option>
-          {departments && departments.length > 0 ? (
-            departments.map((department) => (
-              <option key={department} value={department}>
-                {department}
-              </option>
-            ))
-          ) : (
-            <option value="" disabled>
-              Loading departments...
-            </option>
-          )}
-        </select>
-        <input
-          type="date"
-          className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <input
-          type="date"
-          className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-700 border border-gray-300"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-        <button
-          onClick={fetchDocuments}
-          className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-        >
-          <IoMdRefresh className="h-5 w-5" />
-        </button>{" "}
-        <button
-          onClick={resetFilters}
-          className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
-          disabled={isLoading}
-        >
-          Reset Filters
-        </button>
-      </div>
-
-      {/* Documents */}
-      <div className="space-y-4">
+      {/* Documents List */}
+      <div className="space-y-3">
         {isLoading ? (
           <div className="flex justify-center">
             <ClipLoader size={35} color={"#123abc"} loading={isLoading} />
@@ -343,210 +374,216 @@ const NewCm = ({
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : filteredData.length === 0 ? (
-          <p className="text-gray-500 font-thin text-center text-lg">
-            No documents found
-          </p>
+          <p className="text-gray-500 text-center">No documents found</p>
         ) : (
-          <div className="max-h-[500px] overflow-y-auto space-y-4 pr-2">
-            {" "}
-            {/* 🧠 This part controls the height and scroll */}
+          <div className="space-y-3">
             {filteredData
               .filter((doc) =>
                 searchTerm.trim()
-                  ? doc.title
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase()) ||
-                    doc.createdBy?.fullName
-                      ?.toLowerCase()
-                      .includes(searchTerm.toLowerCase())
+                  ? doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  doc.createdBy?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
                   : true
               )
               .map((item) => (
-                <div
-                  key={item._id}
-                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-100 p-4 rounded-md shadow-md border border-gray-300"
-                >
-                  <div className="flex items-start sm:items-center space-x-4 flex-grow">
-                    <div className="w-10 h-10 bg-gray-200 flex items-center justify-center rounded-md">
-                      📄
+                <div className="max-h-[600px] overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {isLoading ? (
+                    <div className="flex justify-center">
+                      <ClipLoader size={35} color={"#123abc"} loading={isLoading} />
                     </div>
-                    <div className="flex flex-col flex-grow">
-                      <h3
-                        className="text-xl font-bold tracking-tight font-open-sans text-gray-800 cursor-pointer"
-                        onClick={async () => {
-                          const url = await handlePreview(item.fileUniqueName);
-                          setfileUnName(item.fileUniqueName || "");
-                          setDescription(
-                            item.description || "No description available"
-                          );
-                          setRemark(item.remark || "No remarks available");
-                          handleTitleClick(url, item);
-                        }}
+                  ) : error ? (
+                    <p className="text-red-500">{error}</p>
+                  ) : filteredData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                      <svg
+                        className="w-16 h-16 mb-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        {item.title}
-                      </h3>
-                      <div className="flex flex-col sm:flex-row sm:space-x-4">
-                        <span className="text-[13px] font-light text-gray-800">
-                          <span className="font-semibold">Department:</span>{" "}
-                          {item.department?.departmentName || "Unassigned"}
-                        </span>
-                        <span className="text-[13px] font-light text-gray-800">
-                          <span className="font-semibold">Created By:</span>{" "}
-                          {item.createdBy?.fullName || "Unknown"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">{item.date}</p>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1}
+                          d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                      <p className="text-lg">No documents found</p>
+                      <p className="text-sm mt-1">
+                        Try adjusting your filters or upload a new document
+                      </p>
                     </div>
-                  </div>
-
-                  <div className="flex space-x-4 items-center mt-2 sm:mt-0">
-                    {/* <FaEye
-                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
-                      onClick={async () => {
-                        // const url = await handlePreview(item.fileUniqueName);
-                        
-                        setfileUnName(item.fileUniqueName);
-                        setDescription(
-                          item.description || "No description available"
-                        );
-                        setDisplayRemark(item.remark || "No remarks available");
-                        setRemark(item.remark || "");
-                        handleTitleClick(url, item);
-                      }}
-                    /> */}
-                    {/* <FaEye
-                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
-                      onClick={() => {
-                        navigate("/MainPage/previewpdf", {
-                          state: {
-                            fileUniqueName: item.fileUniqueName,
-                            description:
-                              item.description || "No description available",
-                            displayRemark:
-                              item.remark || "No remarks available",
-                            remark: item.remark || "",
-                          },
-                        });
-                      }}
-                    /> */}
-                    <FaEye
-                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
-                      onClick={() => {
-                        navigate(`/MainPage/previewPdf/${item.fileUniqueName}`);
-                      }}
-                    />
-                    <FaDownload
-                      className="h-6 w-6 text-gray-800 cursor-pointer hover:text-blue-500"
-                      onClick={() => handleDownload(item.fileUniqueName)}
-                    />
-                  </div>
+                  ) : (
+                    filteredData
+                      .filter((doc) =>
+                        searchTerm.trim()
+                          ? doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          doc.createdBy?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
+                          : true
+                      )
+                      .map((doc) => (
+                        <div
+                          key={doc._id}
+                          className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-white rounded-lg border border-gray-100 hover:border-blue-100 hover:shadow-xs transition-all"
+                        >
+                          <div className="flex-grow w-full md:w-auto">
+                            <div className="flex items-start space-x-3">
+                              <div className="bg-blue-50 p-2 rounded-lg">
+                                <FaRegFileAlt className="text-blue-500 text-lg" />
+                              </div>
+                              <div>
+                                <h3
+                                  className="text-base md:text-lg font-medium text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
+                                  onClick={async () => {
+                                    const url = await handlePreview(doc.fileUniqueName);
+                                    setfileUnName(doc.fileUniqueName || "");
+                                    setDescription(doc.description || "No description available");
+                                    setRemark(doc.remark || "No remarks available");
+                                    handleTitleClick(url, {
+                                      description: doc.description,
+                                      remarks: doc.remarks,
+                                      title: doc.title,
+                                      department: doc.department?.departmentName,
+                                      createdBy: doc.createdBy?.fullName,
+                                      createdDate: doc.createdDate,
+                                      status: doc.status,
+                                    });
+                                  }}
+                                >
+                                  {doc.title || "Untitled"}
+                                </h3>
+                                <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2 text-sm text-gray-500">
+                                  <span className="flex items-center">
+                                    <FiFolder className="mr-1.5" />
+                                    {doc.department?.departmentName || "Unassigned"}
+                                  </span>
+                                  <span className="flex items-center">
+                                    <FiUser className="mr-1.5" />
+                                    {doc.createdBy?.fullName || "Unknown"}
+                                  </span>
+                                  <span className="flex items-center">
+                                    <FiCalendar className="mr-1.5" />
+                                    {new Date(doc.createdDate).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-3 md:mt-0 ml-auto">
+                            {/* <button
+                              onClick={async () => {
+                                // const url = await handlePreview(doc.fileUniqueName);
+                                setfileUnName(doc.fileUniqueName || "");
+                                setDescription(doc.description || "No description available");
+                                setRemark(doc.remark || "No remarks available");
+                                handleTitleClick(url, {
+                                  description: doc.description,
+                                  remarks: doc.remarks,
+                                  title: doc.title,
+                                  department: doc.department?.departmentName,
+                                  createdBy: doc.createdBy?.fullName,
+                                  createdDate: doc.createdDate,
+                                  status: doc.status,
+                                });
+                              }}
+                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                              title="Preview"
+                            >
+                              <FaEye size={16} />
+                            </button> */}
+                            <FaEye
+                              className="h-6 w-6"
+                              onClick={() => {
+                                navigate(`/MainPage/previewPdf/${item.fileUniqueName}`)
+                              }}
+                            />
+                            <button
+                              onClick={() => handleDownload(doc.fileUniqueName)}
+                              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                              title="Download"
+                            >
+                              <FaDownload size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                  )}
                 </div>
               ))}
           </div>
         )}
       </div>
 
-      {/* Modal for PDF display */}
+      {/* PDF Preview Modal */}
       {isModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-3xl mx-2 sm:mx-4 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {selectedDocument?.title}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <AiOutlineClose className="h-6 w-6" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-md shadow-lg w-full max-w-3xl mx-4">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="font-medium">{selectedDocument?.title}</h3>
+              <button onClick={closeModal}>
+                <AiOutlineClose />
               </button>
             </div>
-
-            {/* PDF Viewer Placeholder */}
-            <div className="flex items-center justify-center h-64 bg-gray-100 rounded-md mb-4 border border-gray-300">
-              <p className="text-center text-gray-500">PDF content goes here</p>
+            <div className="p-4">
+              <div className="h-96 bg-gray-100 flex items-center justify-center">
+                PDF preview
+              </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap justify-end gap-2">
+            <div className="p-4 border-t flex justify-end gap-2">
               <button
                 onClick={() => handleApprove(selectedDocument.fileUniqueName)}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600 transition"
+                className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded"
               >
-                <AiOutlineCheck className="h-5 w-5" />
+                <AiOutlineCheck />
                 Approve
               </button>
-
               <button
                 onClick={() => handleReject(selectedDocument.fileUniqueName)}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md shadow-md hover:bg-red-600 transition"
+                className="flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded"
               >
-                <AiOutlineCloseCircle className="h-5 w-5" />
+                <AiOutlineCloseCircle />
                 Reject
               </button>
-
               <button
-                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-md shadow-md hover:bg-yellow-600 transition"
                 onClick={() => openRemarkModal(selectedDocument)}
+                className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded"
               >
-                <FaCommentDots className="h-5 w-5" />
-                Give Remark
+                <FaCommentDots />
+                Remark
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal for Remarks */}
+      {/* Remark Modal */}
       {isRemarkModalOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-300 ease-in-out"
-          onClick={closeRemarkModal}
-        >
-          <div
-            className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-md mx-2 sm:mx-4 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex justify-between items-center mb-4 border-b pb-2">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Give Remark
-              </h2>
-              <button
-                onClick={closeRemarkModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <AiOutlineClose className="h-6 w-6" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-md shadow-lg w-full max-w-md mx-4">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="font-medium">Give Remark</h3>
+              <button onClick={closeRemarkModal}>
+                <AiOutlineClose />
               </button>
             </div>
-
-            {/* Remark Input */}
-            <textarea
-              className="w-full p-2 border border-gray-300 bg-white resize-none text-black text-lg rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              rows="4"
-              placeholder="Enter your remark here..."
-              value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-            ></textarea>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="p-4">
+              <textarea
+                className="w-full p-2 border border-gray-300 rounded"
+                rows="4"
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+              ></textarea>
+            </div>
+            <div className="p-4 border-t flex justify-end gap-2">
               <button
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md shadow-md hover:bg-gray-400 transition"
                 onClick={closeRemarkModal}
+                className="px-3 py-1 bg-gray-200 rounded"
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
                 onClick={handleRemarkSubmit}
+                className="px-3 py-1 bg-blue-600 text-white rounded"
               >
                 Submit
               </button>

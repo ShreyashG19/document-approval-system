@@ -97,8 +97,8 @@ const Navbar = () => {
       {!loggedInUser ? (
         <h1 className="text-lg font-semibold tracking-wider">Loading...</h1>
       ) : (
-        <h1 className="text-lg font-semibold tracking-wider">
-          {`${loggedInUser.username}'s Dashboard`.toUpperCase()}
+        <h1 className="text-sm font-semibold tracking-wider mr-3">
+          {`Welcome ${loggedInUser.username}!`.toUpperCase()}
         </h1>
       )}
 
