@@ -213,132 +213,96 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 text-gray-800">
+    <div className="flex flex-col min-h-screen justify-center   bg-gray-100 text-gray-800">
       <Toaster />
       <main className="p-6 flex-grow">
         {/* Status Tabs */}
-        <div className="flex flex-wrap gap-4 mb-6 border-b">
-          {["PENDING", "APPROVED", "REJECTED", "CORRECTION"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setSelectedTab(tab)}
-              className={`px-4 py-2 ${selectedTab === tab
-                ? "border-b-2 border-blue-500 text-blue-500"
-                : "text-gray-600 hover:text-blue-500"
-                }`}
-              disabled={isLoading}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="bg- w-fit rounded-lg shadow-sm p-1 mb-4 overflow-x-auto">
+          <div className="flex gap-1 min-w-7xl">
+            {["PENDING", "APPROVED", "REJECTED", "CORRECTION"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setSelectedTab(tab)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTab === tab
+                  ? "bg-blue-100 text-blue-800"
+                  : "text-gray-800 hover:text-blue-700 hover:bg-blue-50"
+                  }`}
+                disabled={isLoading}
+              >
+                {tab.charAt(0) + tab.slice(1).toLowerCase()}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex justify-start items-start md:flex-row gap-4">
-          <div className="relative w-full max-w-xs mb-6">
-            <FaSearch className="absolute top-3 left-3 text-gray-400" />
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="relative mb-4">
+            <FaSearch className="absolute top-3 left-3 text-gray-500" />
             <input
               type="text"
               placeholder="Search documents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 py-2.5 rounded-md border bg-white border-gray-300 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full pl-10 pr-3 py-2 rounded-md border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition"
               disabled={isLoading}
             />
           </div>
-          <div>
-            <button
-              onClick={handleRefresh}
-              className="flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600 transition"
-              disabled={isLoading}
-            >
-              <IoMdRefresh className="h-6 w-5" />
-            </button>
-          </div>
-        </div>
 
-        {/* Filters */}
-        <div className="mb-4 flex flex-col md:flex-row gap-4">
-          <div className="flex-shrink-0">
-            <label className="block text-sm font-medium text-gray-700">
-              Category
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="block w-full md:w-auto mt-1 p-2 text-sm border border-gray-300 bg-white rounded-md"
-              disabled={isLoading}
-            >
-              <option value="">All</option>
-              {departments?.map((department, idx) => (
-                <option key={idx} value={department}>
-                  {department}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center border-t pt-4">
+            <div className="w-full sm:w-auto">
+              <h1 className="font-semibold text-gray-700">Departments</h1>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="block w-full p-2 text-sm border border-gray-300 bg-white rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                disabled={isLoading}
+              >
+                <option value="">All Departments</option>
+                {departments?.map((department, idx) => (
+                  <option key={idx} value={department}>
+                    {department}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="flex-grow">
-            <label className="block text-sm font-medium">Date Range</label>
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              {/* Start Date Picker */}
-              <div className="relative flex-grow md:flex-grow-0 md:w-48">
+            <div className="flex xs:flex-row gap-2 w-full sm:w-auto">
+              <div className="relative flex-grow">
+                <h1 className="font-semibold text-gray-700">Start Date</h1>
                 <input
-                  ref={(input) => (window.startDateInput = input)}
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
+                  className="p-2 border bg-white text-gray-900 border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500 text-sm"
                   disabled={isLoading}
                 />
-                <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  onClick={() => window.startDateInput?.showPicker()} // Opens Date Picker on SVG Click
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
-                  />
-                </svg>
               </div>
-
-              {/* End Date Picker */}
-              <label className="block text-sm font-medium">-- To --</label>
-              <div className="relative flex-grow md:flex-grow-0 md:w-48">
+              <span className="text-gray-500 self-center hidden xs:block">to</span>
+              <div className="relative flex-grow">
+                <h1 className="font-semibold text-gray-700">End Date</h1>
                 <input
-                  ref={(input) => (window.endDateInput = input)}
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="p-2 border bg-white text-black border-gray-300 rounded-md appearance-none pointer-events-none w-full"
+                  className="p-2 border bg-white text-gray-900 border-gray-300 rounded-md w-full focus:ring-blue-500 focus:border-blue-500 text-sm"
                   min={startDate}
                   disabled={isLoading}
                 />
-                <svg
-                  className="absolute right-3 top-3 w-5 h-5 text-grey cursor-pointer"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  onClick={() => window.endDateInput?.showPicker()} // Opens Date Picker on SVG Click
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8 7V3M16 7V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
-                  />
-                </svg>
               </div>
+            </div>
+
+            <div className="flex gap-2 w-full mt-6 sm:w-auto">
+              <button
+                onClick={handleRefresh}
+                className="flex items-center justify-center p-2 bg-white border border-gray-300 text-gray-900 rounded-md shadow-sm hover:bg-gray-50 transition"
+                disabled={isLoading}
+              >
+                <IoMdRefresh className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
 
               <button
                 onClick={resetFilters}
-                className="px-4 py-2 bg-gray-500 text-white rounded-md shadow-md hover:bg-gray-600 transition"
+                className="px-3 py-2 bg-gray-100 text-gray-900 rounded-md shadow-sm hover:bg-gray-200 transition text-sm font-medium"
                 disabled={isLoading}
               >
                 Reset
@@ -346,7 +310,6 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-
         <div className="space-y-4">
           {isLoading ? (
             // Skeleton loading state
@@ -476,13 +439,7 @@ const AdminDashboard = () => {
         <DialogActions></DialogActions>
       </Dialog>
       {/* Add Document Button */}
-      <div className="fixed bottom-6 right-7 flex items-center justify-center bg-blue-500 p-2 rounded-full text-white font-bold">
-        <IoIosAdd
-          className="text-4xl"
-          onClick={() => setNewDocDialogOpen(true)}
-          disabled={isLoading}
-        />
-      </div>
+
 
       {/* PDF Preview Dialog */}
       <Dialog
