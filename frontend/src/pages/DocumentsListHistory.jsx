@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { FaDownload, FaSearch } from "react-icons/fa";
 import CryptoJS from "crypto-js";
 import { useEncryption } from "../contexts/EncryptionContext";
+import { useFileHandlers } from "../hooks/files";
 
 const DocumentsListHistory = ({
   status,
@@ -71,97 +72,97 @@ const DocumentsListHistory = ({
   });
 
   // Handle Document Download
-  const handleDownload = async (fileName) => {
-    try {
-      let currentEncKey = await getEncKeyForDoc(fileName);
-      const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+  // const handleDownload = async (fileName) => {
+  //   try {
+  //     let currentEncKey = await getEncKeyForDoc(fileName);
+  //     const token = localStorage.getItem("token");
+  //     if(!token) throw new Error("Token not found. Please log in again.");
 
-      console.log("Downloading:", fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL
-        }/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
-        withCredentials: true,
-        responseType: "text",
-      }, {headers: { "Authorization": `Bearer ${token}` }});
+  //     console.log("Downloading:", fileName);
+  //     const downloadUrl = `${import.meta.env.VITE_API_URL
+  //       }/file/download-pdf/${fileName}`;
+  //     const response = await axios.get(downloadUrl, {
+  //       withCredentials: true,
+  //       responseType: "text",
+  //     }, {headers: { "Authorization": `Bearer ${token}` }});
 
-      // Decrypt the content using the secure key
-      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
-      const typedArray = convertWordArrayToUint8Array(decrypted);
+  //     // Decrypt the content using the secure key
+  //     const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
+  //     const typedArray = convertWordArrayToUint8Array(decrypted);
 
-      // Create blob and download
-      const blob = new Blob([typedArray], { type: "application/pdf" });
-      downloadBlob(blob, fileName.replace(".enc", ""));
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download document");
-    }
-  };
+  //     // Create blob and download
+  //     const blob = new Blob([typedArray], { type: "application/pdf" });
+  //     downloadBlob(blob, fileName.replace(".enc", ""));
+  //   } catch (error) {
+  //     console.error("Download error:", error);
+  //     toast.error("Failed to download document");
+  //   }
+  // };
 
-  // Convert CryptoJS WordArray to Uint8Array
-  const convertWordArrayToUint8Array = (wordArray) => {
-    const len = wordArray.sigBytes;
-    const words = wordArray.words;
-    const uint8Array = new Uint8Array(len);
-    let offset = 0;
+  // Convert CryptoJS WordArray to  Uint8Array
+  // const convertWordArrayToUint8Array = (wordArray) => {
+  //   const len = wordArray.sigBytes;
+  //   const words = wordArray.words;
+  //   const uint8Array = new Uint8Array(len);
+  //   let offset = 0;
 
-    for (let i = 0; i < len; i += 4) {
-      const word = words[i >>> 2];
-      for (let j = 0; j < 4 && offset < len; ++j) {
-        uint8Array[offset++] = (word >>> (24 - j * 8)) & 0xff;
-      }
-    }
+  //   for (let i = 0; i < len; i += 4) {
+  //     const word = words[i >>> 2];
+  //     for (let j = 0; j < 4 && offset < len; ++j) {
+  //       uint8Array[offset++] = (word >>> (24 - j * 8)) & 0xff;
+  //     }
+  //   }
 
-    return uint8Array;
-  };
+  //   return uint8Array;
+  // };
 
   // Download Blob File
-  const downloadBlob = (blob, filename) => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
+  // const downloadBlob = (blob, filename) => {
+  //   const url = URL.createObjectURL(blob);
+  //   const link = document.createElement("a");
+  //   link.href = url;
+  //   link.download = filename;
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  //   URL.revokeObjectURL(url);
+  // };
 
+
+  const {handleDownload, handlePreview} = useFileHandlers();
   // Handle Document Preview
-  const handlePreview = async (fileName) => {
-    try {
-      let currentEncKey = await getEncKeyForDoc(fileName);
-      const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+  // const handlePreview = async (fileName) => {
+  //   try {
+  //     let currentEncKey = await getEncKeyForDoc(fileName);
+  //     const token = localStorage.getItem("token");
+  //     if(!token) throw new Error("Token not found. Please log in again.");
 
+  //     const downloadUrl =
+  //       import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
+  //     const response = await axios.get(downloadUrl, {
+  //       withCredentials: true,
+  //       responseType: "text",
+  //     }, {headers: { "Authorization": `Bearer ${token}` }});
 
-      console.log("fileName", fileName);
-      const downloadUrl =
-        import.meta.env.VITE_API_URL + `/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {
-        withCredentials: true,
-        responseType: "text",
-      }, {headers: { "Authorization": `Bearer ${token}` }});
+  //     // Decrypt the content using the secure key
+  //     const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
 
-      // Decrypt the content using the secure key
-      const decrypted = CryptoJS.AES.decrypt(response.data, currentEncKey);
+  //     // Convert to Uint8Array
+  //     const typedArray = convertWordArrayToUint8Array(decrypted);
 
-      // Convert to Uint8Array
-      const typedArray = convertWordArrayToUint8Array(decrypted);
+  //     // Create blob and download
+  //     const blob = new Blob([typedArray], {
+  //       type: "application/pdf" || "application/octet-stream",
+  //     });
 
-      // Create blob and download
-      const blob = new Blob([typedArray], {
-        type: "application/pdf" || "application/octet-stream",
-      });
-
-      const url = URL.createObjectURL(blob);
-      console.log("file url generated for preview : ", url);
-      return url;
-    } catch (error) {
-      console.error("Decryption error:", error);
-      toast.error("Failed to decrypt document");
-    }
-  };
+  //     const url = URL.createObjectURL(blob);
+  //     console.log("file url generated for preview : ", url);
+  //     return url;
+  //   } catch (error) {
+  //     console.error("Decryption error:", error);
+  //     toast.error("Failed to decrypt document");
+  //   }
+  // };
   const getStatusColor = (status) => {
     switch (status) {
       case "approved":

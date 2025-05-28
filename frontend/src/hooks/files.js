@@ -114,7 +114,7 @@ export const useFileHandlers = () => {
       if(!token) throw new Error("Token not found. Please log in again.");
 
           const uploadUrl = `${import.meta.env.VITE_API_URL}/file/upload-pdf`;
-          const response = await axios.post(uploadUrl, formData, {headers: {"Authorization": `Bearer ${token}`}}, {
+          await axios.post(uploadUrl, formData, {headers: {"Authorization": `Bearer ${token}`}}, {
             withCredentials: true,
           });
 
