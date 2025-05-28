@@ -33,6 +33,7 @@ export const NotificationProvider = ({ children }) => {
         import.meta.env.VITE_API_URL + "/notification/mark-seen";
       await axios.post(
         markReadUrl,
+        {},
         {headers: { "Authorization": `Bearer ${token}` }},
         { withCredentials: true }
       );
