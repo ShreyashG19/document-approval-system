@@ -4,7 +4,6 @@ import axios from "axios";
 import CryptoJS from "crypto-js";
 import { toast } from "react-toastify";
 
-
 const convertWordArrayToUint8Array = (wordArray) => {
   const len = wordArray.sigBytes;
   const words = wordArray.words;
@@ -36,13 +35,15 @@ export const useFileHandlers = () => {
   const handlePreview = async (fileName) => {
     try {
       const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
-      
+      if (!token) throw new Error("Token not found. Please log in again.");
+
       const encKey = await getEncKeyForDoc(fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {headers: {"Authorization": `Bearer ${token}`}},{
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
+      const response = await axios.get(downloadUrl, {
+        headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
-        responseType: "text",
       });
 
       const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
@@ -60,13 +61,19 @@ export const useFileHandlers = () => {
   const handleDownload = async (fileName) => {
     try {
       const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+      if (!token) throw new Error("Token not found. Please log in again.");
       const encKey = await getEncKeyForDoc(fileName);
-      const downloadUrl = `${import.meta.env.VITE_API_URL}/file/download-pdf/${fileName}`;
-      const response = await axios.get(downloadUrl, {headers: {"Authorization": `Bearer ${token}`}}, {
-        withCredentials: true,
-        responseType: "text",
-      });
+      const downloadUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/download-pdf/${fileName}`;
+      const response = await axios.get(
+        downloadUrl,
+        { headers: { Authorization: `Bearer ${token}` } },
+        {
+          withCredentials: true,
+          responseType: "text",
+        }
+      );
 
       const decrypted = CryptoJS.AES.decrypt(response.data, encKey);
       const typedArray = convertWordArrayToUint8Array(decrypted);
@@ -111,10 +118,11 @@ export const useFileHandlers = () => {
           formData.append("title", title);
           formData.append("description", description);
           const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+          if (!token) throw new Error("Token not found. Please log in again.");
 
           const uploadUrl = `${import.meta.env.VITE_API_URL}/file/upload-pdf`;
-          await axios.post(uploadUrl, formData, {headers: {"Authorization": `Bearer ${token}`}}, {
+          await axios.post(uploadUrl, formData, {
+            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           });
 

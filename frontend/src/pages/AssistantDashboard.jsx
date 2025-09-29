@@ -8,7 +8,14 @@ import {
   Button,
   TextField,
 } from "@mui/material";
-import { FiDownload, FiFile, FiFileText, FiInfo, FiMessageSquare, FiUpload } from "react-icons/fi";
+import {
+  FiDownload,
+  FiFile,
+  FiFileText,
+  FiInfo,
+  FiMessageSquare,
+  FiUpload,
+} from "react-icons/fi";
 import { CircularProgress } from "@mui/material";
 import { AiOutlineClose } from "react-icons/ai";
 import { toast, Toaster } from "react-hot-toast";
@@ -81,11 +88,12 @@ const AssistantDashboard = () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+      if (!token) throw new Error("Token not found. Please log in again.");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/file/get-documents?status=${selectedTab.toLowerCase()}`,
-        { headers: {"Authorization": `Bearer ${token}`}},
-        { withCredentials: true }
+        `${
+          import.meta.env.VITE_API_URL
+        }/file/get-documents?status=${selectedTab.toLowerCase()}`,
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );
       setDocuments(response.data.documents);
       setFilteredData(response.data.documents);
@@ -118,11 +126,13 @@ const AssistantDashboard = () => {
     const fetchDepartments = async () => {
       try {
         const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+        if (!token) throw new Error("Token not found. Please log in again.");
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
-          {headers: {"Authorization": `Bearer ${token}`}},
-          { withCredentials: true }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
         );
         setDepartments(response.data.data);
       } catch (error) {
@@ -159,7 +169,9 @@ const AssistantDashboard = () => {
       title: newDocTitle,
       description: newDocDesc,
       onSuccess: () => {
-        toast.success("File uploaded successfully!", { id: toastIdRef.current });
+        toast.success("File uploaded successfully!", {
+          id: toastIdRef.current,
+        });
         setNewDocFile(null);
         setNewDocDepartment("");
         setNewDocTitle("");
@@ -169,7 +181,9 @@ const AssistantDashboard = () => {
         setIsUploading(false);
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to upload document", { id: toastIdRef.current });
+        toast.error(err.message || "Failed to upload document", {
+          id: toastIdRef.current,
+        });
         setIsUploading(false);
       },
     });
@@ -200,10 +214,11 @@ const AssistantDashboard = () => {
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTab === tab
-                  ? "bg-blue-100 text-blue-800"
-                  : "text-gray-800 hover:text-blue-700 hover:bg-blue-50"
-                  }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  selectedTab === tab
+                    ? "bg-blue-100 text-blue-800"
+                    : "text-gray-800 hover:text-blue-700 hover:bg-blue-50"
+                }`}
                 disabled={isLoading}
               >
                 {tab.charAt(0) + tab.slice(1).toLowerCase()}
@@ -255,7 +270,9 @@ const AssistantDashboard = () => {
                   disabled={isLoading}
                 />
               </div>
-              <span className="text-gray-500 self-center hidden xs:block">to</span>
+              <span className="text-gray-500 self-center hidden xs:block">
+                to
+              </span>
               <div className="relative flex-grow">
                 <h1 className="font-semibold text-gray-700">End Date</h1>
                 <input
@@ -275,7 +292,9 @@ const AssistantDashboard = () => {
                 className="flex items-center justify-center p-2 bg-white border border-gray-300 text-gray-900 rounded-md shadow-sm hover:bg-gray-50 transition"
                 disabled={isLoading}
               >
-                <IoMdRefresh className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <IoMdRefresh
+                  className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
+                />
               </button>
 
               <button
@@ -292,25 +311,27 @@ const AssistantDashboard = () => {
         {/* Documents List */}
         <div className="space-y-4">
           {isLoading ? (
-            Array(3).fill(0).map((_, index) => (
-              <div
-                key={index}
-                className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 animate-pulse"
-              >
-                <div className="flex justify-between items-center">
-                  <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                  <div className="h-5 bg-gray-200 rounded w-24"></div>
+            Array(3)
+              .fill(0)
+              .map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 animate-pulse"
+                >
+                  <div className="flex justify-between items-center">
+                    <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                    <div className="h-5 bg-gray-200 rounded w-24"></div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                  <div className="flex justify-between items-center mt-4">
+                    <div className="h-4 bg-gray-200 rounded w-36"></div>
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  </div>
                 </div>
-                <div className="mt-4 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                </div>
-                <div className="flex justify-between items-center mt-4">
-                  <div className="h-4 bg-gray-200 rounded w-36"></div>
-                  <div className="h-4 bg-gray-200 rounded w-20"></div>
-                </div>
-              </div>
-            ))
+              ))
           ) : (
             <DocumentsList
               status={selectedTab.toLowerCase()}
@@ -354,7 +375,9 @@ const AssistantDashboard = () => {
                 type="application/pdf"
                 className="w-full h-[75vh] rounded-md border"
               >
-                <p className="text-center text-sm mt-4">PDF preview is not supported in this browser.</p>
+                <p className="text-center text-sm mt-4">
+                  PDF preview is not supported in this browser.
+                </p>
               </object>
             )}
 
@@ -374,8 +397,8 @@ const AssistantDashboard = () => {
                     <span className="font-medium">Date:</span>{" "}
                     {currentDocDetails.createdDate
                       ? new Date(
-                        currentDocDetails.createdDate
-                      ).toLocaleDateString()
+                          currentDocDetails.createdDate
+                        ).toLocaleDateString()
                       : "Not available"}
                   </p>
                 </div>
@@ -461,7 +484,10 @@ const AssistantDashboard = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button disabled={isUploading} onClick={() => setNewDocDialogOpen(false)}>
+          <Button
+            disabled={isUploading}
+            onClick={() => setNewDocDialogOpen(false)}
+          >
             Cancel
           </Button>
           <Button onClick={handleDocumentUpload} disabled={isUploading}>

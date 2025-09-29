@@ -30,13 +30,13 @@ const DocumentsList = ({
       if (status && status !== "all") queryParams.append("status", status);
       if (department) queryParams.append("department", department);
       const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+      if (!token) throw new Error("Token not found. Please log in again.");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL
+        `${
+          import.meta.env.VITE_API_URL
         }/file/get-documents?${queryParams.toString()}`,
-        { headers: { "Authorization": `Bearer ${token}` } },
-        { withCredentials: true }
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
       );
 
       if (response.data.status && response.data.documents) {
@@ -122,7 +122,9 @@ const DocumentsList = ({
                           <h3
                             className="text-base md:text-lg font-medium text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
                             onClick={async () => {
-                              const url = await handlePreview(doc.fileUniqueName);
+                              const url = await handlePreview(
+                                doc.fileUniqueName
+                              );
                               handleTitleClick(url, {
                                 description: doc.description,
                                 remarks: doc.remarks,
@@ -173,7 +175,9 @@ const DocumentsList = ({
                         <FaEye
                           className="h-6 w-6"
                           onClick={() => {
-                            navigate(`/MainPage/previewPdf/${doc.fileUniqueName}`)
+                            navigate(
+                              `/MainPage/previewPdf/${doc.fileUniqueName}`
+                            );
                           }}
                         />
                       </button>

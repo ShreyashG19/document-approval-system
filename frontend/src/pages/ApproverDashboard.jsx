@@ -124,8 +124,7 @@ const ApproverDashboard = () => {
           fileUniqueName: fileUnName,
           remarks: remark,
         },
-        { headers: {"Authorization": `Bearer ${token}`}},
-        { withCredentials: true }
+        { headers: {"Authorization": `Bearer ${token}`},withCredentials: true}
       );
 
       toast.dismiss(loadingToast);
