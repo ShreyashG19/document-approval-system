@@ -1,0 +1,338 @@
+openapi: 3.0.0
+info:
+    title: Document Approval System - File API
+    version: 1.0.0
+    description: File/document management endpoints for Document Approval System
+servers:
+    - url: http://localhost:5000/api/file
+paths:
+    /upload-pdf:
+        post:
+            summary: Upload a PDF document (Assistant only)
+            tags:
+                - File
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            required:
+                                - pdfFile
+                                - department
+                                - title
+                            properties:
+                                pdfFile:
+                                    type: string
+                                    format: binary
+                                department:
+                                    type: string
+                                    example: HR
+                                title:
+                                    type: string
+                                    example: Leave Policy
+                                description:
+                                    type: string
+                                    example: Policy for annual leaves
+            responses:
+                "200":
+                    description: File uploaded successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /download-pdf/{filename}:
+        get:
+            summary: Download a PDF document
+            tags:
+                - File
+            security:
+                - cookieAuth: []
+            parameters:
+                - name: filename
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                  example: file_123.pdf
+            responses:
+                "200":
+                    description: PDF file content
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                "404":
+                    description: File not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /get-documents:
+        get:
+            summary: Get documents by query
+            tags:
+                - File
+            security:
+                - cookieAuth: []
+            parameters:
+                - name: department
+                  in: query
+                  schema:
+                      type: string
+                - name: startDate
+                  in: query
+                  schema:
+                      type: string
+                      format: date
+                - name: endDate
+                  in: query
+                  schema:
+                      type: string
+                      format: date
+                - name: sortBy
+                  in: query
+                  schema:
+                      type: string
+                      example: createdDate:desc
+                - name: status
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      example: pending-approved
+                - name: createdBy
+                  in: query
+                  schema:
+                      type: string
+                      example: johndoe
+                - name: assignedTo
+                  in: query
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Documents fetched successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /approve:
+        post:
+            summary: Approve a document (Approver only)
+            tags:
+                - File
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - fileUniqueName
+                            properties:
+                                fileUniqueName:
+                                    type: string
+                                    example: file_123.pdf
+            responses:
+                "200":
+                    description: File approved successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /reject:
+        post:
+            summary: Reject a document (Approver only)
+            tags:
+                - File
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - fileUniqueName
+                            properties:
+                                fileUniqueName:
+                                    type: string
+                                    example: file_123.pdf
+            responses:
+                "200":
+                    description: File rejected successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /correction:
+        post:
+            summary: Request correction for a document (Approver only)
+            tags:
+                - File
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - fileUniqueName
+                                - remarks
+                            properties:
+                                fileUniqueName:
+                                    type: string
+                                    example: file_123.pdf
+                                remarks:
+                                    type: string
+                                    example: Please update the document title.
+            responses:
+                "200":
+                    description: Correction requested successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /get-enc-key:
+        post:
+            summary: Get encrypted key for file or user
+            tags:
+                - File
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                clientPublicKey:
+                                    type: string
+                                    example: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...\n-----END PUBLIC KEY-----"
+                                fileUniqueName:
+                                    type: string
+                                    example: file_123.pdf
+            responses:
+                "200":
+                    description: Encrypted key fetched successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+components:
+    securitySchemes:
+        cookieAuth:
+            type: apiKey
+            in: cookie
+            name: token
+    schemas:
+        ApiResponse:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string
+                data:
+                    type: object
+        Error:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string

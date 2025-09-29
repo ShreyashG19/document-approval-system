@@ -1,0 +1,91 @@
+openapi: 3.0.0
+info:
+    title: Document Approval System - Department API
+    version: 1.0.0
+    description: Department management endpoints for Document Approval System
+servers:
+    - url: http://localhost:5000/api/department
+paths:
+    /get-all-departments:
+        get:
+            summary: Get all departments
+            tags:
+                - Department
+            security:
+                - cookieAuth: []
+            responses:
+                "200":
+                    description: Successfully fetched all departments
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /add-department:
+        post:
+            summary: Add a new department (Admin & Assistant only)
+            tags:
+                - Department
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - departmentName
+                            properties:
+                                departmentName:
+                                    type: string
+                                    example: HR
+            responses:
+                "201":
+                    description: Department added successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Department already exists or validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+components:
+    securitySchemes:
+        cookieAuth:
+            type: apiKey
+            in: cookie
+            name: token
+    schemas:
+        ApiResponse:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string
+                data:
+                    type: object
+        Error:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string

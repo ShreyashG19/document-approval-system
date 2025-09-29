@@ -1,0 +1,225 @@
+openapi: 3.0.0
+info:
+    title: Document Approval System - Auth API
+    version: 1.0.0
+    description: Authentication endpoints for Document Approval System
+servers:
+    - url: http://localhost:5000/api/auth
+paths:
+    /register:
+        post:
+            summary: Register a new user (Admin only)
+            tags:
+                - Auth
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - username
+                                - email
+                                - password
+                                - fullName
+                                - mobileNo
+                                - role
+                            properties:
+                                username:
+                                    type: string
+                                    example: johndoe
+                                email:
+                                    type: string
+                                    format: email
+                                    example: johndoe@example.com
+                                password:
+                                    type: string
+                                    example: StrongPass@123
+                                fullName:
+                                    type: string
+                                    example: John Doe
+                                mobileNo:
+                                    type: string
+                                    example: "9876543210"
+                                role:
+                                    type: string
+                                    enum: [admin, approver, assistant]
+                                    example: assistant
+            responses:
+                "200":
+                    description: User registered successfully
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    status:
+                                        type: boolean
+                                    message:
+                                        type: string
+                                    data:
+                                        type: object
+                                        properties:
+                                            username:
+                                                type: string
+                                            email:
+                                                type: string
+                                            role:
+                                                type: string
+                                            fullName:
+                                                type: string
+                "400":
+                    description: Validation or authorization error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /login:
+        post:
+            summary: Login user
+            tags:
+                - Auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - username
+                                - password
+                                - deviceToken
+                            properties:
+                                username:
+                                    type: string
+                                    example: johndoe
+                                password:
+                                    type: string
+                                    example: StrongPass@123
+                                deviceToken:
+                                    type: string
+                                    example: "device_token_123"
+            responses:
+                "200":
+                    description: Login successful
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    status:
+                                        type: boolean
+                                    message:
+                                        type: string
+                                    data:
+                                        type: object
+                                        properties:
+                                            username:
+                                                type: string
+                                            email:
+                                                type: string
+                                            role:
+                                                type: string
+                                            fullName:
+                                                type: string
+                                            mobileNo:
+                                                type: string
+                                            isActive:
+                                                type: boolean
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /logout:
+        post:
+            summary: Logout user
+            tags:
+                - Auth
+            security:
+                - cookieAuth: []
+            responses:
+                "200":
+                    description: Logout successful
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    status:
+                                        type: boolean
+                                    message:
+                                        type: string
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /get-session:
+        get:
+            summary: Get current session user info
+            tags:
+                - Auth
+            security:
+                - cookieAuth: []
+            responses:
+                "200":
+                    description: User session info
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    status:
+                                        type: boolean
+                                    message:
+                                        type: string
+                                    data:
+                                        type: object
+                                        properties:
+                                            username:
+                                                type: string
+                                            email:
+                                                type: string
+                                            role:
+                                                type: string
+                                            fullName:
+                                                type: string
+                                            mobileNo:
+                                                type: string
+                                            isActive:
+                                                type: boolean
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+components:
+    securitySchemes:
+        cookieAuth:
+            type: apiKey
+            in: cookie
+            name: token
+    schemas:
+        Error:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string
