@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+    title: Document Approval System - Notification API
+    version: 1.0.0
+    description: Notification endpoints for Document Approval System
+servers:
+    - url: http://localhost:5000/api/notification
+paths:
+    /get-notifications:
+        get:
+            summary: Get unseen notifications for the logged-in user
+            tags:
+                - Notification
+            security:
+                - cookieAuth: []
+            responses:
+                "200":
+                    description: Notifications fetched successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /mark-seen:
+        post:
+            summary: Mark all unseen notifications as seen for the logged-in user
+            tags:
+                - Notification
+            security:
+                - cookieAuth: []
+            responses:
+                "200":
+                    description: Notifications marked as seen
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+components:
+    securitySchemes:
+        cookieAuth:
+            type: apiKey
+            in: cookie
+            name: token
+    schemas:
+        ApiResponse:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string
+                data:
+                    type: object
+        Error:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string

@@ -1,0 +1,812 @@
+openapi: 3.0.0
+info:
+  title: Document Approval System - Combined API
+  version: 1.0.0
+  description: Combined API specification for Document Approval System (File, User, Notification, Department, Auth)
+servers:
+  - url: http://localhost:5000/api/file
+  - url: http://localhost:5000/api/user
+  - url: http://localhost:5000/api/notification
+  - url: http://localhost:5000/api/department
+  - url: http://localhost:5000/api/auth
+paths:
+  /upload-pdf:
+    post:
+      summary: Upload a PDF document (Assistant only)
+      tags:
+        - File
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - pdfFile
+                - department
+                - title
+              properties:
+                pdfFile:
+                  type: string
+                  format: binary
+                department:
+                  type: string
+                  example: HR
+                title:
+                  type: string
+                  example: Leave Policy
+                description:
+                  type: string
+                  example: Policy for annual leaves
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /download-pdf/{filename}:
+    get:
+      summary: Download a PDF document
+      tags:
+        - File
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          example: file_123.pdf
+      responses:
+        "200":
+          description: PDF file content
+          content:
+            text/plain:
+              schema:
+                type: string
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get-documents:
+    get:
+      summary: Get documents by query
+      tags:
+        - File
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: department
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            example: createdDate:desc
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            example: pending-approved
+        - name: createdBy
+          in: query
+          schema:
+            type: string
+            example: johndoe
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Documents fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /approve:
+    post:
+      summary: Approve a document (Approver only)
+      tags:
+        - File
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileUniqueName
+              properties:
+                fileUniqueName:
+                  type: string
+                  example: file_123.pdf
+      responses:
+        "200":
+          description: File approved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /reject:
+    post:
+      summary: Reject a document (Approver only)
+      tags:
+        - File
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileUniqueName
+              properties:
+                fileUniqueName:
+                  type: string
+                  example: file_123.pdf
+      responses:
+        "200":
+          description: File rejected successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /correction:
+    post:
+      summary: Request correction for a document (Approver only)
+      tags:
+        - File
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileUniqueName
+                - remarks
+              properties:
+                fileUniqueName:
+                  type: string
+                  example: file_123.pdf
+                remarks:
+                  type: string
+                  example: Please update the document title.
+      responses:
+        "200":
+          description: Correction requested successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get-enc-key:
+    post:
+      summary: Get encrypted key for file or user
+      tags:
+        - File
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientPublicKey:
+                  type: string
+                  example: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...\n-----END PUBLIC KEY-----"
+                fileUniqueName:
+                  type: string
+                  example: file_123.pdf
+      responses:
+        "200":
+          description: Encrypted key fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /signout-all:
+    post:
+      summary: Sign out from all devices
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Logged out from all devices successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /send-credentials:
+    post:
+      summary: Send user credentials via email (Admin only)
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+                password:
+                  type: string
+                  example: StrongPass@123
+      responses:
+        "200":
+          description: Credentials sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /update-profile:
+    post:
+      summary: Update user profile (Admin only)
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+                fullName:
+                  type: string
+                  example: John Doe
+                mobileNo:
+                  type: string
+                  example: "9876543210"
+                password:
+                  type: string
+                  example: NewPass@123
+      responses:
+        "200":
+          description: User details updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /set-user-status:
+    post:
+      summary: Set user active/deactivated status (Admin only)
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - isActive
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                isActive:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: User status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get-users:
+    get:
+      summary: Get all users (Admin & Approver only)
+      tags:
+        - User
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Users fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get-notifications:
+    get:
+      summary: Get unseen notifications for the logged-in user
+      tags:
+        - Notification
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Notifications fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /mark-seen:
+    post:
+      summary: Mark all unseen notifications as seen for the logged-in user
+      tags:
+        - Notification
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Notifications marked as seen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get-all-departments:
+    get:
+      summary: Get all departments
+      tags:
+        - Department
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successfully fetched all departments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /add-department:
+    post:
+      summary: Add a new department (Admin & Assistant only)
+      tags:
+        - Department
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - departmentName
+              properties:
+                departmentName:
+                  type: string
+                  example: HR
+      responses:
+        "201":
+          description: Department added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Department already exists or validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /register:
+    post:
+      summary: Register a new user (Admin only)
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+                - fullName
+                - mobileNo
+                - role
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+                password:
+                  type: string
+                  example: StrongPass@123
+                fullName:
+                  type: string
+                  example: John Doe
+                mobileNo:
+                  type: string
+                  example: "9876543210"
+                role:
+                  type: string
+                  enum: [admin, approver, assistant]
+                  example: assistant
+      responses:
+        "200":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      email:
+                        type: string
+                      role:
+                        type: string
+                      fullName:
+                        type: string
+        "400":
+          description: Validation or authorization error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /login:
+    post:
+      summary: Login user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - deviceToken
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: StrongPass@123
+                deviceToken:
+                  type: string
+                  example: "device_token_123"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      email:
+                        type: string
+                      role:
+                        type: string
+                      fullName:
+                        type: string
+                      mobileNo:
+                        type: string
+                      isActive:
+                        type: boolean
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /logout:
+    post:
+      summary: Logout user
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get-session:
+    get:
+      summary: Get current session user info
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: User session info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      email:
+                        type: string
+                      role:
+                        type: string
+                      fullName:
+                        type: string
+                      mobileNo:
+                        type: string
+                      isActive:
+                        type: boolean
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+    Error:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string

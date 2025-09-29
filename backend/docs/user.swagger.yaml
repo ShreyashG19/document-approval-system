@@ -1,0 +1,216 @@
+openapi: 3.0.0
+info:
+    title: Document Approval System - User API
+    version: 1.0.0
+    description: User management endpoints for Document Approval System
+servers:
+    - url: http://localhost:5000/api/user
+paths:
+    /signout-all:
+        post:
+            summary: Sign out from all devices
+            tags:
+                - User
+            security:
+                - cookieAuth: []
+            responses:
+                "200":
+                    description: Logged out from all devices successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /send-credentials:
+        post:
+            summary: Send user credentials via email (Admin only)
+            tags:
+                - User
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - username
+                                - email
+                                - password
+                            properties:
+                                username:
+                                    type: string
+                                    example: johndoe
+                                email:
+                                    type: string
+                                    format: email
+                                    example: johndoe@example.com
+                                password:
+                                    type: string
+                                    example: StrongPass@123
+            responses:
+                "200":
+                    description: Credentials sent successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /update-profile:
+        post:
+            summary: Update user profile (Admin only)
+            tags:
+                - User
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - username
+                            properties:
+                                username:
+                                    type: string
+                                    example: johndoe
+                                email:
+                                    type: string
+                                    format: email
+                                    example: johndoe@example.com
+                                fullName:
+                                    type: string
+                                    example: John Doe
+                                mobileNo:
+                                    type: string
+                                    example: "9876543210"
+                                password:
+                                    type: string
+                                    example: NewPass@123
+            responses:
+                "200":
+                    description: User details updated successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /set-user-status:
+        post:
+            summary: Set user active/deactivated status (Admin only)
+            tags:
+                - User
+            security:
+                - cookieAuth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - username
+                                - isActive
+                            properties:
+                                username:
+                                    type: string
+                                    example: johndoe
+                                isActive:
+                                    type: boolean
+                                    example: true
+            responses:
+                "200":
+                    description: User status updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "400":
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /get-users:
+        get:
+            summary: Get all users (Admin & Approver only)
+            tags:
+                - User
+            security:
+                - cookieAuth: []
+            responses:
+                "200":
+                    description: Users fetched successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiResponse"
+                "401":
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+components:
+    securitySchemes:
+        cookieAuth:
+            type: apiKey
+            in: cookie
+            name: token
+    schemas:
+        ApiResponse:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string
+                data:
+                    type: object
+        Error:
+            type: object
+            properties:
+                status:
+                    type: boolean
+                message:
+                    type: string
