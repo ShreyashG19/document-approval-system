@@ -3,7 +3,7 @@ const Session = require("../models/session.model");
 const { hashPassword, verifyPassword } = require("../utils/hashPassword");
 const crypto = require("crypto");
 const asyncHandler = require("../utils/asyncHandler");
-const createError = require("../utils/createError");
+const createError = require("../utils/createApiError");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const register = asyncHandler(async (req, res, next) => {

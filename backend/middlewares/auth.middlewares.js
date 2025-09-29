@@ -2,7 +2,7 @@ const Joi = require("joi");
 const User = require("../models/user.model");
 const Session = require("../models/session.model");
 const asyncHandler = require("../utils/asyncHandler");
-const createError = require("../utils/createError");
+const createApiError = require("../utils/createApiError");
 const { Role } = require("../utils/enums");
 const jwt = require("jsonwebtoken");
 const {
@@ -25,7 +25,7 @@ const registerDetailsValidator = (req, res, next) => {
     });
     const { error } = schema.validate(req.body);
     if (error) {
-        throw createError(400, error.details[0].message);
+        throw createApiError(400, error.details[0].message);
     }
     req.body.username = req.body.username.trim();
     req.body.email = req.body.email.toLowerCase().trim();
@@ -42,7 +42,7 @@ const loginDetailsValidator = (req, res, next) => {
     });
     const { error } = schema.validate(req.body);
     if (error) {
-        throw createError(400, error.details[0].message);
+        throw createApiError(400, error.details[0].message);
     }
     next();
 };
@@ -64,14 +64,14 @@ const ensureUniqueUser = asyncHandler(async (req, res, next) => {
         } else {
             errorMessage = `The mobile number is already registered`;
         }
-        throw createError(400, errorMessage);
+        throw createApiError(400, errorMessage);
     }
 
     // Check if an approver already exists
     if (role === Role.APPROVER) {
         const existingApprover = await User.findOne({ role: Role.APPROVER });
         if (existingApprover) {
-            throw createError(400, "Max approvers limit reached");
+            throw createApiError(400, "Max approvers limit reached");
         }
     }
     next();
@@ -81,7 +81,7 @@ const ensureEmailExists = asyncHandler(async (req, res, next) => {
     const { email } = req.body;
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-        throw createError(400, "Email not registered");
+        throw createApiError(400, "Email not registered");
     }
     next();
 });
@@ -90,7 +90,7 @@ const emailValidator = (req, res, next) => {
     const { email } = req.body;
     const { error } = emailSchema.required().validate(email);
     if (error) {
-        throw createError(400, "Invalid email");
+        throw createApiError(400, "Invalid email");
     }
     next();
 };
@@ -98,7 +98,7 @@ const mobileNoValidator = (req, res, next) => {
     const { mobileNo } = req.body;
     const { error } = mobileNoSchema.required().validate(mobileNo);
     if (error) {
-        throw createError(400, "Invalid mobile number");
+        throw createApiError(400, "Invalid mobile number");
     }
     next();
 };
@@ -106,7 +106,7 @@ const usernameValidator = (req, res, next) => {
     const { username } = req.body;
     const { error } = usernameSchema.required().validate(username);
     if (error) {
-        throw createError(
+        throw createApiError(
             400,
             "Username must be atleast 5 characters long, and can contain only letters, numbers, and underscores",
         );
@@ -118,7 +118,7 @@ const passwordValidator = (req, res, next) => {
     const { password } = req.body;
     const { error } = passwordSchema.required().validate(password);
     if (error) {
-        throw createError(400, error.details[0].message);
+        throw createApiError(400, error.details[0].message);
     }
     next();
 };
@@ -140,11 +140,11 @@ const verifySession = asyncHandler(async (req, res, next) => {
         req.session = await Session.findOne({ jti: decoded.jti });
         if (!req.session) {
             res.clearCookie("token");
-            throw createError(401, "User not logged in");
+            throw createApiError(401, "User not logged in");
         }
         next();
     } else {
-        throw createError(401, "User not logged in");
+        throw createApiError(401, "User not logged in");
     }
 });
 const verifyAlreadyLoggedIn = asyncHandler(async (req, res, next) => {
@@ -154,7 +154,7 @@ const verifyAlreadyLoggedIn = asyncHandler(async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.session = await Session.findOne({ jti: decoded.jti });
         if (req.session) {
-            throw createError(400, "User already logged in");
+            throw createApiError(400, "User already logged in");
         }
         next();
     }
@@ -164,7 +164,7 @@ const verifyAlreadyLoggedIn = asyncHandler(async (req, res, next) => {
 
 const authorizeRoles = (roles) => (req, res, next) => {
     if (!roles.includes(req.session.role)) {
-        throw createError(401, "Access Denied!");
+        throw createApiError(401, "Access Denied!");
     }
     next();
 };

@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const User = require("../models/user.model");
+const createApiError = require("../utils/createApiError");
 
 const otpValidator = (req, res, next) => {
     const { otp } = req.body;
@@ -8,9 +9,7 @@ const otpValidator = (req, res, next) => {
         .required();
     const { error } = otpSchema.validate(otp);
     if (error) {
-        const err = new Error("Invalid OTP format");
-        err.statusCode = 400;
-        throw err;
+        throw createApiError(400, "Invalid OTP format");
     }
     next();
 };

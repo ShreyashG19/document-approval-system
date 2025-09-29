@@ -7,8 +7,8 @@ class ApiError extends Error {
     }
 }
 
-const createError = (statusCode, message) => {
+const createApiError = (statusCode, message) => {
     return new ApiError(statusCode, message);
 };
 
-module.exports = createError;
+module.exports = createApiError;
