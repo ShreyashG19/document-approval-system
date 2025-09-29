@@ -1,11 +1,19 @@
-import { Button } from "@/components/ui/button"
+import { RouterProvider } from "react-router-dom"
+import router from "./routes/router"
+import { Provider } from "react-redux"
+import { store } from "./store/store"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+
+
+const queryClient = new QueryClient()
 
 function App() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <Button variant={"default"}>button</Button>
-      <h1 className="text-4xl font-bold">Hello world</h1>
-    </div>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+      </QueryClientProvider>
+    </Provider>
   )
 }
 
