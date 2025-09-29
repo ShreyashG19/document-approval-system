@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const { verifyPassword } = require("../utils/hashPassword");
 const asyncHandler = require("../utils/asyncHandler");
-const createError = require("../utils/createError");
+const createApiError = require("../utils/createApiError");
 const config = require("../config/appConfig");
 const {
     emailSchema,
@@ -24,10 +24,7 @@ const signUpDetailsSchema = Joi.object({
 const signUpDetailsValidator = (req, res, next) => {
     const { error } = signUpDetailsSchema.validate(req.body);
     if (error) {
-        return res.status(400).json({
-            message: "Invalid details",
-            error: error.details[0].message,
-        });
+        throw createApiError(400, error.details[0].message);
     }
     next();
 };
@@ -43,14 +40,10 @@ const signInDetailsSchema = Joi.object({
 const signiInDetailsValidator = (req, res, next) => {
     const { error } = signInDetailsSchema.validate(req.body);
     if (error) {
-        return res.status(400).json({
-            message: "Invalid details",
-            error: error.details[0].message,
-        });
+        throw createApiError(400, error.details[0].message);
     }
     next();
 };
-
 
 //new
 const resetPasswordSchema = Joi.object({
@@ -62,10 +55,7 @@ const resetPasswordSchema = Joi.object({
 const resetPasswordValidator = (req, res, next) => {
     const { error } = resetPasswordSchema.validate(req.body);
     if (error) {
-        return res.status(400).json({
-            message: "Invalid details",
-            error: error.details[0].message,
-        });
+        throw createApiError(400, error.details[0].message);
     }
     next();
 };
@@ -73,38 +63,30 @@ const resetPasswordValidator = (req, res, next) => {
 const verifyEmailExists = asyncHandler(async (req, res, next) => {
     const { email } = req.body;
     if (!email) {
-        const error = new Error("Email is required");
-        error.statusCode = 400;
-        return next(error);
+        throw createApiError(400, "Email is required");
     }
     const user = await User.findOne({ email });
     if (!user) {
-        const error = new Error("User not found");
-        error.statusCode = 404;
-        return next(error);
+        throw createApiError(404, "User not found");
     }
     next();
 });
 const verifyOldPassword = asyncHandler(async (req, res, next) => {
     const { currentPassword } = req.body;
     if (!currentPassword) {
-        const error = new Error("Current password is required");
-        error.statusCode = 400;
-        return next(error);
+        throw createApiError(400, "Current password is required");
     }
 
     const isMatch = await verifyPassword(currentPassword, req.user.password);
     if (!isMatch) {
-        const error = new Error("Invalid Current Password");
-        error.statusCode = 400;
-        return next(error);
+        throw createApiError(400, "Invalid Current Password");
     }
     next();
 });
 //todo: remove later
 const authorizeRoles = (roles) => (req, res, next) => {
     if (!roles.includes(req.session.role)) {
-        throw createError(401, "Access Denied!");
+        throw createApiError(401, "Access Denied!");
     }
     next();
 };
@@ -120,7 +102,7 @@ const updateProfileValidator = (req, res, next) => {
     });
     const { error } = updateProfileSchema.validate(req.body);
     if (error) {
-        throw createError(400, error.details[0].message);
+        throw createApiError(400, error.details[0].message);
     }
     next();
 };

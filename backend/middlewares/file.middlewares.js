@@ -1,5 +1,6 @@
 const User = require("../models/user.model");
 const Department = require("../models/department.model");
+const createApiError = require("../utils/createApiError");
 const { Role } = require("../utils/enums");
 const asyncHandler = require("../utils/asyncHandler");
 const Joi = require("joi");
@@ -12,8 +13,7 @@ const verifyFileAtrributes = asyncHandler(async (req, res, next) => {
     const { error } = fileAttributesSchema.validate(req.body);
     console.log("body : ", req.body);
     if (error) {
-        error.statusCode = 400;
-        return next(error);
+        throw createApiError(400, error.details[0].message);
     }
 
     const department = await Department.findOne({
@@ -21,9 +21,7 @@ const verifyFileAtrributes = asyncHandler(async (req, res, next) => {
     });
 
     if (!department) {
-        const error = new Error(`${req.body.department} not found!`);
-        error.statusCode = 400;
-        return next(error);
+        throw createApiError(400, `${req.body.department} not found!`);
     }
     req.body.department = department._id;
     next();
