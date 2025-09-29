@@ -59,11 +59,11 @@ app.get("/", (req, res) => {
   res.send("welcome to document approval system");
 });
 
-app.use("/auth", authRoutes);
-app.use("/user", userRoutes);
-app.use("/file", fileRoutes);
-app.use("/department", departmentRoutes);
-app.use("/notification", notificationRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/file", fileRoutes);
+app.use("/api/department", departmentRoutes);
+app.use("/api/notification", notificationRoutes);
 
 app.use(errorHandler);
 const PORT = config.port || 3000;
