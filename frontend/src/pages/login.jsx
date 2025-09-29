@@ -51,6 +51,7 @@ const Login = () => {
   // 🚀 Redirect if user is already logged in
   useEffect(() => {
     if (loggedInUser?.role) {
+      console.log("loggedInUser: ", loggedInUser);
       navigate(roleRoutes[loggedInUser.role] || "/");
     }
   }, [loggedInUser, navigate]);
@@ -99,7 +100,7 @@ const Login = () => {
         `${import.meta.env.VITE_API_URL}/auth/login`,
         {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             // "Authorization": token
           },
@@ -107,6 +108,7 @@ const Login = () => {
           credentials: "include",
         }
       );
+
 
       if (!response.ok) throw new Error((await response.json()).message);
 

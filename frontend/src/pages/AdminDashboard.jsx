@@ -65,22 +65,20 @@ const AdminDashboard = () => {
   });
   // Fetch Documents
   const fetchDocuments = async () => {
+    console.log("fetchDocuments");
     try {
       setIsLoading(true);
       setError(null);
       setDocuments([]);
       const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
-      const apiUrl = `${import.meta.env.VITE_API_URL
-        }/file/get-documents?status=${selectedTab.toLowerCase()}`;
+      console.log("token: ", token);
+      if (!token) throw new Error("Token not found. Please log in again.");
+      const apiUrl = `${
+        import.meta.env.VITE_API_URL
+      }/file/get-documents?status=${selectedTab.toLowerCase()}`;
       // console.log("apiUrl", apiUrl);
 
       const response = await axios.get(apiUrl, {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
         withCredentials: true,
       });
 
@@ -105,8 +103,6 @@ const AdminDashboard = () => {
     await fetchDocuments();
     setIsLoading(false);
   };
-
-
 
   //   try {
   //     await cryptoService.generateKeysAndRequestEncKey(
@@ -134,11 +130,13 @@ const AdminDashboard = () => {
     const fetchDepartments = async () => {
       try {
         const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+        if (!token) throw new Error("Token not found. Please log in again.");
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/department/get-all-departments`,
-          { headers: {"Authorization": `Bearer ${token}`}},
-          { withCredentials: true }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
         );
         console.log("departments : ", response.data.data);
         setDepartments(response.data.data);
@@ -161,8 +159,7 @@ const AdminDashboard = () => {
     setFilteredData(filtered);
   }, [searchQuery, selectedCategory, startDate, endDate, documents]);
 
-
-  //modular 
+  //modular
   const handleDocumentUpload = async () => {
     const toastId = toast.loading("Uploading document...");
     if (!newDocFile || !newDocDepartment || !newDocTitle) {
@@ -180,10 +177,11 @@ const AdminDashboard = () => {
       formData.append("title", newDocTitle);
       formData.append("description", newDocDesc || "");
       const token = localStorage.getItem("token");
-      if(!token) throw new Error("Token not found. Please log in again.");
+      if (!token) throw new Error("Token not found. Please log in again.");
 
       const uploadUrl = `${import.meta.env.VITE_API_URL}/file/upload-pdf`;
-      const response = await axios.post(uploadUrl, formData, {headers: {"Authorization": `Bearer ${token}`}}, {
+      const response = await axios.post(uploadUrl, formData, {
+        headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
 
@@ -223,10 +221,11 @@ const AdminDashboard = () => {
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedTab === tab
-                  ? "bg-blue-100 text-blue-800"
-                  : "text-gray-800 hover:text-blue-700 hover:bg-blue-50"
-                  }`}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  selectedTab === tab
+                    ? "bg-blue-100 text-blue-800"
+                    : "text-gray-800 hover:text-blue-700 hover:bg-blue-50"
+                }`}
                 disabled={isLoading}
               >
                 {tab.charAt(0) + tab.slice(1).toLowerCase()}
@@ -277,7 +276,9 @@ const AdminDashboard = () => {
                   disabled={isLoading}
                 />
               </div>
-              <span className="text-gray-500 self-center hidden xs:block">to</span>
+              <span className="text-gray-500 self-center hidden xs:block">
+                to
+              </span>
               <div className="relative flex-grow">
                 <h1 className="font-semibold text-gray-700">End Date</h1>
                 <input
@@ -297,7 +298,9 @@ const AdminDashboard = () => {
                 className="flex items-center justify-center p-2 bg-white border border-gray-300 text-gray-900 rounded-md shadow-sm hover:bg-gray-50 transition"
                 disabled={isLoading}
               >
-                <IoMdRefresh className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <IoMdRefresh
+                  className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
+                />
               </button>
 
               <button
@@ -387,7 +390,6 @@ const AdminDashboard = () => {
               </object>
             </div>
 
-
             {/* Details Panel - Right Side */}
             <div className="w-80 bg-gray-50 p-4 rounded-lg overflow-y-auto">
               {/* Document Details */}
@@ -406,8 +408,8 @@ const AdminDashboard = () => {
                     <span className="font-medium">Date:</span>{" "}
                     {currentDocDetails.createdDate
                       ? new Date(
-                        currentDocDetails.createdDate
-                      ).toLocaleDateString()
+                          currentDocDetails.createdDate
+                        ).toLocaleDateString()
                       : "Not available"}
                   </p>
                 </div>
@@ -439,7 +441,6 @@ const AdminDashboard = () => {
         <DialogActions></DialogActions>
       </Dialog>
       {/* Add Document Button */}
-
 
       {/* PDF Preview Dialog */}
       <Dialog

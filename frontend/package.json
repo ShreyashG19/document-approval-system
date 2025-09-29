@@ -43,7 +43,8 @@
     "react-spinners": "^0.15.0",
     "react-toastify": "^11.0.2",
     "react-tooltip": "^5.28.0",
-    "router": "^2.0.0"
+    "router": "^2.0.0",
+    "vite-plugin-pwa": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
