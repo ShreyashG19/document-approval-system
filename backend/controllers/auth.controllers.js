@@ -3,7 +3,8 @@ const Session = require("../models/session.model");
 const { hashPassword, verifyPassword } = require("../utils/hashPassword");
 const crypto = require("crypto");
 const asyncHandler = require("../utils/asyncHandler");
-const createError = require("../utils/createApiError");
+const createApiError = require("../utils/createApiError");
+const ApiResponse = require("../utils/ApiResponse");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const register = asyncHandler(async (req, res, next) => {
@@ -23,16 +24,16 @@ const register = asyncHandler(async (req, res, next) => {
     });
 
     await newUser.save();
-    return res.status(200).json({
-        status: true,
-        message: "User registered successfully",
-        data: {
-            username: newUser.username,
-            email: newUser.email,
-            role: newUser.role,
-            fullName: newUser.fullName,
-        },
-    });
+    return res.status(200).json(
+        new ApiResponse(200, "User registered successfully", {
+            data: {
+                username: newUser.username,
+                email: newUser.email,
+                role: newUser.role,
+                fullName: newUser.fullName,
+            },
+        }),
+    );
 });
 
 const login = asyncHandler(async (req, res) => {
@@ -40,16 +41,16 @@ const login = asyncHandler(async (req, res) => {
     let user = await User.findOne({ username });
 
     if (!user) {
-        throw createError(401, "User not found");
+        throw createApiError(401, "User not found");
     }
     if (!user.isActive) {
-        throw createError(400, "User is deactivated");
+        throw createApiError(400, "User is deactivated");
     }
 
     const isMatch = await verifyPassword(password, user.password);
 
     if (!isMatch) {
-        throw createError(401, "Invalid username or password");
+        throw createApiError(401, "Invalid username or password");
     }
 
     const jti = uuidv4();
@@ -73,47 +74,46 @@ const login = asyncHandler(async (req, res) => {
         sameSite: "Strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie expires in 2 days
     });
-    return res.status(200).json({
-        success: true,
-        message: "Login success!",
-        user: {
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            fullName: user.fullName,
-            mobileNo: user.mobileNo,
-            isActive: user.isActive,
-        },
-    });
+    return res.status(200).json(
+        new ApiResponse(200, "Login success!", {
+            data: {
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                fullName: user.fullName,
+                mobileNo: user.mobileNo,
+                isActive: user.isActive,
+            },
+        }),
+    );
 });
 
 const logout = asyncHandler(async (req, res) => {
     await Session.findOneAndDelete({ jti: req.session.jti });
     res.clearCookie("token");
-    return res.status(200).json({
-        success: true,
-        message: "Logged out successfully",
-    });
+    return res
+        .status(200)
+        .json(new ApiResponse(200, "Logged out successfully"));
 });
 
 const getSession = asyncHandler(async (req, res) => {
     await req.session.populate("user");
     const user = req.session.user;
     if (!user) {
-        return createError(400, "User not found");
+        return createApiError(400, "User not found");
     }
-    return res.status(200).json({
-        status: true,
-        message: "User is logged in",
-        user: {
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            fullName: user.fullName,
-            mobileNo: user.mobileNo,
-            isActive: user.isActive,
-        },
-    });
+    return res.status(200).json(
+        new ApiResponse(200, "User is logged in", {
+            data: {
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                fullName: user.fullName,
+                mobileNo: user.mobileNo,
+                isActive: user.isActive,
+            },
+        }),
+    );
 });
 
 const terminateUserSession = async (req, username) => {

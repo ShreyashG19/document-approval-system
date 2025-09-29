@@ -11,22 +11,19 @@ const { Role, FileStatus } = require("../utils/enums");
 const forge = require("node-forge");
 const crypto = require("crypto");
 const User = require("../models/user.model");
-const createError = require("../utils/createError");
+const createApiError = require("../utils/createApiError");
+const ApiResponse = require("../utils/ApiResponse");
 
 const uploadPdf = asyncHandler(async (req, res, next) => {
   //only take description if available
   console.log("req.session", req.session);
   const approver = await User.findOne({ role: Role.APPROVER });
   if (!approver) {
-    const error = new Error("No approver found");
-    error.statusCode = 403;
-    return next(error);
+    throw createApiError(403, "No approver found");
   }
 
   if (!approver.isActive) {
-    const error = new Error("Approver is not active");
-    error.statusCode = 403;
-    return next(error);
+    throw createApiError(403, "Approver is not active");
   }
 
   // const currentUser = await User.findOne({ username: req.session.username });
@@ -87,10 +84,7 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
   //         console.log("body", notification.body);
   //     }
   // }
-
-  return res.status(200).json({
-    status: true,
-    message: "File uploaded successfully",
+  return res.status(200).json(new ApiResponse(200, "File uploaded successfully", {
     file: {
       fileName: populatedFile.fileUniqueName,
       createdBy: populatedFile.createdBy.fullName,
@@ -98,7 +92,7 @@ const uploadPdf = asyncHandler(async (req, res, next) => {
       title: populatedFile.title,
       description: populatedFile.description,
     },
-  });
+  }));
 });
  
 const downloadPdf = asyncHandler(async (req, res, next) => {
@@ -106,9 +100,7 @@ const downloadPdf = asyncHandler(async (req, res, next) => {
   console.log("fileName", fileName);
   const file = await File.findOne({ fileUniqueName: fileName });
   if (!file) {
-    const error = new Error("File not found");
-    error.status = 404;
-    return next(error);
+    throw createApiError(404, "File not found");
   }
   await req.session.populate("user");
 
@@ -118,16 +110,12 @@ const downloadPdf = asyncHandler(async (req, res, next) => {
     req.session.user.role === Role.ASSISTANT &&
     file.createdBy.toString() !== req.session.user.id
   ) {
-    const error = new Error("You are not authorized to download this file");
-    error.status = 403;
-    return next(error);
+    throw createApiError(403, "You are not authorized to download this file");
   }
 
   const filePath = path.join(appConfig.baseUploadDir, file.fileUniqueName);
   if (!fs.existsSync(filePath)) {
-    const error = new Error("File not found");
-    error.status = 404;
-    return next(error);
+    throw createApiError(404, "File not found");
   }
   const fileContent = fs.readFileSync(filePath, "utf8");
   res.send(fileContent);
@@ -159,9 +147,7 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
     FileStatus.CORRECTION,
   ];
   if (!status) {
-    const error = new Error("please provide status");
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, "please provide status");
   }
   const requestedStatuses = status.toLowerCase().split("-");
   const invalidStatuses = requestedStatuses.filter(
@@ -169,11 +155,7 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
   );
 
   if (invalidStatuses.length > 0) {
-    const error = new Error(
-      `Invalid status values: ${invalidStatuses.join(", ")}`
-    );
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, `Invalid status values: ${invalidStatuses.join(", ")}`);
   }
 
   // $in operator to match any of the provided statuses
@@ -189,9 +171,7 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
   switch (req.session.user.role) {
     case Role.ASSISTANT:
       if (createdBy) {
-        const error = new Error("Access denied");
-        error.status = 401;
-        return next(error);
+        throw createApiError(401, "Access denied");
       }
       query.createdBy = req.session.user._id;
       break;
@@ -203,9 +183,7 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
       }
       break;
     default:
-      const error = new Error("Unauthorized role to fetch documents");
-      error.status = 403;
-      return next(error);
+      throw createApiError(403, "Unauthorized role to fetch documents");
   }
 
   // Apply department filter if provided
@@ -214,9 +192,7 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
     if (dept) {
       query.department = dept._id;
     } else {
-      const error = new Error(`Department ${department} not found`);
-      error.status = 403;
-      return next(error);
+      throw createApiError(403, `Department ${department} not found`);
     }
   }
 
@@ -228,7 +204,7 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
       if (startDate) {
         const startDateTime = new Date(startDate);
         if (isNaN(startDateTime.getTime())) {
-          throw new Error("Invalid start date");
+          throw createApiError(400, "Invalid start date");
         }
         startDateTime.setUTCHours(0, 0, 0, 0);
         query.createdDate.$gte = startDateTime;
@@ -237,7 +213,7 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
       if (endDate) {
         const endDateTime = new Date(endDate);
         if (isNaN(endDateTime.getTime())) {
-          throw new Error("Invalid end date");
+          throw createApiError(400, "Invalid end date");
         }
         endDateTime.setUTCHours(23, 59, 59, 999);
         query.createdDate.$lte = endDateTime;
@@ -248,13 +224,10 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
         endDate &&
         query.createdDate.$gte > query.createdDate.$lte
       ) {
-        throw new Error("Start date cannot be after end date");
+        throw createApiError(400, "Start date cannot be after end date");
       }
     } catch (error) {
-      return next({
-        status: 400,
-        message: error.message,
-      });
+      throw createApiError(400, error.message);
     }
   }
 
@@ -268,19 +241,15 @@ const getDocumentsByQuery = asyncHandler(async (req, res, next) => {
   }
   console.log("query", query);
   const documents = await fetchDocuments(query, sortOptions);
-  return res.status(200).json({
-    status: true,
-    message: "documents fetched successfully",
-    documents,
-  });
+  return res.status(200).json(new ApiResponse(200, "documents fetched successfully", {
+    documents
+  }));
 });
 
 const updateFileStatus = asyncHandler(async (req, res, next) => {
   let { fileUniqueName, status, remarks } = req.body;
   if (!fileUniqueName) {
-    const error = new Error("Please provide fileUniqueName");
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, "Please provide fileUniqueName");
   }
   fileUniqueName = fileUniqueName.trim();
   status = status.trim().toLowerCase();
@@ -288,33 +257,23 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
 
   // Validate status
   if (!Object.values(FileStatus).includes(status)) {
-    const error = new Error("Invalid status");
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, "Invalid status");
   }
 
   const file = await File.findOne({ fileUniqueName });
   if (!file) {
-    const error = new Error("File not found");
-    error.status = 404;
-    return next(error);
+    throw createApiError(404, "File not found");
   }
   if (
     file.status === FileStatus.REJECTED ||
     file.status === FileStatus.CORRECTION ||
     file.status === FileStatus.APPROVED
   ) {
-    const error = new Error(
-      "Cannot update file status to " + status.toLowerCase()
-    );
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, "Cannot update file status to " + status.toLowerCase());
   }
 
   if (status === FileStatus.CORRECTION && !remarks) {
-    const error = new Error("Remarks are required for correction");
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, "Remarks are required for correction");
   }
 
   // Update status and corresponding date
@@ -354,17 +313,16 @@ const updateFileStatus = asyncHandler(async (req, res, next) => {
       );
     }
   }
-  return res.status(200).json({
-    status: true,
-    message: `File ${status.toLowerCase()} successfully`,
+
+  return res.status(200).json(new ApiResponse(200, `File ${status.toLowerCase()} successfully`, {
     file: {
       fileName: file.fileUniqueName,
       createdBy: file.createdBy.fullName,
       title: file.title,
       description: file.description,
       status: file.status,
-    },
-  });
+    }}));
+  
 });
 
 // Usage examples:
@@ -386,19 +344,13 @@ const requestCorrection = asyncHandler((req, res, next) => {
 const getEncKeyByFileName = asyncHandler(async (req, res, next) => {
   const { clientPublicKey, fileUniqueName } = req.body;
   if (!clientPublicKey || !fileUniqueName) {
-    const error = new Error(
-      "Please provide clientPublicKey and fileUniqueName"
-    );
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, "Please provide clientPublicKey and fileUniqueName");
   }
   const file = await File.findOne({ fileUniqueName })
     .populate("createdBy")
     .select("encKey");
   if (!file) {
-    const error = new Error("File not found");
-    error.status = 404;
-    return next(error);
+    throw createApiError(404, "File not found");
   }
 
   const { encKey } = file.createdBy;
@@ -407,19 +359,18 @@ const getEncKeyByFileName = asyncHandler(async (req, res, next) => {
   const encryptedEncKey = publicKey.encrypt(encKey, "RSA-OAEP", {
     md: forge.md.sha256.create(),
   });
-  return res.status(200).json({
-    status: true,
-    message: "Encrypted key fetched successfully",
-    encryptedEncKey: forge.util.encode64(encryptedEncKey),
-  });
+
+  return res.status(200).json(new ApiResponse(200, "Encrypted key fetched successfully",
+    {
+      encryptedEncKey: forge.util.encode64(encryptedEncKey),
+    }
+  ));
 });
 
 const getOwnEncKey = asyncHandler(async (req, res, next) => {
   const { clientPublicKey } = req.body;
   if (!clientPublicKey) {
-    const error = new Error("Please provide clientPublicKey");
-    error.status = 400;
-    return next(error);
+    throw createApiError(400, "Please provide clientPublicKey");
   }
   await req.session.populate("user");
   const { encKey } = req.session.user;
@@ -428,11 +379,11 @@ const getOwnEncKey = asyncHandler(async (req, res, next) => {
   const encryptedEncKey = publicKey.encrypt(encKey, "RSA-OAEP", {
     md: forge.md.sha256.create(),
   });
-  return res.status(200).json({
-    status: true,
-    message: "Encrypted key fetched successfully",
-    encryptedEncKey: forge.util.encode64(encryptedEncKey),
-  });
+  return res.status(200).json(new ApiResponse(200, "Encrypted key fetched successfully",
+    {
+      encryptedEncKey: forge.util.encode64(encryptedEncKey),
+    }
+  ));
 });
 const getEncKey = asyncHandler(async (req, res, next) => {
   if (req.session.role === Role.APPROVER || req.session.role === Role.ADMIN) {
