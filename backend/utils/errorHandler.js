@@ -1,11 +1,12 @@
-const ApiError = require("./createApiError");
+const createApiError = require("./createApiError");
+const ApiError = createApiError.ApiError;
 const ApiResponse = require("./ApiResponse");
 const fs = require("fs");
 const errorHandler = (error, req, res, next) => {
     console.log("=========================");
     console.log(error.stack);
     console.log("=========================");
-    if (ApiError && error instanceof ApiError) {
+    if (error instanceof ApiError) {
         return res
             .status(error.statusCode)
             .json(new ApiResponse(error.statusCode, error.message));
