@@ -11,4 +11,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: "dist",
+    rollupOptions: {
+      input: {
+        main: "./index.html",
+        "firebase-messaging-sw": "./public/firebase-messaging-sw.js",
+      },
+    },
+  },
 })

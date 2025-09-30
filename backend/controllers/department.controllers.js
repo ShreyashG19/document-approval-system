@@ -1,6 +1,7 @@
 const createApiError = require("../utils/createApiError");
 const ApiResponse = require("../utils/ApiResponse");
 const Department = require("../models/department.model");
+const asyncHandler = require("../utils/asyncHandler");
 
 const getAllDepartments = asyncHandler(async (req, res, next) => {
     const departments = await Department.find({});

@@ -17,27 +17,27 @@ interface AuthState {
     error: string | null;
 }
 
-// const initialState: AuthState = {
-//     user: null,
-//     token: null,
-//     status: 'idle',
-//     error: null,
-// };
-
 const initialState: AuthState = {
-    user:
-        import.meta.env.DEV
-            ? {
-                  id: 'dummy123',
-                  username: 'dummyuser',
-                  email: 'dummy@example.com',
-                  role: 'admin',
-              }
-            : null,
-    token: !import.meta.env.DEV ? 'dummy-token-123' : null,
+    user: null,
+    token: null,
     status: 'idle',
     error: null,
 };
+
+// const initialState: AuthState = {
+//     user:
+//         import.meta.env.DEV
+//             ? {
+//                   id: 'dummy123',
+//                   username: 'dummyuser',
+//                   email: 'dummy@example.com',
+//                   role: 'admin',
+//               }
+//             : null,
+//     token: !import.meta.env.DEV ? 'dummy-token-123' : null,
+//     status: 'idle',
+//     error: null,
+// };
 
 const authSlice = createSlice({
     name: 'auth',
