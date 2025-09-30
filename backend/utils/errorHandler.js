@@ -5,7 +5,7 @@ const errorHandler = (error, req, res, next) => {
     console.log("=========================");
     console.log(error.stack);
     console.log("=========================");
-    if (error instanceof ApiError) {
+    if (ApiError && error instanceof ApiError) {
         return res
             .status(error.statusCode)
             .json(new ApiResponse(error.statusCode, error.message));

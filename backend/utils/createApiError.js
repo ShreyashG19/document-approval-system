@@ -11,4 +11,5 @@ const createApiError = (statusCode, message) => {
     return new ApiError(statusCode, message);
 };
 
+createApiError.ApiError = ApiError;
 module.exports = createApiError;
