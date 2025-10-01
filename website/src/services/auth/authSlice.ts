@@ -31,7 +31,7 @@ const initialState: AuthState = {
 //                   id: 'dummy123',
 //                   username: 'dummyuser',
 //                   email: 'dummy@example.com',
-//                   role: 'admin',
+//                   role: 'approver',
 //               }
 //             : null,
 //     token: !import.meta.env.DEV ? 'dummy-token-123' : null,

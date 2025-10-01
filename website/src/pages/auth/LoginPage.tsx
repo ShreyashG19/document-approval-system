@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginStart, loginSuccess, loginFailure } from '@/services/auth/authSlice'
 import { requestFCMToken } from '@/utils/firebaseUtils'
@@ -19,15 +19,30 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({ username: '', password: '' })
 
-  // Redirect if already logged in
+  // Redirect if already logged in — depend only on the role value to avoid re-running
+  const location = useLocation()
+  const navigatedForRole = useRef<string | null>(null)
+
   useEffect(() => {
-    if (authUser?.role) {
-      if (authUser.role === Role.APPROVER) navigate('/approver', { replace: true })
-      else if (authUser.role === Role.ASSISTANT) navigate('/assistant', { replace: true })
-      else if (authUser.role === Role.ADMIN) navigate('/admin', { replace: true })
-      else navigate('/', { replace: true })
+    const role = authUser?.role
+    if (!role) {
+      // clear previous navigation lock when user is not authenticated
+      navigatedForRole.current = null
+      return
     }
-  }, [authUser, navigate])
+
+    // If we've already navigated for this role, don't navigate again
+    if (navigatedForRole.current === role) return
+
+    const target =
+      role === Role.APPROVER ? '/approver' : role === Role.ASSISTANT ? '/assistant' : role === Role.ADMIN ? '/admin' : '/'
+
+    // only navigate if we're not already at the target path (prevents loops)
+    if (location.pathname !== target) {
+      navigatedForRole.current = role
+      navigate(target, { replace: true })
+    }
+  }, [authUser?.role, navigate, location.pathname])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,28 +77,30 @@ function LoginPage() {
         { withCredentials: true }
       )
 
-      const data = resp.data
+  const respBody = resp.data
+  console.debug('Login response (raw):', respBody)
+      // Support multiple backend shapes. Example response shape seen:
+      // { status, message, data: { data: { ...user } } }
+      const userFromBody =
+        respBody?.data?.data ?? // nested data.data
+        respBody?.data ?? // { data: { ... } } or user directly under data
+        respBody?.user ??
+        respBody
 
-      // Backend returns { status, message, user }
-      dispatch(
-        loginSuccess({
-          user: {
-            username: data.user.username,
-            email: data.user.email,
-            role: data.user.role,
-            fullName: data.user.fullName,
-            mobileNo: data.user.mobileNo,
-            isActive: data.user.isActive,
-          },
-        })
-      )
+      const userObj = {
+        username: userFromBody.username,
+        email: userFromBody.email,
+        role: userFromBody.role,
+        fullName: userFromBody.fullName,
+        mobileNo: userFromBody.mobileNo,
+        isActive: userFromBody.isActive,
+      }
 
-      // Navigate based on role
-      const role = data.user.role
-      if (role === Role.APPROVER) navigate('/approver')
-      else if (role === Role.ASSISTANT) navigate('/assistant')
-      else if (role === Role.ADMIN) navigate('/admin')
-      else navigate('/')
+  console.info('Login response user resolved as:', userObj)
+
+  dispatch(loginSuccess({ user: userObj }))
+
+  // Let the role-based useEffect handle navigation after the store updates.
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Login failed')
       dispatch(loginFailure())
