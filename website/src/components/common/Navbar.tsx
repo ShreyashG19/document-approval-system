@@ -63,7 +63,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="hidden lg:flex"
           onClick={() => navigate('/notifications')}
         >
           <Bell className="h-5 w-5" />
