@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Clock, CheckCircle2, XCircle, MessageSquare, Upload, ChevronRight } from "lucide-react"
+import { Clock, CheckCircle2, XCircle, MessageSquare, Upload, ChevronRight, User2, PlusCircleIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from '@/services/auth/useAuth'
@@ -19,10 +19,32 @@ const navigationItems = [
   { icon: MessageSquare, label: "correction", href: "/correction", count: 8 },
 ]
 
+const adminNavigationItems = [
+  { icon: User2, label: "Users", href :"/users", count: 12 },
+  { icon: PlusCircleIcon, label: "Create User", href :"/admin/create-user", count: 12 },
+]
+
+const approverNavigationItems = [...navigationItems, {icon: User2, label: "Users", href :"/users", count: 12}]
+
+
 export function Sidebar({ isOpen }: SidebarProps) {
   const pathname = useLocation().pathname
 
   const { user } = useAuth()
+
+  const displayNavigationItems = (() => {
+    if(!user) return[];
+    switch(user?.role) {
+      case "assistant":
+        return navigationItems
+      case "admin":
+        return adminNavigationItems
+      case "approver":
+        return approverNavigationItems
+      default:
+        return []
+    }
+  })();
 
   return (
     <aside
@@ -43,7 +65,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
         )}
       </div>
 
-      <ScrollArea className="flex-1">
+      {/* <ScrollArea className="flex-1">
         <nav className="space-y-1 px-2 pb-4">
           {navigationItems.map((item) => {
             const isActive = pathname === item.href
@@ -71,7 +93,40 @@ export function Sidebar({ isOpen }: SidebarProps) {
             )
           })}
         </nav>
-      </ScrollArea>
+      </ScrollArea> */}
+
+       <ScrollArea className="flex-1">
+      <nav className="space-y-1 px-2 pb-4">
+        {displayNavigationItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.label}
+              to={item.href}
+              className={cn(
+                "flex items-center gap-4 rounded-lg px-4 py-2.5 text-sm transition-colors",
+                isActive
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+              )}
+            >
+              <item.icon className="h-5 w-5 shrink-0" />
+              {isOpen && (
+                <>
+                  <span className="flex-1">{item.label}</span>
+                  <Badge
+                    variant="secondary"
+                    className="h-5 min-w-5 px-1.5 text-xs"
+                  >
+                    {item.count}
+                  </Badge>
+                </>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+    </ScrollArea>
 
       {isOpen && (
         <>

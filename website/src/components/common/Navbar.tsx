@@ -41,7 +41,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   }, [open])
   return (
     <header className="flex h-16 items-center gap-2 border-b bg-background px-3 lg:gap-4 lg:px-4">
-      <Button variant="ghost" size="icon" onClick={onMenuClick} className="hidden shrink-0 lg:flex">
+      <Button variant="ghost" size="icon" onClick={onMenuClick} className="shrink-0 lg:flex">
         <Menu className="h-5 w-5" />
       </Button>
 

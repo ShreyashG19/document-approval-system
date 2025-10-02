@@ -34,10 +34,14 @@ const router = createBrowserRouter(
                     </Route>
                     <Route element={<AuthGuard roles={["admin"]} />}>
                         <Route path="/admin" element={<DocumentPage status="pending" />} />
-                        {/* <Route path="/admin/create-user" element={<h1>Create User</h1>} /> */}
+                        <Route path="/admin/create-user" element={<h1>Create User</h1>} />
                     </Route>
                     <Route element={<AuthGuard roles={["approver"]} />}>
                         <Route path="/approver" element={<DocumentPage status="pending" />} />
+                    </Route>
+
+                    <Route element={<AuthGuard roles={["admin", "approver"]} />}>
+                        <Route path="/users" element={<h1>Users</h1>} />
                     </Route>
                 </Route>
             </Route>
