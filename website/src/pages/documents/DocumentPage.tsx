@@ -1,16 +1,29 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useDocuments } from '@/services/documents/useDocuments';
+import { useDocuments } from "@/services/documents/useDocuments";
 import useFileHandlers from "@/services/files/useFileHandlers";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { useAuth } from '@/services/auth/useAuth';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useAuth } from "@/services/auth/useAuth";
+import { DepartmentDropdown } from "@/components/common/DepartmentDropdown";
 
 const DocumentPage = ({ status }: { status?: string }) => {
   const params = useParams();
   const pageStatus = status ?? (params as any).status ?? "pending";
+  const [selectedDept, setSelectedDept] = useState("");
 
   // Use our combined hook
-  const { documents, count, query, status: reduxStatus } = useDocuments({ status: pageStatus });
+  const {
+    documents,
+    count,
+    query,
+    status: reduxStatus,
+  } = useDocuments({ status: pageStatus });
 
   // console.log("documents", documents);
 
@@ -22,26 +35,31 @@ const DocumentPage = ({ status }: { status?: string }) => {
   // Upload modal state + form
   const [open, setOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadDept, setUploadDept] = useState('');
-  const [uploadTitle, setUploadTitle] = useState('');
-  const [uploadDescription, setUploadDescription] = useState('');
+  const [uploadDept, setUploadDept] = useState("");
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadDescription, setUploadDescription] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
   // Listen for sidebar-triggered open events (desktop)
   useEffect(() => {
     const handler = () => setOpen(true);
-    window.addEventListener('openUploadModal', handler as EventListener);
-    return () => window.removeEventListener('openUploadModal', handler as EventListener);
+    window.addEventListener("openUploadModal", handler as EventListener);
+    return () =>
+      window.removeEventListener("openUploadModal", handler as EventListener);
   }, []);
 
-  if (query.isLoading || reduxStatus === 'loading') return <div>Loading documents...</div>;
-  if (query.isError || reduxStatus === 'failed') return <div className="text-red-600">Failed to load documents</div>;
+  if (query.isLoading || reduxStatus === "loading")
+    return <div>Loading documents...</div>;
+  if (query.isError || reduxStatus === "failed")
+    return <div className="text-red-600">Failed to load documents</div>;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">{pageStatus} Documents ({count})</h2>
-        {user?.role === 'assistant' && (
+        <h2 className="text-lg font-semibold">
+          {pageStatus} Documents ({count})
+        </h2>
+        {user?.role === "assistant" && (
           <button
             onClick={() => setOpen(true)}
             className="hidden sm:inline-flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded"
@@ -50,6 +68,18 @@ const DocumentPage = ({ status }: { status?: string }) => {
           </button>
         )}
       </div>
+
+      <div className="space-y-4">
+            <label className="text-sm font-medium">Department</label>
+            <DepartmentDropdown
+              value={selectedDept}
+              onChange={setSelectedDept}
+              placeholder="Choose a department"
+            />
+            <p className="text-sm text-gray-600">
+              Selected Department ID: {selectedDept || "None"}
+            </p>
+          </div>
 
       {documents.length === 0 ? (
         <p className="text-sm text-muted-foreground">No documents found.</p>
@@ -61,10 +91,15 @@ const DocumentPage = ({ status }: { status?: string }) => {
             const displayName = doc.title || fileKey || "Untitled";
 
             return (
-              <li key={key} className="p-2 border rounded flex items-center justify-between">
+              <li
+                key={key}
+                className="p-2 border rounded flex items-center justify-between"
+              >
                 <div>
                   <div className="font-medium">{displayName}</div>
-                  <div className="text-sm text-gray-600">Status: {doc.status}</div>
+                  <div className="text-sm text-gray-600">
+                    Status: {doc.status}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -81,7 +116,10 @@ const DocumentPage = ({ status }: { status?: string }) => {
                         setPreviewing(null);
                       }
                     }}
-                    disabled={!fileKey || (Boolean(previewing) && previewing !== fileKey)}
+                    disabled={
+                      !fileKey ||
+                      (Boolean(previewing) && previewing !== fileKey)
+                    }
                   >
                     {previewing === fileKey ? "Previewing..." : "Preview"}
                   </button>
@@ -98,7 +136,10 @@ const DocumentPage = ({ status }: { status?: string }) => {
                         setDownloading(null);
                       }
                     }}
-                    disabled={!fileKey || (Boolean(downloading) && downloading !== fileKey)}
+                    disabled={
+                      !fileKey ||
+                      (Boolean(downloading) && downloading !== fileKey)
+                    }
                   >
                     {downloading === fileKey ? "Downloading..." : "Download"}
                   </button>
@@ -110,7 +151,7 @@ const DocumentPage = ({ status }: { status?: string }) => {
       )}
 
       {/* Assistant-only upload modal */}
-      {user?.role === 'assistant' && (
+      {user?.role === "assistant" && (
         <>
           <button
             onClick={() => setOpen(true)}
@@ -128,7 +169,9 @@ const DocumentPage = ({ status }: { status?: string }) => {
 
               <div className="p-2 space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">PDF file</label>
+                  <label className="block text-sm font-medium mb-1">
+                    PDF file
+                  </label>
                   <input
                     type="file"
                     accept="application/pdf"
@@ -137,7 +180,9 @@ const DocumentPage = ({ status }: { status?: string }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Department</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Department
+                  </label>
                   <input
                     type="text"
                     className="w-full border rounded px-2 py-1"
@@ -147,7 +192,9 @@ const DocumentPage = ({ status }: { status?: string }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Title
+                  </label>
                   <input
                     type="text"
                     className="w-full border rounded px-2 py-1"
@@ -157,7 +204,9 @@ const DocumentPage = ({ status }: { status?: string }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Description
+                  </label>
                   <textarea
                     className="w-full border rounded px-2 py-1"
                     value={uploadDescription}
@@ -187,9 +236,9 @@ const DocumentPage = ({ status }: { status?: string }) => {
                         description: uploadDescription,
                         onSuccess: () => {
                           setUploadFile(null);
-                          setUploadDept('');
-                          setUploadTitle('');
-                          setUploadDescription('');
+                          setUploadDept("");
+                          setUploadTitle("");
+                          setUploadDescription("");
                           setOpen(false);
                           query.refetch(); // <-- refetch using React Query
                         },
@@ -198,7 +247,7 @@ const DocumentPage = ({ status }: { status?: string }) => {
                     }}
                     disabled={isUploading}
                   >
-                    {isUploading ? 'Uploading...' : 'Upload'}
+                    {isUploading ? "Uploading..." : "Upload"}
                   </button>
                 </div>
               </DialogFooter>

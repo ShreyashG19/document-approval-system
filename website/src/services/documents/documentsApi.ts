@@ -11,56 +11,68 @@ export interface DocumentItem {
   createdBy?: string
   assignedTo?: string
   createdDate?: string
+  deparment?: string
 }
 
 interface DocumentsResponse {
   documents: DocumentItem[]
   count?: number
+  total?: number
 }
 
-const fetchDocuments = async (params: Record<string, any>): Promise<DocumentsResponse> => {
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-  const resp = await axios.get(`${base}/api/file/get-documents`, {
-    params,
-    withCredentials: true,
-  })
-
-  const body = resp.data
-  const data = body?.data ?? body
-  
-  return {
-    documents: data.documents ?? data,
-    count: data.count ?? data.documents?.length ?? data.length
-  }
-}
-
-export const useFetchDocuments = (opts: { 
+export interface DocumentFilters {
   status: string
   department?: string
   startDate?: string
   endDate?: string
   sortBy?: string
   createdBy?: string
-  assignedTo?: string 
-}) => {
-  const { status, ...rest } = opts
+  assignedTo?: string
+}
+
+const fetchDocuments = async (params: Record<string, any>): Promise<DocumentsResponse> => {
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
+  const cleanParams = Object.entries(params).reduce((acc, [key, value]) => {
+    if (value !== undefined && value !== '') {
+      acc[key] = value
+    }
+    return acc
+  }, {} as Record<string, any>)
+
+  const resp = await axios.get(`${base}/api/file/get-documents`, {
+    params : cleanParams,
+    withCredentials: true,
+  })
+
+  const body = resp.data
+  console.log(body);
+  const data = body?.data ?? body
   
+  return {
+    documents: data.documents ?? data,
+    count: data.count ?? data.documents?.length ?? data.length,
+    total: data.total ?? data.count ?? data.documents?.length ?? data.length
+  }
+}
+
+export const useFetchDocuments = (filters: DocumentFilters) => {
   return useQuery({
-    queryKey: ['documents', opts],
-    queryFn: () => fetchDocuments({ status, ...rest }),
-    enabled: Boolean(status),
-    staleTime: 1000 * 60 * 5, // 5 minutes - keeps data fresh longer
-    gcTime: 1000 * 60 * 30, // 30 minutes - cache persists even when component unmounts
+    queryKey: ['documents', filters],
+    queryFn: () => fetchDocuments(filters),
+    enabled: Boolean(filters.status),
+    staleTime: 1000 * 60 * 5, 
+    gcTime: 1000 * 60 * 30,
   })
 }
 
-// Fetch counts for multiple statuses efficiently
-export const useFetchDocumentCounts = (statuses: string[]) => {
+// Fetch counts for multiple statuses
+export const useFetchDocumentCounts = (statuses: string[], additionalFilters?: Partial<DocumentFilters>) => {
   const queries = useQueries({
     queries: statuses.map(status => ({
-      queryKey: ['documents', 'count', status],
+      queryKey: ['documents', 'count', status, additionalFilters],
       queryFn: async () => {
-        const result = await fetchDocuments({ status })
+        const result = await fetchDocuments({ status, ...additionalFilters })
         return { status, count: result.count ?? 0 }
       },
       staleTime: 1000 * 60 * 5,
@@ -68,7 +80,6 @@ export const useFetchDocumentCounts = (statuses: string[]) => {
     }))
   })
 
-  // Aggregate counts from all queries
   const counts = queries.reduce((acc, query, index) => {
     if (query.data) {
       acc[statuses[index]] = query.data.count

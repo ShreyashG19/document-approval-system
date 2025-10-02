@@ -1,9 +1,10 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { type DocumentItem } from "@/services/documents/documentsApi";
+import { type DocumentFilters, type DocumentItem } from "@/services/documents/documentsApi";
 
 interface DocumetState {
   documents: DocumentItem[];
   counts: Record<string, number>;
+  filters: DocumentFilters;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
 }
@@ -11,6 +12,15 @@ interface DocumetState {
 const initialState: DocumetState = {
   documents: [],
   counts: {},
+  filters: {
+    status: '',
+    department: undefined,
+    startDate: undefined,
+    endDate: undefined,
+    sortBy: 'createdDate:desc',
+    createdBy: undefined,
+    assignedTo: undefined,
+  },
   status: "idle",
   error: null,
 };
@@ -30,6 +40,14 @@ const documentSlice = createSlice({
       state.counts[action.payload.status] = action.payload.count;
     },
 
+    setFilters: (state, action: PayloadAction<Partial<DocumentFilters>>) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+
+    resetFilters: (state) => {
+      state.filters = initialState.filters;
+    },
+
     setLoading: (state) => {
       state.status = "loading";
     },
@@ -45,5 +63,5 @@ const documentSlice = createSlice({
   },
 });
 
-export const { setDocuments, setDocumentsCount, setLoading, setSuccess, setFailure } = documentSlice.actions;
+export const { setDocuments, setDocumentsCount, setLoading, setSuccess, setFailure , setFilters, resetFilters} = documentSlice.actions;
 export default documentSlice.reducer;
