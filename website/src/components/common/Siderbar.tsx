@@ -8,47 +8,61 @@ import {
   XCircle,
   MessageSquare,
   Upload,
-  ChevronRight,
   User2,
   PlusCircleIcon,
   Home,
+  ArrowBigRightDash,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/services/auth/useAuth";
+import { useFetchDocumentCounts } from "@/services/documents/documentsApi";
 
 interface SidebarProps {
   isOpen: boolean;
 }
 
 const navigationItems = [
-  // { icon: Dock, label: "All Documents", href: "/all-documents", count: 12 },
-  { icon: Clock, label: "Pending", href: "/pending", count: 12 },
-  { icon: CheckCircle2, label: "Approved", href: "/approved", count: 45 },
-  { icon: XCircle, label: "Rejected", href: "/rejected", count: 3 },
-  { icon: MessageSquare, label: "correction", href: "/correction", count: 8 },
+  { icon: Clock, label: "Pending", href: "/pending", statusKey: "pending" },
+  {
+    icon: CheckCircle2,
+    label: "Approved",
+    href: "/approved",
+    statusKey: "approved",
+  },
+  {
+    icon: XCircle,
+    label: "Rejected",
+    href: "/rejected",
+    statusKey: "rejected",
+  },
+  {
+    icon: MessageSquare,
+    label: "correction",
+    href: "/correction",
+    statusKey: "correction",
+  },
 ];
 
 const adminNavigationItems = [
-  { icon: Home, label: "Home", href: "/admin-home", count: 12 },
-  { icon: User2, label: "Users", href: "/users", count: 12 },
+  { icon: Home, label: "Home", href: "/admin-home", statusKey: null },
+  { icon: User2, label: "Users", href: "/users", statusKey: null },
   {
     icon: PlusCircleIcon,
     label: "Create User",
     href: "/admin/create-user",
-    count: 12,
+    statusKey: null,
   },
 ];
 
 const approverNavigationItems = [
-  { icon: Home, label: "Home", href: "/approver-home", count: 12 },
+  { icon: Home, label: "Home", href: "/approver-home", statusKey: null },
   ...navigationItems,
-  { icon: User2, label: "Users", href: "/users", count: 12 },
+  { icon: User2, label: "Users", href: "/users", statusKey: null },
 ];
 
 export function Sidebar({ isOpen }: SidebarProps) {
   const pathname = useLocation().pathname;
-
   const { user } = useAuth();
 
   const displayNavigationItems = (() => {
@@ -64,6 +78,20 @@ export function Sidebar({ isOpen }: SidebarProps) {
         return [];
     }
   })();
+
+  // Extract all status keys that need counts
+  const statusKeys = displayNavigationItems
+    .map((item) => item.statusKey)
+    .filter((key): key is string => key !== null);
+
+  // Fetch all counts at once
+  const { counts, isLoading } = useFetchDocumentCounts(statusKeys);
+
+  // Calculate totals for stats section
+  const totalDocuments = Object.values(counts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
 
   return (
     <aside
@@ -90,6 +118,8 @@ export function Sidebar({ isOpen }: SidebarProps) {
         <nav className="space-y-3 px-1 pb-4">
           {displayNavigationItems.map((item) => {
             const isActive = pathname === item.href;
+            const count = item.statusKey ? counts[item.statusKey] ?? 0 : 0;
+
             return (
               <Link
                 key={item.label}
@@ -105,12 +135,14 @@ export function Sidebar({ isOpen }: SidebarProps) {
                 {isOpen && (
                   <>
                     <span className="flex-1">{item.label}</span>
-                    <Badge
-                      variant="secondary"
-                      className="h-5 min-w-5 px-1.5 text-xs"
-                    >
-                      {item.count}
-                    </Badge>
+                    {item.statusKey && (
+                      <Badge
+                        variant="secondary"
+                        className="h-5 min-w-5 px-1.5 text-xs"
+                      >
+                        {isLoading ? "..." : count}
+                      </Badge>
+                    )}
                   </>
                 )}
               </Link>
@@ -124,23 +156,12 @@ export function Sidebar({ isOpen }: SidebarProps) {
           <Separator />
           <div className="p-4">
             <div className="text-sm">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="font-medium">Document Stats</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="space-y-2 text-xs text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Total Documents</span>
-                  <span className="font-medium text-foreground">68</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>This Month</span>
-                  <span className="font-medium text-foreground">15</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Pending Review</span>
-                  <span className="font-medium text-foreground">12</span>
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium">
+                  Total Documents
+                  <ArrowBigRightDash className="h-4 w-4 text-muted-foreground inline-block ml-1" />
+                  {isLoading ? " ..." : ` ${totalDocuments}`}
+                </span>
               </div>
             </div>
           </div>
