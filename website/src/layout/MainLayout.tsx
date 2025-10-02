@@ -13,7 +13,7 @@ export default function MainLayout() {
     // Desktop toggles sidebar
     setSidebarOpen(!sidebarOpen)
     // Mobile toggles sheet menu
-    if (window.innerWidth < 1024) {
+    if (window.innerWidth < 760) {
       setMobileMenuOpen(true)
     }
   }

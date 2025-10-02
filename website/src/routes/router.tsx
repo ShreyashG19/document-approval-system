@@ -10,6 +10,10 @@ import MainLayout from "@/layout/MainLayout";
 import DocumentPage from "@/pages/documents/DocumentPage";
 import ProfilePage from '@/pages/profile/ProfilePage'
 import NotificationsPage from '@/pages/notifications/NotificationsPage'
+import AllUser from "@/pages/users/AllUser";
+import Approver from "@/pages/home/Approver";
+import Assitant from "@/pages/home/Assitant";
+import Admin from "@/pages/home/Admin";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -30,18 +34,18 @@ const router = createBrowserRouter(
                     
                     {/* Role-specific dashboard routes (role-guarded) */}
                     <Route element={<AuthGuard roles={["assistant"]} />}>
-                        <Route path="/assistant" element={<DocumentPage status="pending" />} />
+                        <Route path="/assistant-home" element={<Assitant />} />
                     </Route>
                     <Route element={<AuthGuard roles={["admin"]} />}>
-                        <Route path="/admin" element={<DocumentPage status="pending" />} />
+                        <Route path="/admin-home" element={<Admin/>} />
                         <Route path="/admin/create-user" element={<h1>Create User</h1>} />
                     </Route>
                     <Route element={<AuthGuard roles={["approver"]} />}>
-                        <Route path="/approver" element={<DocumentPage status="pending" />} />
+                        <Route path="/approver-home" element={<Approver />} />
                     </Route>
 
                     <Route element={<AuthGuard roles={["admin", "approver"]} />}>
-                        <Route path="/users" element={<h1>Users</h1>} />
+                        <Route path="/users" element={<AllUser />} />
                     </Route>
                 </Route>
             </Route>

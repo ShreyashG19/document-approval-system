@@ -23,9 +23,9 @@ const AuthGuard = ({ roles, redirectTo = "/auth" }: AuthGuardProps) => {
   // Role → default home path
   const homePath = useMemo(() => {
     const role = user?.role
-    if (role === "admin") return "/admin"
-    if (role === "assistant") return "/assistant"
-    if (role === "approver") return "/approver"
+    if (role === "admin") return "/admin-home"
+    if (role === "assistant") return "/assistant-home"
+    if (role === "approver") return "/approver-home"
     return "/pending"
   }, [user?.role])
 

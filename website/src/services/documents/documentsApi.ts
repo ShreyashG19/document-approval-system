@@ -21,6 +21,7 @@ const fetchDocuments = async (params: Record<string, any>) => {
 
   // server may return data nested; attempt to normalize
   const body = resp.data
+  console.log(body)
   return body?.data ?? body
 }
 
