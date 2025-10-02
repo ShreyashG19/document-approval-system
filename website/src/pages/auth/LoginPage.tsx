@@ -23,6 +23,24 @@ function LoginPage() {
   const location = useLocation()
   const navigatedForRole = useRef<string | null>(null)
 
+  // Generate FCM token on mount
+  useEffect(() => {
+    let isMounted = true
+    requestFCMToken()
+      .then((token) => {
+        if (isMounted && token) {
+          setDeviceToken(token)
+          console.log('FCM token generated on mount:', token)
+        }
+      })
+      .catch((err) => {
+        console.warn('FCM token not available on mount', err?.message ?? err)
+      })
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   useEffect(() => {
     const role = authUser?.role
     if (!role) {
@@ -59,26 +77,16 @@ function LoginPage() {
     setLoading(true)
     dispatch(loginStart())
 
-    // Generate FCM token
-    let token: string | null = null
-    try {
-      token = await requestFCMToken()
-      if (token) setDeviceToken(token)
-      console.log('FCM token generated:', token)
-    } catch (err: any) {
-      console.warn('FCM token not available', err?.message ?? err)
-    }
-
     try {
       const base = import.meta.env.VITE_API_URL || 'http://localhost:4000'
       const resp = await axios.post(
         `${base}/api/auth/login`,
-        { username, password, deviceToken: token ?? deviceToken },
+        { username, password, deviceToken },
         { withCredentials: true }
       )
 
-  const respBody = resp.data
-  console.debug('Login response (raw):', respBody)
+      const respBody = resp.data
+      console.debug('Login response (raw):', respBody)
       // Support multiple backend shapes. Example response shape seen:
       // { status, message, data: { data: { ...user } } }
       const userFromBody =
@@ -96,11 +104,11 @@ function LoginPage() {
         isActive: userFromBody.isActive,
       }
 
-  console.info('Login response user resolved as:', userObj)
+      console.info('Login response user resolved as:', userObj)
 
-  dispatch(loginSuccess({ user: userObj }))
+      dispatch(loginSuccess({ user: userObj }))
 
-  // Let the role-based useEffect handle navigation after the store updates.
+      // Let the role-based useEffect handle navigation after the store updates.
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Login failed')
       dispatch(loginFailure())
