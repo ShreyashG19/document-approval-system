@@ -14,7 +14,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const popRef = useRef<HTMLDivElement | null>(null)
-  const { user, logout } = useAuth()
+  const { user, logoutAsync } = useAuth()
 
   // close on outside click or Escape
   useEffect(() => {
@@ -109,9 +109,14 @@ export function Navbar({ onMenuClick }: NavbarProps) {
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Button variant="outline">Add account</Button>
                 <Button
-                  onClick={() => {
-                    // trigger logout flow
-                    logout()
+                  onClick={async () => {
+                    // trigger logout flow and navigate only after mutation resolves
+                    try {
+                      await logoutAsync()
+                    } catch (e) {
+                      // ignore and proceed to navigate to auth
+                      console.warn('Logout failed in navbar handler', e)
+                    }
                     navigate('/auth')
                   }}
                 >

@@ -13,7 +13,7 @@ export const selectAuthError = (state: RootState) => state.auth.error;
 export const selectIsAuthenticated = createSelector([selectCurrentUser], (user) => !!user);
 
 export const selectUserDetails = createSelector([selectCurrentUser], (user) => ({
-    name: user?.name,
+    name: user?.fullName,
     email: user?.email,
     role: user?.role,
     id: user?.id,

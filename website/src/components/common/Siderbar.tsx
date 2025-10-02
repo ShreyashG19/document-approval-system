@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Clock, CheckCircle2, XCircle, MessageSquare, Upload, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Link, useLocation } from "react-router-dom"
+import { useAuth } from '@/services/auth/useAuth'
 
 interface SidebarProps {
   isOpen: boolean
@@ -15,11 +16,13 @@ const navigationItems = [
   { icon: Clock, label: "Pending", href: "/pending", count: 12 },
   { icon: CheckCircle2, label: "Approved", href: "/approved", count: 45 },
   { icon: XCircle, label: "Rejected", href: "/rejected", count: 3 },
-  { icon: MessageSquare, label: "Remarked", href: "/remarked", count: 8 },
+  { icon: MessageSquare, label: "correction", href: "/correction", count: 8 },
 ]
 
 export function Sidebar({ isOpen }: SidebarProps) {
   const pathname = useLocation().pathname
+
+  const { user } = useAuth()
 
   return (
     <aside
@@ -29,10 +32,15 @@ export function Sidebar({ isOpen }: SidebarProps) {
       )}
     >
       <div className="p-4">
-        <Button className="w-full justify-start gap-3 rounded-lg shadow-md">
-          <Upload className="h-5 w-5" />
-          {isOpen && <span>Upload Document</span>}
-        </Button>
+        {user?.role === 'assistant' && (
+          <Button
+            className="w-full justify-start gap-3 rounded-lg shadow-md"
+            onClick={() => window.dispatchEvent(new CustomEvent('openUploadModal'))}
+          >
+            <Upload className="h-5 w-5" />
+            {isOpen && <span>Upload Document</span>}
+          </Button>
+        )}
       </div>
 
       <ScrollArea className="flex-1">

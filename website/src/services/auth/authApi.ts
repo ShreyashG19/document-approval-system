@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
 import { useAppDispatch } from '@/store/hooks';
 import { loginSuccess, loginFailure, logout } from '@/services/auth/authSlice';
+import { clearCache } from '@/services/encryption/encryptionSlice'
 import { queryKeys } from '../../lib/constants/queryKeys';
 
 interface User {
@@ -35,17 +36,20 @@ interface ApiError {
 }
 
 const loginUser = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await axios.post<AuthResponse>('/api/auth/login', credentials);
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    const response = await axios.post<AuthResponse>(`${base}/api/auth/login`, credentials, { withCredentials: true });
     return response.data;
 };
 
 const registerUser = async (userData: RegisterData): Promise<AuthResponse> => {
-    const response = await axios.post<AuthResponse>('/api/auth/register', userData);
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    const response = await axios.post<AuthResponse>(`${base}/api/auth/register`, userData, { withCredentials: true });
     return response.data;
 };
 
 const logoutUser = async (): Promise<void> => {
-    await axios.post('/api/auth/logout');
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    await axios.post(`${base}/api/auth/logout`, {}, { withCredentials: true });
 };
 
 export const useAuthApi = () => {
@@ -94,10 +98,33 @@ export const useAuthApi = () => {
 
             //clear all cached queries except configurations
             queryClient.clear();
+            // clear any client-side persisted tokens and encryption cache
+            try {
+                localStorage.removeItem('token')
+                localStorage.removeItem('deviceToken')
+            } catch (e) {
+                console.warn('Failed to remove localStorage items during logout', e)
+            }
+            try {
+                dispatch(clearCache())
+            } catch (e) {
+                console.warn('Failed to clear encryption cache', e)
+            }
         },
         onError: (error: AxiosError<ApiError> | unknown) => {
             const msg = (error as AxiosError<ApiError>)?.response?.data?.message || (error as Error).message;
             console.log('Logout failed', msg);
+        },
+        onSettled: async () => {
+            // try to unregister firebase service worker if present
+            try {
+                if ('serviceWorker' in navigator) {
+                    const reg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+                    if (reg) await reg.unregister()
+                }
+            } catch (e) {
+                console.warn('Failed to unregister service worker during logout', e)
+            }
         },
     });
 
