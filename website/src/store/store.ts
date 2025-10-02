@@ -3,12 +3,14 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import authReducer from '@/services/auth/authSlice';
 import encryptionReducer from '@/services/encryption/encryptionSlice'
 import documentReducer from "@/services/documents/documentSlice"
+import departmentReducer from "@/services/departments/departmentSlice"
 
 export const store = configureStore({
     reducer: {
         auth: authReducer,
         encryption: encryptionReducer,
-        documents: documentReducer
+        documents: documentReducer,
+        department: departmentReducer
     },
 });
 

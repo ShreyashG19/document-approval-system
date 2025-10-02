@@ -1,41 +1,59 @@
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import {
     selectDocuments,
-    selectDocumentCount,
     selectDocumentStatus,
     selectDocumentError,
+    selectDocumentFilters,
 } from './documentSelectors';
 import { useEffect } from 'react';
-import { useFetchDocuments } from '@/services/documents/documentsApi';
-import { setDocuments, setDocumentsCount } from '@/services/documents/documentSlice';
+import { useFetchDocuments, type DocumentFilters } from '@/services/documents/documentsApi';
+import { setDocuments, setDocumentsCount, setFilters } from '@/services/documents/documentSlice';
 
-export const useDocuments = (opts: { status: string; department?: string }) => {
+export const useDocuments = (overrideFilters?: Partial<DocumentFilters>) => {
     const dispatch = useAppDispatch();
+    const reduxFilters = useAppSelector(selectDocumentFilters);
+    
+    // Merge Redux filters with any override filters
+    const activeFilters: DocumentFilters = {
+      ...reduxFilters,
+      ...overrideFilters,
+    };
 
     // React Query fetch
-    const query = useFetchDocuments(opts);
+    const query = useFetchDocuments(activeFilters);
 
-    // Update count in Redux whenever new data arrives
+    // Update Redux when new data arrives
     useEffect(() => {
         if (query.data?.documents) {
             dispatch(setDocuments(query.data.documents));
-            dispatch(setDocumentsCount({ status: opts.status, count: query.data.documents.length }));
+            dispatch(setDocumentsCount({ 
+              status: activeFilters.status, 
+              count: query.data.count ?? 0 
+            }));
         }
-    }, [query.data, dispatch, opts.status]);
+    }, [query.data, dispatch, activeFilters.status]);
 
     // Redux state
     const documents = useAppSelector(selectDocuments);
-    const count = useAppSelector(selectDocumentCount(opts.status));
     const status = useAppSelector(selectDocumentStatus);
     const error = useAppSelector(selectDocumentError);
+
+    const updateFilters = (newFilters: Partial<DocumentFilters>) => {
+        dispatch(setFilters(newFilters));
+    };
 
     return {
         // Query data
         query,
         // Redux data
         documents,
-        count,
+        count: query.data?.count ?? 0,
         status,
         error,
+        filters: activeFilters,
+        updateFilters,
+        isLoading: query.isLoading,
+        isError: query.isError,
+        refetch: query.refetch,
     };
 };
