@@ -19,7 +19,6 @@ export function MobileNav() {
   const pathname = useLocation().pathname
   const { user } = useAuth()
 
-  // Pick correct nav set
   const displayNavItems =
     user?.role === "assistant" || user?.role === "approver"
       ? navItems
@@ -30,10 +29,8 @@ export function MobileNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background md:hidden">
       <div
-        className={cn(
-          "grid",
-          `grid-cols-${displayNavItems.length}` // adjusts grid size automatically
-        )}
+        className="grid w-full"
+        style={{ gridTemplateColumns: `repeat(${displayNavItems.length}, 1fr)` }}
       >
         {displayNavItems.map((item) => {
           const isActive = pathname === item.href
@@ -42,7 +39,7 @@ export function MobileNav() {
               key={item.label}
               to={item.href}
               className={cn(
-                "flex flex-col items-center gap-1 py-3 text-xs transition-colors",
+                "flex flex-col items-center justify-center gap-1 py-3 text-xs w-full",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
@@ -55,3 +52,4 @@ export function MobileNav() {
     </nav>
   )
 }
+
