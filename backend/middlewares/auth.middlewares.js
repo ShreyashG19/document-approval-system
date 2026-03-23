@@ -5,6 +5,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const createApiError = require("../utils/createApiError");
 const { Role } = require("../utils/enums");
 const jwt = require("jsonwebtoken");
+const config = require("../config/appConfig");
 const {
     usernameSchema,
     fullNameSchema,
@@ -131,15 +132,12 @@ const passwordValidator = (req, res, next) => {
 //     }
 // });
 const verifySession = asyncHandler(async (req, res, next) => {
-    // const token =
-    //     req.cookies.token || req.headers?.authorization?.split(" ")[1];
-    const token = req.cookies.token;
+    const token = req.headers?.authorization?.split(" ")[1];
 
     if (token) {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, config.jwtSecret);
         req.session = await Session.findOne({ jti: decoded.jti });
         if (!req.session) {
-            res.clearCookie("token");
             throw createApiError(401, "User not logged in");
         }
         next();
@@ -148,10 +146,9 @@ const verifySession = asyncHandler(async (req, res, next) => {
     }
 });
 const verifyAlreadyLoggedIn = asyncHandler(async (req, res, next) => {
-    const token = req.cookies.token;
-    console.log(token);
+    const token = req.headers?.authorization?.split(" ")[1];
     if (token) {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, config.jwtSecret);
         req.session = await Session.findOne({ jti: decoded.jti });
         if (req.session) {
             throw createApiError(400, "User already logged in");
