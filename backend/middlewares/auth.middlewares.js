@@ -161,7 +161,7 @@ const verifyAlreadyLoggedIn = asyncHandler(async (req, res, next) => {
 
 const authorizeRoles = (roles) => (req, res, next) => {
     if (!roles.includes(req.session.role)) {
-        throw createApiError(401, "Access Denied!");
+        throw createApiError(403, "Access Denied!");
     }
     next();
 };

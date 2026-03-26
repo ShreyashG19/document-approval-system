@@ -76,7 +76,7 @@ const login = asyncHandler(async (req, res) => {
     });
     return res.status(200).json(
         new ApiResponse(200, "Login success!", {
-            data: {
+            user: {
                 username: user.username,
                 email: user.email,
                 role: user.role,
@@ -84,6 +84,7 @@ const login = asyncHandler(async (req, res) => {
                 mobileNo: user.mobileNo,
                 isActive: user.isActive,
             },
+            token: token,
         }),
     );
 });
@@ -104,7 +105,7 @@ const getSession = asyncHandler(async (req, res) => {
     }
     return res.status(200).json(
         new ApiResponse(200, "User is logged in", {
-            data: {
+            user: {
                 username: user.username,
                 email: user.email,
                 role: user.role,
